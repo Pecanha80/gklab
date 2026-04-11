@@ -1,0 +1,8 @@
+{
+  "name": "GKLAB",
+  "description": "A professional-grade command center for goalkeeper coaches to plan sessions, analyze performance, and manage squads.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

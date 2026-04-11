@@ -1,0 +1,13 @@
+-- Update Sessions Table to match the new TrainingSession interface
+ALTER TABLE sessions
+ADD COLUMN IF NOT EXISTS date TEXT,
+ADD COLUMN IF NOT EXISTS category TEXT,
+ADD COLUMN IF NOT EXISTS "numAthletes" INTEGER,
+ADD COLUMN IF NOT EXISTS duration TEXT,
+ADD COLUMN IF NOT EXISTS "generalObjective" TEXT,
+ADD COLUMN IF NOT EXISTS objectives JSONB,
+ADD COLUMN IF NOT EXISTS warmup JSONB,
+ADD COLUMN IF NOT EXISTS exercises JSONB,
+ADD COLUMN IF NOT EXISTS "integratedWithTeam" JSONB,
+ADD COLUMN IF NOT EXISTS "coolDown" TEXT,
+ADD COLUMN IF NOT EXISTS observations JSONB;

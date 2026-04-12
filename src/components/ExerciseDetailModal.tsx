@@ -13,24 +13,24 @@ interface ExerciseDetailModalProps {
 
 function getTypeBadgeClasses(type: Exercise['type']): string {
   switch (type) {
-    case 'Analytical':
+    case 'analytical':
       return 'bg-secondary/10 text-secondary';
-    case 'Decision':
+    case 'decision':
       return 'bg-tertiary/10 text-tertiary';
-    case 'Contextualized':
+    case 'contextualized':
       return 'bg-primary/10 text-primary';
-    case 'Warmup':
+    case 'warmup':
       return 'bg-error/10 text-error';
   }
 }
 
 function getIntensityClasses(intensity: Exercise['intensity']): string {
   switch (intensity) {
-    case 'Low':
+    case 'low':
       return 'bg-tertiary/10 text-tertiary';
-    case 'Medium':
+    case 'medium':
       return 'bg-secondary/10 text-secondary';
-    case 'High':
+    case 'high':
       return 'bg-error/10 text-error';
   }
 }

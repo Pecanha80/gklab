@@ -14,11 +14,19 @@ export const QuickSelect = ({
   selectedValues = []
 }: {
   options: string[],
-  onSelect: (val: string | string[]) => void,
+  onSelect: (val: string) => void,
   label: string,
   onDelete?: (val: string) => void,
   isDeletable?: (val: string) => boolean,
-  multiSelect?: boolean,
+  multiSelect?: false,
+  selectedValues?: string[]
+} | {
+  options: string[],
+  onSelect: (val: string[]) => void,
+  label: string,
+  onDelete?: (val: string) => void,
+  isDeletable?: (val: string) => boolean,
+  multiSelect: true,
   selectedValues?: string[]
 }) => {
   const { t } = useTranslation();
@@ -79,12 +87,12 @@ export const QuickSelect = ({
                       onClick={() => {
                         if (multiSelect) {
                           const isSelected = selectedValues.includes(opt);
-                          const newValue = isSelected 
+                          const newValue = isSelected
                             ? selectedValues.filter(v => v !== opt)
                             : [...selectedValues, opt];
-                          onSelect(newValue);
+                          (onSelect as (val: string[]) => void)(newValue);
                         } else {
-                          onSelect(opt);
+                          (onSelect as (val: string) => void)(opt);
                           setIsOpen(false);
                         }
                         setSearchTerm('');

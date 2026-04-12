@@ -442,5 +442,154 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
         intensity: 'medium',
       }
     ]
+  },
+  'standaloneDrills': {
+    generalObjectives: ['improveOverallHandlingPositioning'],
+    exercises: [
+      {
+        id: crypto.randomUUID(),
+        type: 'warmup',
+        title: 'warmupMobilityActivation',
+        objective: 'prepareMusclesExplosive',
+        organization: 'sixYardBoxHurdlesAgilityLadder',
+        execution: 'dynamicStretchingLightHandling',
+        progression: 'increaseShotSpeed',
+        successCriteria: 'maintainingBalanceSetPosition',
+        duration: 'dur_15min',
+        intensity: 'medium'
+      },
+      {
+        id: crypto.randomUUID(),
+        type: 'analytical',
+        title: 'lowShotHandlingVolleys',
+        objective: 'enhanceReactionSpeedCloseRangeShots',
+        organization: 'smallGoalOneServerFiveBalls',
+        execution: 'gkPerformsLadderFootworkThenDives',
+        progression: 'increaseVolleySpeedLateral',
+        successCriteria: 'cleanCatchNoDrops',
+        duration: 'dur_15min',
+        intensity: 'medium'
+      },
+      {
+        id: crypto.randomUUID(),
+        type: 'analytical',
+        title: 'lateralDivesCentralShots',
+        objective: 'focusSetPositionDiving',
+        organization: 'penaltyAreaOneCoachTenBalls',
+        execution: 'serverShootsFromEdgeSaves',
+        progression: 'increaseShotSpeedHurdle',
+        successCriteria: 'cleanSaveParrySafe',
+        duration: 'dur_20min',
+        intensity: 'high'
+      },
+      {
+        id: crypto.randomUUID(),
+        type: 'analytical',
+        title: 'uncontestedHighCrosses',
+        objective: 'developTimingTrajectoryReadingConfidence',
+        organization: 'fullGoalTwoWingersCrossing',
+        execution: 'gkClaimsCrossAtHighestPoint',
+        progression: 'increaseDistanceAngleCrossShot',
+        successCriteria: 'attackingBallAtHighestPoint',
+        duration: 'dur_20min',
+        intensity: 'medium'
+      },
+      {
+        id: crypto.randomUUID(),
+        type: 'decision',
+        title: 'aerialDominanceWithPressure',
+        objective: 'developTimingTrajectoryReadingConfidence',
+        organization: 'penaltyAreaMannequinsSimulatingTraffic',
+        execution: 'gkClaimsCrossAtHighestPoint',
+        progression: 'introduceActivePressureFromStriker',
+        successCriteria: 'firmCatchWithoutRebounds',
+        duration: 'dur_20min',
+        intensity: 'high'
+      },
+      {
+        id: crypto.randomUUID(),
+        type: 'analytical',
+        title: 'distributionShortLong',
+        objective: 'increaseDistributionRangeAccuracyFeet',
+        organization: 'fullPitchTargetsAt30m50m70m',
+        execution: 'gkClaimsCrossAtHighestPoint',
+        progression: 'requireSpecificDistributionType',
+        successCriteria: 'cleanDistributionReachingTargetZone',
+        duration: 'dur_15min',
+        intensity: 'medium'
+      },
+      {
+        id: crypto.randomUUID(),
+        type: 'decision',
+        title: 'buildupUnderPressure',
+        objective: 'increaseDistributionRangeAccuracyFeet',
+        organization: 'oneVOneZoneBoxEdgeToGoal',
+        execution: 'serverPlaysThroughBallGkMustDecide',
+        progression: 'introduceActivePressureFromStriker',
+        successCriteria: 'correctDecisionMaking90Percent',
+        duration: 'dur_20min',
+        intensity: 'high'
+      },
+      {
+        id: crypto.randomUUID(),
+        type: 'decision',
+        title: 'shotStoppingReactions',
+        objective: 'enhanceReactionSpeedCloseRangeShots',
+        organization: 'penaltyAreaMannequinsSimulatingTraffic',
+        execution: 'serverShootsThroughMannequins',
+        progression: 'reduceReactionTimeDistanceShot',
+        successCriteria: 'cleanSaveParrySafe',
+        duration: 'dur_15min',
+        intensity: 'high'
+      },
+      {
+        id: crypto.randomUUID(),
+        type: 'analytical',
+        title: 'doubleSavesRecovery',
+        objective: 'improveAbilityRecoverQuicklySecondarySaves',
+        organization: 'penaltyAreaOneCoachTenBalls',
+        execution: 'gkMakesInitialDivingSaveQuicklyRecovers',
+        progression: 'addSecondBallImmediatelyAfterFirstSave',
+        successCriteria: 'noReboundsConcededDangerousAreas',
+        duration: 'dur_20min',
+        intensity: 'high'
+      },
+      {
+        id: crypto.randomUUID(),
+        type: 'decision',
+        title: 'tacticalPositioningScenario',
+        objective: 'enhanceDecisionMakingSweeperKeeper',
+        organization: 'oneVOneZoneBoxEdgeToGoal',
+        execution: 'serverPlaysThroughBallGkMustDecide',
+        progression: 'introduceActivePressureFromStriker',
+        successCriteria: 'correctDecisionMaking90Percent',
+        duration: 'dur_20min',
+        intensity: 'high'
+      },
+      {
+        id: crypto.randomUUID(),
+        type: 'analytical',
+        title: 'topCornerExtensionDives',
+        objective: 'buildExplosiveLegPower',
+        organization: 'penaltyAreaOneCoachTenBalls',
+        execution: 'serverShootsFromEdgeSaves',
+        progression: 'increaseShotSpeed',
+        successCriteria: 'cleanSaveParrySafe',
+        duration: 'dur_15min',
+        intensity: 'high'
+      },
+      {
+        id: crypto.randomUUID(),
+        type: 'decision',
+        title: 'overarmThrowsRollsUnderPressure',
+        objective: 'improveQuickDistributionHands',
+        organization: 'fullPitchTargetsAt30m50m70m',
+        execution: 'gkClaimsCrossAtHighestPoint',
+        progression: 'introduceActivePressureFromStriker',
+        successCriteria: 'cleanDistributionReachingTargetZone',
+        duration: 'dur_15min',
+        intensity: 'medium'
+      }
+    ]
   }
 };

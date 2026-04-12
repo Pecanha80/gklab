@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Stage, Layer, Image, Circle, Line, Text, Group, Arrow, Rect } from 'react-konva';
+import { Stage, Layer, Image, Circle, Line, Text, Group, Arrow, Rect, Arc } from 'react-konva';
 import { 
   Save, 
   Trash2, 
@@ -39,25 +39,134 @@ interface TacticalBoardProps {
   initialData?: string;
 }
 
-const FIELD_TYPE_URLS = {
-  full: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=2000',
-  half: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&q=80&w=2000',
-  area: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&q=80&w=2000',
+const GrassStripes = ({ width, height, count, horizontal = false }: { width: number, height: number, count: number, horizontal?: boolean }) => {
+  const stripeSize = horizontal ? height / count : width / count;
+  return (
+    <Group>
+      <Rect x={0} y={0} width={width} height={height} fill="#62A849" />
+      {[...Array(Math.ceil(count / 2))].map((_, i) => (
+        <Rect
+          key={i}
+          x={horizontal ? 0 : i * 2 * stripeSize}
+          y={horizontal ? i * 2 * stripeSize : 0}
+          width={horizontal ? width : stripeSize}
+          height={horizontal ? stripeSize : height}
+          fill="#52993C"
+        />
+      ))}
+    </Group>
+  );
+};
+
+const SoccerFieldBackground = ({ type, width, height }: { type: string, width: number, height: number }) => {
+  const strokeColor = "rgba(255, 255, 255, 0.7)";
+  const strokeWidth = 2;
+  const m = 40;
+
+  if (type === 'full') {
+    const fw = width - m * 2;
+    const fh = height - m * 2;
+    const cx = width / 2;
+    const cy = height / 2;
+    const penW = fw * 0.16;
+    const penH = fh * 0.6;
+    const goalAreaW = fw * 0.055;
+    const goalAreaH = fh * 0.26;
+    const goalW = 20;
+    const goalH = fh * 0.12;
+
+    return (
+      <Group>
+        <GrassStripes width={width} height={height} count={18} />
+        <Rect x={m} y={m} width={fw} height={fh} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Line points={[cx, m, cx, height - m]} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Circle x={cx} y={cy} radius={fh * 0.15} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Circle x={cx} y={cy} radius={3} fill={strokeColor} />
+        
+        {/* Left Side */}
+        <Rect x={m} y={cy - penH/2} width={penW} height={penH} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Rect x={m} y={cy - goalAreaH/2} width={goalAreaW} height={goalAreaH} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Rect x={m - goalW} y={cy - goalH/2} width={goalW} height={goalH} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Arc x={m + penW * 0.68} y={cy} innerRadius={fh * 0.15} outerRadius={fh * 0.15} angle={100} rotation={-50} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Circle x={m + penW * 0.68} y={cy} radius={2} fill={strokeColor} />
+
+        {/* Right Side */}
+        <Rect x={width - m - penW} y={cy - penH/2} width={penW} height={penH} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Rect x={width - m - goalAreaW} y={cy - goalAreaH/2} width={goalAreaW} height={goalAreaH} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Rect x={width - m} y={cy - goalH/2} width={goalW} height={goalH} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Arc x={width - m - penW * 0.68} y={cy} innerRadius={fh * 0.15} outerRadius={fh * 0.15} angle={100} rotation={130} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Circle x={width - m - penW * 0.68} y={cy} radius={2} fill={strokeColor} />
+      </Group>
+    );
+  }
+
+  if (type === 'half') {
+    const fw = width - m * 2;
+    const fh = height - m * 2;
+    const cx = width / 2;
+    const penW = fw * 0.65;
+    const penH = fh * 0.35;
+    const goalAreaW = fw * 0.30;
+    const goalAreaH = fh * 0.12;
+    const goalW = fw * 0.15;
+    const goalH = 20;
+
+    return (
+      <Group>
+        <GrassStripes width={width} height={height} count={10} horizontal={true} />
+        <Line points={[m, m, width - m, m, width - m, height - m, m, height - m, m, m]} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Line points={[m, height - m, width - m, height - m]} stroke={strokeColor} strokeWidth={strokeWidth * 2} />
+        <Arc x={cx} y={height - m} innerRadius={fw * 0.15} outerRadius={fw * 0.15} angle={180} rotation={180} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Circle x={cx} y={height - m} radius={4} fill={strokeColor} />
+
+        <Rect x={cx - penW/2} y={m} width={penW} height={penH} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Arc x={cx} y={m + penH * 0.65} innerRadius={fw * 0.15} outerRadius={fw * 0.15} angle={110} rotation={35} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Circle x={cx} y={m + penH * 0.65} radius={3} fill={strokeColor} />
+        <Rect x={cx - goalAreaW/2} y={m} width={goalAreaW} height={goalAreaH} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Rect x={cx - goalW/2} y={m - goalH} width={goalW} height={goalH} stroke={strokeColor} strokeWidth={strokeWidth} />
+      </Group>
+    );
+  }
+
+  if (type === 'area') {
+    const fw = width - m * 2;
+    const fh = height - m * 2;
+    const cx = width / 2;
+    const penW = fw * 0.9;
+    const penH = fh * 0.7;
+    const goalAreaW = fw * 0.45;
+    const goalAreaH = fh * 0.25;
+    const goalW = fw * 0.20;
+    const goalH = 25;
+
+    return (
+      <Group>
+        <GrassStripes width={width} height={height} count={8} horizontal={true} />
+        <Line points={[m, m, width - m, m]} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Rect x={cx - penW/2} y={m} width={penW} height={penH} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Arc x={cx} y={m + penH * 0.65} innerRadius={fw * 0.2} outerRadius={fw * 0.2} angle={110} rotation={35} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Circle x={cx} y={m + penH * 0.65} radius={4} fill={strokeColor} />
+        <Rect x={cx - goalAreaW/2} y={m} width={goalAreaW} height={goalAreaH} stroke={strokeColor} strokeWidth={strokeWidth} />
+        <Rect x={cx - goalW/2} y={m - goalH} width={goalW} height={goalH} stroke={strokeColor} strokeWidth={strokeWidth} />
+      </Group>
+    );
+  }
+
+  return null;
 };
 
 export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, initialData }) => {
   const { t } = useTranslation();
 
   const FIELD_TYPES = [
-    { id: 'full', label: t('fullPitch'), url: FIELD_TYPE_URLS.full },
-    { id: 'half', label: t('halfPitch'), url: FIELD_TYPE_URLS.half },
-    { id: 'area', label: t('penaltyArea'), url: FIELD_TYPE_URLS.area },
+    { id: 'full', label: t('fullPitch') },
+    { id: 'half', label: t('halfPitch') },
+    { id: 'area', label: t('penaltyArea') },
   ];
   const [elements, setElements] = useState<TacticalElement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tool, setTool] = useState<'select' | 'text' | 'arrow' | 'shape'>('select');
   const [fieldType, setFieldType] = useState('full');
-  const [fieldImage] = useImage(FIELD_TYPES.find(f => f.id === fieldType)?.url || '');
   const stageRef = useRef<any>(null);
 
   const addElement = (type: TacticalElement['type'], color: string = '#3b82f6', label: string = '') => {
@@ -244,14 +353,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                 }}
               >
                 <Layer>
-                  {fieldImage && (
-                    <Image 
-                      image={fieldImage} 
-                      width={800} 
-                      height={600} 
-                      opacity={0.8}
-                    />
-                  )}
+                  <SoccerFieldBackground type={fieldType} width={800} height={600} />
                   
                   {elements.map((el) => {
                     const isSelected = el.id === selectedId;

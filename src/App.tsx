@@ -26,7 +26,8 @@ import {
   Download,
   Filter,
   Dumbbell as DumbbellIcon,
-  Globe
+  Globe,
+  FileImage
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
@@ -221,7 +222,7 @@ export default function App() {
   const handleAddSession = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    addCustomPreset('sessionTitles', newSession.title, PRESETS.sessionTitles);
+    addCustomPreset('sessionTitles', newSession.titles[0] || '', PRESETS.sessionTitles);
     addCustomPreset('categories', newSession.category, PRESETS.categories);
     newSession.generalObjectives.forEach(obj => addCustomPreset('generalObjectives', obj, PRESETS.objectives.general));
     addCustomPreset('technical', newSession.objectives.technical, PRESETS.objectives.technical);
@@ -381,7 +382,7 @@ export default function App() {
     } else {
       setCurrentDrill(prev => ({ 
         ...prev, 
-        title,
+        title: t(title as any),
         ...(title.trim() === '' ? {
           objective: '',
           organization: '',
@@ -722,7 +723,7 @@ export default function App() {
                             <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent" />
                             <div className="absolute bottom-4 left-4">
                               <span className="bg-primary/90 text-on-primary text-[10px] px-2 py-1 font-bold rounded mb-1 inline-block">{t('liveSession')}</span>
-                              <h4 className="text-xl font-black font-headline">{sessions[0].title}</h4>
+                              <h4 className="text-xl font-black font-headline">{sessions[0].titles?.[0] || ''}</h4>
                             </div>
                           </div>
                           <div className="md:col-span-2 p-6 space-y-6">
@@ -751,7 +752,7 @@ export default function App() {
                               </div>
                             </div>
                             <div className="space-y-4">
-                              <p className="text-xs text-on-surface-variant font-body leading-relaxed">{sessions[0].generalObjective}</p>
+                              <p className="text-xs text-on-surface-variant font-body leading-relaxed">{sessions[0].generalObjectives?.map(o => t(o as any)).join(', ')}</p>
                               <div className="flex gap-3">
                                 <button onClick={() => setViewingSession(sessions[0])} className="bg-surface-container-highest border border-black/5 hover:bg-black/10 text-on-surface px-4 py-2 rounded-md font-label text-[11px] font-bold transition-all">{t('viewDrillPack')}</button>
                                 <button onClick={() => setActiveTab('Training')} className="bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20 px-4 py-2 rounded-md font-label text-[11px] font-bold transition-all">{t('setTargets')}</button>
@@ -830,27 +831,7 @@ export default function App() {
                 </div>
 
                 <AnimatePresence>
-                  {isTacticalBoardOpen && (
-                    <TacticalBoard
-                      onClose={() => setIsTacticalBoardOpen(false)}
-                      onSave={(dataUrl) => {
-                        if (editingDrillId) {
-                          setNewSession(prev => ({
-                            ...prev,
-                            warmup: drillContext === 'warmup'
-                              ? prev.warmup.map(d => d.id === editingDrillId ? { ...d, diagram: dataUrl } : d)
-                              : prev.warmup,
-                            exercises: drillContext === 'main'
-                              ? prev.exercises.map(d => d.id === editingDrillId ? { ...d, diagram: dataUrl } : d)
-                              : prev.exercises
-                          }));
-                        } else {
-                          setCurrentDrill(prev => ({ ...prev, diagram: dataUrl }));
-                        }
-                        setIsTacticalBoardOpen(false);
-                      }}
-                    />
-                  )}
+
                   {isSelectingFromLibrary && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                       <motion.div
@@ -1209,7 +1190,7 @@ export default function App() {
                                         <QuickSelect
                                           label="Presets"
                                           options={getOptions('drillObjectives', PRESETS.drills.objectives)}
-                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, objective: val })}
+                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, objective: t(val as any) })}
                                           onDelete={(val) => removeCustomPreset('drillObjectives', val)}
                                           isDeletable={(val) => customPresets.drillObjectives.includes(val)}
                                         />
@@ -1279,7 +1260,7 @@ export default function App() {
                                         <QuickSelect
                                           label="Presets"
                                           options={getOptions('drillOrganizations', PRESETS.drills.organizations)}
-                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, organization: val })}
+                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, organization: t(val as any) })}
                                           onDelete={(val) => removeCustomPreset('drillOrganizations', val)}
                                           isDeletable={(val) => customPresets.drillOrganizations.includes(val)}
                                         />
@@ -1415,7 +1396,7 @@ export default function App() {
                                         <QuickSelect
                                           label="Presets"
                                           options={getOptions('drillObjectives', PRESETS.drills.objectives)}
-                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, objective: val })}
+                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, objective: t(val as any) })}
                                           onDelete={(val) => removeCustomPreset('drillObjectives', val)}
                                           isDeletable={(val) => customPresets.drillObjectives.includes(val)}
                                         />
@@ -1495,7 +1476,7 @@ export default function App() {
                                         <QuickSelect
                                           label="Presets"
                                           options={getOptions('drillOrganizations', PRESETS.drills.organizations)}
-                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, organization: val })}
+                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, organization: t(val as any) })}
                                           onDelete={(val) => removeCustomPreset('drillOrganizations', val)}
                                           isDeletable={(val) => customPresets.drillOrganizations.includes(val)}
                                         />
@@ -1513,7 +1494,7 @@ export default function App() {
                                         <QuickSelect
                                           label="Presets"
                                           options={getOptions('drillExecutions', PRESETS.drills.executions)}
-                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, execution: val })}
+                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, execution: t(val as any) })}
                                           onDelete={(val) => removeCustomPreset('drillExecutions', val)}
                                           isDeletable={(val) => customPresets.drillExecutions.includes(val)}
                                         />
@@ -1533,7 +1514,7 @@ export default function App() {
                                         <QuickSelect
                                           label="Presets"
                                           options={getOptions('drillProgressions', PRESETS.drills.progressions)}
-                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, progression: val })}
+                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, progression: t(val as any) })}
                                           onDelete={(val) => removeCustomPreset('drillProgressions', val)}
                                           isDeletable={(val) => customPresets.drillProgressions.includes(val)}
                                         />
@@ -1551,7 +1532,7 @@ export default function App() {
                                         <QuickSelect
                                           label="Presets"
                                           options={getOptions('drillSuccessCriteria', PRESETS.drills.successCriteria)}
-                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, successCriteria: val })}
+                                          onSelect={(val) => setCurrentDrill({ ...currentDrill, successCriteria: t(val as any) })}
                                           onDelete={(val) => removeCustomPreset('drillSuccessCriteria', val)}
                                           isDeletable={(val) => customPresets.drillSuccessCriteria.includes(val)}
                                         />
@@ -1965,7 +1946,7 @@ export default function App() {
                               <QuickSelect
                                 label={t('presets')}
                                 options={getOptions('drillObjectives', PRESETS.drills.objectives)}
-                                onSelect={(val) => setCurrentDrill({ ...currentDrill, objective: val })}
+                                onSelect={(val) => setCurrentDrill({ ...currentDrill, objective: t(val as any) })}
                                 onDelete={(val) => removeCustomPreset('drillObjectives', val)}
                                 isDeletable={(val) => customPresets.drillObjectives.includes(val)}
                               />
@@ -1978,7 +1959,7 @@ export default function App() {
                               <QuickSelect
                                 label={t('presets')}
                                 options={getOptions('drillOrganizations', PRESETS.drills.organizations)}
-                                onSelect={(val) => setCurrentDrill({ ...currentDrill, organization: val })}
+                                onSelect={(val) => setCurrentDrill({ ...currentDrill, organization: t(val as any) })}
                                 onDelete={(val) => removeCustomPreset('drillOrganizations', val)}
                                 isDeletable={(val) => customPresets.drillOrganizations.includes(val)}
                               />
@@ -1992,7 +1973,7 @@ export default function App() {
                             <QuickSelect
                               label={t('presets')}
                               options={getOptions('drillExecutions', PRESETS.drills.executions)}
-                              onSelect={(val) => setCurrentDrill({ ...currentDrill, execution: val })}
+                              onSelect={(val) => setCurrentDrill({ ...currentDrill, execution: t(val as any) })}
                               onDelete={(val) => removeCustomPreset('drillExecutions', val)}
                               isDeletable={(val) => customPresets.drillExecutions.includes(val)}
                             />
@@ -2006,7 +1987,7 @@ export default function App() {
                               <QuickSelect
                                 label={t('presets')}
                                 options={getOptions('drillProgressions', PRESETS.drills.progressions)}
-                                onSelect={(val) => setCurrentDrill({ ...currentDrill, progression: val })}
+                                onSelect={(val) => setCurrentDrill({ ...currentDrill, progression: t(val as any) })}
                                 onDelete={(val) => removeCustomPreset('drillProgressions', val)}
                                 isDeletable={(val) => customPresets.drillProgressions.includes(val)}
                               />
@@ -2019,7 +2000,7 @@ export default function App() {
                               <QuickSelect
                                 label={t('presets')}
                                 options={getOptions('drillSuccessCriteria', PRESETS.drills.successCriteria)}
-                                onSelect={(val) => setCurrentDrill({ ...currentDrill, successCriteria: val })}
+                                onSelect={(val) => setCurrentDrill({ ...currentDrill, successCriteria: t(val as any) })}
                                 onDelete={(val) => removeCustomPreset('drillSuccessCriteria', val)}
                                 isDeletable={(val) => customPresets.drillSuccessCriteria.includes(val)}
                               />
@@ -2060,6 +2041,27 @@ export default function App() {
                               ))}
                             </div>
                           </div>
+                        </div>
+
+                        <div className="space-y-1 mt-4">
+                          <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('diagram')}</label>
+                          <button
+                            type="button"
+                            onClick={() => setIsTacticalBoardOpen(true)}
+                            className={cn(
+                              "w-full h-32 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all",
+                              currentDrill.diagram ? "border-primary bg-primary/5" : "border-black/10 hover:border-primary/50"
+                            )}
+                          >
+                            {currentDrill.diagram ? (
+                              <img src={currentDrill.diagram} alt="Diagram" className="h-full w-full object-contain p-2" referrerPolicy="no-referrer" />
+                            ) : (
+                              <>
+                                <Target className="w-6 h-6 text-on-surface-variant" />
+                                <span className="text-[8px] font-bold uppercase">{t('designExercise')}</span>
+                              </>
+                            )}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -2287,6 +2289,30 @@ export default function App() {
           </AnimatePresence>
         </div>
       </main>
+
+      <AnimatePresence>
+        {isTacticalBoardOpen && (
+          <TacticalBoard
+            onClose={() => setIsTacticalBoardOpen(false)}
+            onSave={(dataUrl) => {
+              if (editingDrillId) {
+                setNewSession(prev => ({
+                  ...prev,
+                  warmup: drillContext === 'warmup'
+                    ? prev.warmup.map(d => d.id === editingDrillId ? { ...d, diagram: dataUrl } : d)
+                    : prev.warmup,
+                  exercises: drillContext === 'main'
+                    ? prev.exercises.map(d => d.id === editingDrillId ? { ...d, diagram: dataUrl } : d)
+                    : prev.exercises
+                }));
+              } else {
+                setCurrentDrill(prev => ({ ...prev, diagram: dataUrl }));
+              }
+              setIsTacticalBoardOpen(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Detail Modals */}
       {viewingSession && (

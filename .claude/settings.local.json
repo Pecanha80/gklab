@@ -2,7 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(wc:*)",
+      "Bash(npx vite:*)",
+      "Bash(curl:*)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote:*)",
+      "Bash(mkdir:*)",
+      "Bash(python3:*)"
     ]
   }
 }

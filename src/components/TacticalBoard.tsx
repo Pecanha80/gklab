@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Stage, Layer, Image, Circle, Line, Text, Group, Arrow, Rect, Arc } from 'react-konva';
+import { Stage, Layer, Image, Circle, Line, Text, Group, Arrow, Rect } from 'react-konva';
 import { 
   Save, 
   Trash2, 
@@ -39,221 +39,24 @@ interface TacticalBoardProps {
   initialData?: string;
 }
 
-const GrassStripes = ({ width, height, count, horizontal = false }: { width: number, height: number, count: number, horizontal?: boolean }) => {
-  const stripeSize = horizontal ? height / count : width / count;
-  return (
-    <Group>
-      <Rect x={0} y={0} width={width} height={height} fill="#62A849" />
-      {[...Array(Math.ceil(count / 2))].map((_, i) => (
-        <Rect
-          key={i}
-          x={horizontal ? 0 : i * 2 * stripeSize}
-          y={horizontal ? i * 2 * stripeSize : 0}
-          width={horizontal ? width : stripeSize}
-          height={horizontal ? stripeSize : height}
-          fill="#52993C"
-        />
-      ))}
-    </Group>
-  );
+const FIELD_IMAGES: Record<string, string> = {
+  full: '/fields/full-pitch.png',
+  half: '/fields/half-pitch.png',
+  area: '/fields/penalty-area.png',
 };
-
-// Goal component with visual distinction (net fill + thick posts)
-const GoalShape = ({ x, y, w, h, orientation }: { x: number, y: number, w: number, h: number, orientation: 'left' | 'right' | 'top' }) => {
-  const netFill = "rgba(255, 255, 255, 0.12)";
-  const postColor = "rgba(255, 255, 255, 0.95)";
-  const netColor = "rgba(255, 255, 255, 0.3)";
-  const postWidth = 3;
-  const netLines = 3;
-
-  if (orientation === 'left') {
-    // Goal on the left side (horizontal pitch)
-    return (
-      <Group>
-        <Rect x={x} y={y} width={w} height={h} fill={netFill} stroke={postColor} strokeWidth={postWidth} />
-        {[...Array(netLines)].map((_, i) => (
-          <Line key={`h${i}`} points={[x, y + (h / (netLines + 1)) * (i + 1), x + w, y + (h / (netLines + 1)) * (i + 1)]} stroke={netColor} strokeWidth={1} />
-        ))}
-        {[...Array(2)].map((_, i) => (
-          <Line key={`v${i}`} points={[x + (w / 3) * (i + 1), y, x + (w / 3) * (i + 1), y + h]} stroke={netColor} strokeWidth={1} />
-        ))}
-      </Group>
-    );
-  }
-  if (orientation === 'right') {
-    return (
-      <Group>
-        <Rect x={x} y={y} width={w} height={h} fill={netFill} stroke={postColor} strokeWidth={postWidth} />
-        {[...Array(netLines)].map((_, i) => (
-          <Line key={`h${i}`} points={[x, y + (h / (netLines + 1)) * (i + 1), x + w, y + (h / (netLines + 1)) * (i + 1)]} stroke={netColor} strokeWidth={1} />
-        ))}
-        {[...Array(2)].map((_, i) => (
-          <Line key={`v${i}`} points={[x + (w / 3) * (i + 1), y, x + (w / 3) * (i + 1), y + h]} stroke={netColor} strokeWidth={1} />
-        ))}
-      </Group>
-    );
-  }
-  // orientation === 'top'
-  return (
-    <Group>
-      <Rect x={x} y={y} width={w} height={h} fill={netFill} stroke={postColor} strokeWidth={postWidth} />
-      {[...Array(netLines)].map((_, i) => (
-        <Line key={`h${i}`} points={[x, y + (h / (netLines + 1)) * (i + 1), x + w, y + (h / (netLines + 1)) * (i + 1)]} stroke={netColor} strokeWidth={1} />
-      ))}
-      {[...Array(2)].map((_, i) => (
-        <Line key={`v${i}`} points={[x + (w / 3) * (i + 1), y, x + (w / 3) * (i + 1), y + h]} stroke={netColor} strokeWidth={1} />
-      ))}
-    </Group>
-  );
-};
-
-// Corner arc (quarter circle at pitch corners)
-const CornerArc = ({ x, y, rotation, strokeColor, strokeWidth }: { x: number, y: number, rotation: number, strokeColor: string, strokeWidth: number }) => (
-  <Arc x={x} y={y} innerRadius={6} outerRadius={6} angle={90} rotation={rotation} stroke={strokeColor} strokeWidth={strokeWidth} />
-);
 
 const SoccerFieldBackground = ({ type, width, height }: { type: string, width: number, height: number }) => {
-  const strokeColor = "rgba(255, 255, 255, 0.7)";
-  const strokeWidth = 2;
-  const m = 40;
+  const [image] = useImage(FIELD_IMAGES[type] || FIELD_IMAGES.full);
 
-  if (type === 'full') {
-    // Horizontal layout: goals on left and right
-    const fw = width - m * 2;
-    const fh = height - m * 2;
-    const cx = width / 2;
-    const cy = height / 2;
-    // FIFA proportions: penalty area 16.5m/105m x 40.3m/68m
-    const penW = fw * 0.157;
-    const penH = fh * 0.593;
-    // Goal area 5.5m/105m x 18.3m/68m
-    const goalAreaW = fw * 0.052;
-    const goalAreaH = fh * 0.269;
-    // Goal 7.32m/68m wide, proportional depth
-    const goalH = fh * 0.108;
-    const goalW = fw * 0.025;
-    // Penalty spot at 11m/16.5m = 0.667 of penalty area depth
-    const penSpotX = penW * 0.667;
-    // Center circle and penalty arc radius
-    const circleR = fh * 0.135;
-
-    return (
-      <Group>
-        <GrassStripes width={width} height={height} count={18} />
-        {/* Field outline */}
-        <Rect x={m} y={m} width={fw} height={fh} stroke={strokeColor} strokeWidth={strokeWidth} />
-        {/* Halfway line */}
-        <Line points={[cx, m, cx, height - m]} stroke={strokeColor} strokeWidth={strokeWidth} />
-        {/* Center circle and spot */}
-        <Circle x={cx} y={cy} radius={circleR} stroke={strokeColor} strokeWidth={strokeWidth} />
-        <Circle x={cx} y={cy} radius={3} fill={strokeColor} />
-
-        {/* Left Side */}
-        <Rect x={m} y={cy - penH / 2} width={penW} height={penH} stroke={strokeColor} strokeWidth={strokeWidth} />
-        <Rect x={m} y={cy - goalAreaH / 2} width={goalAreaW} height={goalAreaH} stroke={strokeColor} strokeWidth={strokeWidth} />
-        <GoalShape x={m - goalW} y={cy - goalH / 2} w={goalW} h={goalH} orientation="left" />
-        {/* Konva: rotation=0 is 3 o'clock, sweeps CW. Arc centered at 0deg: rotation = -53 */}
-        <Arc x={m + penSpotX} y={cy} innerRadius={circleR} outerRadius={circleR} angle={106} rotation={-53} stroke={strokeColor} strokeWidth={strokeWidth} />
-        <Circle x={m + penSpotX} y={cy} radius={2} fill={strokeColor} />
-
-        {/* Right Side */}
-        <Rect x={width - m - penW} y={cy - penH / 2} width={penW} height={penH} stroke={strokeColor} strokeWidth={strokeWidth} />
-        <Rect x={width - m - goalAreaW} y={cy - goalAreaH / 2} width={goalAreaW} height={goalAreaH} stroke={strokeColor} strokeWidth={strokeWidth} />
-        <GoalShape x={width - m} y={cy - goalH / 2} w={goalW} h={goalH} orientation="right" />
-        <Arc x={width - m - penSpotX} y={cy} innerRadius={circleR} outerRadius={circleR} angle={106} rotation={127} stroke={strokeColor} strokeWidth={strokeWidth} />
-        <Circle x={width - m - penSpotX} y={cy} radius={2} fill={strokeColor} />
-
-        {/* Corner arcs */}
-        <CornerArc x={m} y={m} rotation={0} strokeColor={strokeColor} strokeWidth={strokeWidth} />
-        <CornerArc x={width - m} y={m} rotation={90} strokeColor={strokeColor} strokeWidth={strokeWidth} />
-        <CornerArc x={width - m} y={height - m} rotation={180} strokeColor={strokeColor} strokeWidth={strokeWidth} />
-        <CornerArc x={m} y={height - m} rotation={270} strokeColor={strokeColor} strokeWidth={strokeWidth} />
-      </Group>
-    );
-  }
-
-  if (type === 'half') {
-    // Vertical layout: goal at top, halfway line at bottom
-    const fw = width - m * 2;
-    const fh = height - m * 2;
-    const cx = width / 2;
-    // FIFA proportions for half pitch
-    const penW = fw * 0.593;
-    const penH = fh * 0.314;
-    const goalAreaW = fw * 0.269;
-    const goalAreaH = fh * 0.105;
-    const goalW = fw * 0.108;
-    const goalH = fh * 0.04;
-    const penSpotY = penH * 0.667;
-    const circleR = fw * 0.135;
-
-    return (
-      <Group>
-        <GrassStripes width={width} height={height} count={10} horizontal={true} />
-        {/* Field outline */}
-        <Rect x={m} y={m} width={fw} height={fh} stroke={strokeColor} strokeWidth={strokeWidth} />
-        {/* Halfway line (bottom) — slightly thicker */}
-        <Line points={[m, height - m, width - m, height - m]} stroke={strokeColor} strokeWidth={strokeWidth * 1.5} />
-        {/* Center circle arc (half visible at bottom) */}
-        <Arc x={cx} y={height - m} innerRadius={circleR} outerRadius={circleR} angle={180} rotation={180} stroke={strokeColor} strokeWidth={strokeWidth} />
-        <Circle x={cx} y={height - m} radius={3} fill={strokeColor} />
-
-        {/* Penalty area */}
-        <Rect x={cx - penW / 2} y={m} width={penW} height={penH} stroke={strokeColor} strokeWidth={strokeWidth} />
-        {/* Penalty arc — opens downward: centered at 90deg (6 o'clock), rotation = 90 - 53 = 37 */}
-        <Arc x={cx} y={m + penSpotY} innerRadius={circleR} outerRadius={circleR} angle={106} rotation={37} stroke={strokeColor} strokeWidth={strokeWidth} />
-        <Circle x={cx} y={m + penSpotY} radius={3} fill={strokeColor} />
-        {/* Goal area */}
-        <Rect x={cx - goalAreaW / 2} y={m} width={goalAreaW} height={goalAreaH} stroke={strokeColor} strokeWidth={strokeWidth} />
-        {/* Goal */}
-        <GoalShape x={cx - goalW / 2} y={m - goalH} w={goalW} h={goalH} orientation="top" />
-
-        {/* Corner arcs (top corners only) */}
-        <CornerArc x={m} y={m} rotation={0} strokeColor={strokeColor} strokeWidth={strokeWidth} />
-        <CornerArc x={width - m} y={m} rotation={90} strokeColor={strokeColor} strokeWidth={strokeWidth} />
-      </Group>
-    );
-  }
-
-  if (type === 'area') {
-    // Zoomed penalty area view: goal at top
-    const fw = width - m * 2;
-    const fh = height - m * 2;
-    const cx = width / 2;
-    const penW = fw * 0.9;
-    const penH = fh * 0.7;
-    // Goal area proportional to penalty area: 18.3/40.3 width, 5.5/16.5 depth
-    const goalAreaW = penW * 0.454;
-    const goalAreaH = penH * 0.333;
-    // Goal proportional: 7.32/40.3 of penalty area width
-    const goalW = penW * 0.182;
-    const goalH = fh * 0.05;
-    const penSpotY = penH * 0.667;
-    const arcR = fw * 0.18;
-
-    return (
-      <Group>
-        <GrassStripes width={width} height={height} count={8} horizontal={true} />
-        {/* Goal line + sidelines */}
-        <Line points={[m, height - m, m, m, width - m, m, width - m, height - m]} stroke={strokeColor} strokeWidth={strokeWidth} />
-        {/* Penalty area */}
-        <Rect x={cx - penW / 2} y={m} width={penW} height={penH} stroke={strokeColor} strokeWidth={strokeWidth} />
-        {/* Penalty arc — opens downward */}
-        <Arc x={cx} y={m + penSpotY} innerRadius={arcR} outerRadius={arcR} angle={106} rotation={37} stroke={strokeColor} strokeWidth={strokeWidth} />
-        <Circle x={cx} y={m + penSpotY} radius={4} fill={strokeColor} />
-        {/* Goal area */}
-        <Rect x={cx - goalAreaW / 2} y={m} width={goalAreaW} height={goalAreaH} stroke={strokeColor} strokeWidth={strokeWidth} />
-        {/* Goal */}
-        <GoalShape x={cx - goalW / 2} y={m - goalH} w={goalW} h={goalH} orientation="top" />
-
-        {/* Corner arcs */}
-        <CornerArc x={m} y={m} rotation={0} strokeColor={strokeColor} strokeWidth={strokeWidth} />
-        <CornerArc x={width - m} y={m} rotation={90} strokeColor={strokeColor} strokeWidth={strokeWidth} />
-      </Group>
-    );
-  }
-
-  return null;
+  return (
+    <Group>
+      {image ? (
+        <Image image={image} x={0} y={0} width={width} height={height} />
+      ) : (
+        <Rect x={0} y={0} width={width} height={height} fill="#4a8c3f" />
+      )}
+    </Group>
+  );
 };
 
 export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, initialData }) => {

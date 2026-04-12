@@ -5,12 +5,13 @@ import {
   Trash2,
   RotateCcw,
   Type,
-  Square,
   X,
   Target,
   RectangleVertical,
   RectangleHorizontal,
-  BoxSelect
+  BoxSelect,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import useImage from 'use-image';
 import { cn } from '../lib/utils';
@@ -18,7 +19,8 @@ import { useTranslation } from '../hooks/useTranslation';
 
 type ElementType =
   | 'player' | 'gk'
-  | 'ball' | 'cone' | 'text'
+  | 'ball' | 'cone' | 'disc' | 'goal' | 'ladder' | 'miniGoal' | 'ring'
+  | 'text'
   | 'arrow' | 'curvedArrow' | 'zigzag'
   | 'dashedArrow' | 'dashedCurvedArrow' | 'dashedZigzag'
   | 'shape' | 'ellipse';
@@ -79,6 +81,44 @@ const SPRITE_IMAGES: Record<string, string> = {
   gk: '/avatar.png',
 };
 
+const ELEMENT_IMAGES: Record<string, string> = {
+  ball: '/elements/ball.png',
+  cone: '/elements/cone.png',
+  disc: '/elements/disc.png',
+  goal: '/elements/goal.png',
+  ladder: '/elements/ladder.png',
+  miniGoal: '/elements/mini-goal.png',
+  ring: '/elements/ring.png',
+};
+
+const ELEMENT_SPRITE_SIZE: Record<string, { w: number; h: number }> = {
+  ball: { w: 20, h: 20 },
+  cone: { w: 24, h: 24 },
+  disc: { w: 26, h: 10 },
+  goal: { w: 48, h: 32 },
+  ladder: { w: 20, h: 48 },
+  miniGoal: { w: 36, h: 24 },
+  ring: { w: 22, h: 22 },
+};
+
+const ELEMENT_TYPES: ElementType[] = ['ball', 'cone', 'disc', 'goal', 'ladder', 'miniGoal', 'ring'];
+
+const CollapsibleSection: React.FC<{ title: string; defaultOpen?: boolean; children: React.ReactNode }> = ({ title, defaultOpen = true, children }) => {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1 w-full text-left text-[10px] text-on-surface-variant uppercase font-bold mb-2"
+      >
+        {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+        {title}
+      </button>
+      {open && children}
+    </div>
+  );
+};
+
 const AvatarSprite = ({ x, y, type, isSelected, draggable, onClick, onTap, onDragEnd, id }: {
   x: number; y: number; type: 'player' | 'gk'; isSelected: boolean;
   draggable?: boolean; onClick?: () => void; onTap?: () => void; onDragEnd?: (e: any) => void; id?: string;
@@ -95,6 +135,26 @@ const AvatarSprite = ({ x, y, type, isSelected, draggable, onClick, onTap, onDra
         <Image image={img} x={-half} y={-half} width={size} height={size} />
       ) : (
         <Circle radius={half} fill="#555" />
+      )}
+    </Group>
+  );
+};
+
+const ElementSprite = ({ x, y, type, isSelected, draggable, onClick, onTap, onDragEnd, onTransformEnd, id }: {
+  x: number; y: number; type: ElementType; isSelected: boolean;
+  draggable?: boolean; onClick?: () => void; onTap?: () => void; onDragEnd?: (e: any) => void; onTransformEnd?: (e: any) => void; id?: string;
+}) => {
+  const [img] = useImage(ELEMENT_IMAGES[type]);
+  const size = ELEMENT_SPRITE_SIZE[type] || { w: 24, h: 24 };
+  return (
+    <Group id={id} x={x} y={y} draggable={draggable} onClick={onClick} onTap={onTap} onDragEnd={onDragEnd} onTransformEnd={onTransformEnd}>
+      {isSelected && (
+        <Rect x={-size.w / 2 - 3} y={-size.h / 2 - 3} width={size.w + 6} height={size.h + 6} stroke="#fff" strokeWidth={2} cornerRadius={4} shadowBlur={10} shadowColor="white" />
+      )}
+      {img ? (
+        <Image image={img} x={-size.w / 2} y={-size.h / 2} width={size.w} height={size.h} />
+      ) : (
+        <Rect x={-size.w / 2} y={-size.h / 2} width={size.w} height={size.h} fill="#555" cornerRadius={3} />
       )}
     </Group>
   );
@@ -486,10 +546,9 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
 
         <div className="flex-1 flex overflow-hidden">
           {/* Toolbar */}
-          <div className="w-64 bg-surface-container-highest border-r border-black/10 p-4 flex flex-col gap-5 overflow-y-auto">
+          <div className="w-64 bg-surface-container-highest border-r border-black/10 p-4 flex flex-col gap-3 overflow-y-auto">
             {/* Field Type */}
-            <div>
-              <label className="text-[10px] text-on-surface-variant uppercase font-bold mb-2 block">{t('fieldType')}</label>
+            <CollapsibleSection title={t('fieldType')}>
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { id: 'full', icon: RectangleVertical },
@@ -509,11 +568,10 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                   </button>
                 ))}
               </div>
-            </div>
+            </CollapsibleSection>
 
             {/* Players */}
-            <div>
-              <label className="text-[10px] text-on-surface-variant uppercase font-bold mb-2 block">{t('playersAssets')}</label>
+            <CollapsibleSection title={t('playersAssets')}>
               <div className="grid grid-cols-2 gap-2">
                 <button onClick={() => { setActiveTool(null); addElement('player', '#3b82f6', 'AT'); }} className="flex flex-col items-center gap-1 p-2 bg-surface-container rounded border border-black/5 hover:border-primary transition-all">
                   <img src="/jogador.png" alt="Player" className="w-6 h-6 object-contain" />
@@ -524,26 +582,26 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                   <span className="text-[9px] font-bold">{t('goalkeeperTool')}</span>
                 </button>
               </div>
-            </div>
+            </CollapsibleSection>
 
             {/* Elements */}
-            <div>
-              <label className="text-[10px] text-on-surface-variant uppercase font-bold mb-2 block">{t('elements')}</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => { setActiveTool(null); addElement('ball', '#ffffff'); }} className="flex flex-col items-center gap-1 p-2 bg-surface-container rounded border border-black/5 hover:border-white transition-all">
-                  <div className="w-5 h-5 rounded-full bg-white border border-black/20" />
-                  <span className="text-[9px] font-bold">{t('ball')}</span>
-                </button>
-                <button onClick={() => { setActiveTool(null); addElement('cone', '#f97316'); }} className="flex flex-col items-center gap-1 p-2 bg-surface-container rounded border border-black/5 hover:border-orange-500 transition-all">
-                  <Square className="w-5 h-5 text-orange-500" />
-                  <span className="text-[9px] font-bold">{t('cone')}</span>
-                </button>
+            <CollapsibleSection title={t('elements')}>
+              <div className="grid grid-cols-3 gap-2">
+                {ELEMENT_TYPES.map(elType => (
+                  <button
+                    key={elType}
+                    onClick={() => { setActiveTool(null); addElement(elType); }}
+                    className="flex flex-col items-center gap-1 p-2 bg-surface-container rounded border border-black/5 hover:border-primary/50 transition-all"
+                  >
+                    <img src={ELEMENT_IMAGES[elType]} alt={elType} className="w-6 h-6 object-contain" />
+                    <span className="text-[9px] font-bold">{t(elType as any)}</span>
+                  </button>
+                ))}
               </div>
-            </div>
+            </CollapsibleSection>
 
             {/* Drawing Tools */}
-            <div>
-              <label className="text-[10px] text-on-surface-variant uppercase font-bold mb-2 block">{t('drawingTools')}</label>
+            <CollapsibleSection title={t('drawingTools')}>
               <div className="grid grid-cols-3 gap-2">
                 {DRAWING_TOOLS_CONFIG.map(tool => (
                   <button
@@ -571,7 +629,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                   {t('clickAndDrag' as any)}
                 </p>
               )}
-            </div>
+            </CollapsibleSection>
 
             {/* Delete */}
             {selectedId && (
@@ -629,28 +687,15 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                       return renderLineElement(el, isSelected);
                     }
 
-                    // Ball
-                    if (el.type === 'ball') {
+                    // Equipment elements (ball, cone, disc, goal, ladder, miniGoal, ring)
+                    if (ELEMENT_TYPES.includes(el.type)) {
                       return (
-                        <Circle
-                          key={el.id} {...dragProps(el)}
-                          x={el.x} y={el.y} radius={8}
-                          fill="white" stroke="black" strokeWidth={1}
-                          scaleX={el.scaleX} scaleY={el.scaleY}
-                          shadowBlur={selShadow} shadowColor="white"
-                        />
-                      );
-                    }
-
-                    // Cone
-                    if (el.type === 'cone') {
-                      return (
-                        <Rect
-                          key={el.id} {...dragProps(el)}
-                          x={el.x} y={el.y} width={16} height={16}
-                          fill={el.color} rotation={45}
-                          scaleX={el.scaleX} scaleY={el.scaleY}
-                          shadowBlur={selShadow} shadowColor="white"
+                        <ElementSprite
+                          key={el.id}
+                          {...dragProps(el)}
+                          x={el.x} y={el.y}
+                          type={el.type}
+                          isSelected={isSelected}
                         />
                       );
                     }

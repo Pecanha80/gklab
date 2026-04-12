@@ -45,26 +45,38 @@ const FIELD_IMAGES: Record<string, string> = {
   area: '/fields/penalty-area.png',
 };
 
+// Pre-defined aspect ratios and scale factors per field type
+// Scale < 1.0 shrinks the image to leave room for goals at the edges
+const FIELD_CONFIG: Record<string, { ratio: number; scale: number }> = {
+  full: { ratio: 807 / 900, scale: 0.78 },  // portrait — needs room for top+bottom goals
+  half: { ratio: 1085 / 920, scale: 0.86 },  // needs room for top goal
+  area: { ratio: 1071 / 541, scale: 0.95 },  // landscape — fits well
+};
+
 const SoccerFieldBackground = ({ type, width, height }: { type: string, width: number, height: number }) => {
   const [image] = useImage(FIELD_IMAGES[type] || FIELD_IMAGES.full);
+  const config = FIELD_CONFIG[type] || FIELD_CONFIG.full;
 
-  // Calculate dimensions to fit image within canvas while preserving aspect ratio
-  let imgX = 0, imgY = 0, imgW = width, imgH = height;
-  if (image) {
-    const imgRatio = image.naturalWidth / image.naturalHeight;
-    const canvasRatio = width / height;
-    if (imgRatio > canvasRatio) {
-      // Image is wider than canvas — fit to width, center vertically
-      imgW = width;
-      imgH = width / imgRatio;
-      imgY = (height - imgH) / 2;
-    } else {
-      // Image is taller than canvas — fit to height, center horizontally
-      imgH = height;
-      imgW = height * imgRatio;
-      imgX = (width - imgW) / 2;
-    }
+  // Fit image preserving aspect ratio, then apply scale to ensure goals are visible
+  const imgRatio = config.ratio;
+  const canvasRatio = width / height;
+
+  let imgW: number, imgH: number;
+  if (imgRatio > canvasRatio) {
+    imgW = width;
+    imgH = width / imgRatio;
+  } else {
+    imgH = height;
+    imgW = height * imgRatio;
   }
+
+  // Apply scale to shrink and leave room for goals
+  imgW *= config.scale;
+  imgH *= config.scale;
+
+  // Center on canvas
+  const imgX = (width - imgW) / 2;
+  const imgY = (height - imgH) / 2;
 
   return (
     <Group>

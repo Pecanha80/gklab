@@ -48,12 +48,29 @@ const FIELD_IMAGES: Record<string, string> = {
 const SoccerFieldBackground = ({ type, width, height }: { type: string, width: number, height: number }) => {
   const [image] = useImage(FIELD_IMAGES[type] || FIELD_IMAGES.full);
 
+  // Calculate dimensions to fit image within canvas while preserving aspect ratio
+  let imgX = 0, imgY = 0, imgW = width, imgH = height;
+  if (image) {
+    const imgRatio = image.naturalWidth / image.naturalHeight;
+    const canvasRatio = width / height;
+    if (imgRatio > canvasRatio) {
+      // Image is wider than canvas — fit to width, center vertically
+      imgW = width;
+      imgH = width / imgRatio;
+      imgY = (height - imgH) / 2;
+    } else {
+      // Image is taller than canvas — fit to height, center horizontally
+      imgH = height;
+      imgW = height * imgRatio;
+      imgX = (width - imgW) / 2;
+    }
+  }
+
   return (
     <Group>
-      {image ? (
-        <Image image={image} x={0} y={0} width={width} height={height} />
-      ) : (
-        <Rect x={0} y={0} width={width} height={height} fill="#4a8c3f" />
+      <Rect x={0} y={0} width={width} height={height} fill="#2d6a1e" />
+      {image && (
+        <Image image={image} x={imgX} y={imgY} width={imgW} height={imgH} />
       )}
     </Group>
   );

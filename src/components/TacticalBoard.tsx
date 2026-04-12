@@ -45,44 +45,35 @@ const FIELD_IMAGES: Record<string, string> = {
   area: '/fields/penalty-area.png',
 };
 
-// Pre-defined aspect ratios and scale factors per field type
-// Scale < 1.0 shrinks the image to leave room for goals at the edges
-const FIELD_CONFIG: Record<string, { ratio: number; scale: number }> = {
-  full: { ratio: 807 / 900, scale: 0.78 },  // portrait — needs room for top+bottom goals
-  half: { ratio: 1085 / 920, scale: 0.86 },  // needs room for top goal
-  area: { ratio: 1071 / 541, scale: 0.95 },  // landscape — fits well
+// Canvas dimensions per field type — sized to match image aspect ratio
+// so the image fills 100% of the canvas with no bars
+const MAX_CANVAS_W = 780;
+const MAX_CANVAS_H = 520;
+const FIELD_RATIOS: Record<string, number> = {
+  full: 807 / 900,   // 0.897 — portrait
+  half: 1085 / 920,  // 1.179 — slightly landscape
+  area: 1071 / 541,  // 1.979 — wide landscape
 };
+
+function getCanvasSize(type: string): { w: number; h: number } {
+  const ratio = FIELD_RATIOS[type] || 1;
+  if (ratio >= MAX_CANVAS_W / MAX_CANVAS_H) {
+    // Image is wider — fit to max width
+    return { w: MAX_CANVAS_W, h: Math.round(MAX_CANVAS_W / ratio) };
+  }
+  // Image is taller — fit to max height
+  return { w: Math.round(MAX_CANVAS_H * ratio), h: MAX_CANVAS_H };
+}
 
 const SoccerFieldBackground = ({ type, width, height }: { type: string, width: number, height: number }) => {
   const [image] = useImage(FIELD_IMAGES[type] || FIELD_IMAGES.full);
-  const config = FIELD_CONFIG[type] || FIELD_CONFIG.full;
-
-  // Fit image preserving aspect ratio, then apply scale to ensure goals are visible
-  const imgRatio = config.ratio;
-  const canvasRatio = width / height;
-
-  let imgW: number, imgH: number;
-  if (imgRatio > canvasRatio) {
-    imgW = width;
-    imgH = width / imgRatio;
-  } else {
-    imgH = height;
-    imgW = height * imgRatio;
-  }
-
-  // Apply scale to shrink and leave room for goals
-  imgW *= config.scale;
-  imgH *= config.scale;
-
-  // Center on canvas
-  const imgX = (width - imgW) / 2;
-  const imgY = (height - imgH) / 2;
 
   return (
     <Group>
-      <Rect x={0} y={0} width={width} height={height} fill="#2d6a1e" />
-      {image && (
-        <Image image={image} x={imgX} y={imgY} width={imgW} height={imgH} />
+      {image ? (
+        <Image image={image} x={0} y={0} width={width} height={height} />
+      ) : (
+        <Rect x={0} y={0} width={width} height={height} fill="#2d6a1e" />
       )}
     </Group>
   );
@@ -275,9 +266,9 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
           {/* Canvas Area */}
           <div className="flex-1 bg-black/5 relative overflow-hidden flex items-center justify-center p-8">
             <div className="bg-black/5 rounded-lg shadow-2xl overflow-hidden border border-black/10">
-              <Stage 
-                width={800} 
-                height={600} 
+              <Stage
+                width={getCanvasSize(fieldType).w}
+                height={getCanvasSize(fieldType).h}
                 ref={stageRef}
                 onMouseDown={(e) => {
                   if (e.target === e.target.getStage()) {
@@ -286,7 +277,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                 }}
               >
                 <Layer>
-                  <SoccerFieldBackground type={fieldType} width={800} height={600} />
+                  <SoccerFieldBackground type={fieldType} width={getCanvasSize(fieldType).w} height={getCanvasSize(fieldType).h} />
                   
                   {elements.map((el) => {
                     const isSelected = el.id === selectedId;

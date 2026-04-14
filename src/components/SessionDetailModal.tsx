@@ -1,9 +1,10 @@
 import React from 'react';
-import { X, Clock, Users, Target, Dumbbell, Trophy, Wind, Edit3, Download, Calendar } from 'lucide-react';
+import { X, Clock, Users, Target, Dumbbell, Trophy, Wind, Edit3, Download, Calendar, CheckCircle2, XCircle, AlertCircle, MessageSquare } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../hooks/useTranslation';
-import type { TrainingSession } from '../types';
+import { useAttendance } from '../hooks/useAttendance';
+import type { TrainingSession, AttendanceStatus } from '../types';
 
 interface SessionDetailModalProps {
   session: TrainingSession;
@@ -56,6 +57,61 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   onExport,
 }) => {
   const { t } = useTranslation();
+  const { 
+    attendance, 
+    eligibleGoalkeepers, 
+    loading, 
+    fetchAttendanceData, 
+    updateAttendance 
+  } = useAttendance(session.id);
+
+  const [localAttendance, setLocalAttendance] = React.useState<Record<string, { status: AttendanceStatus; notes: string }>>({});
+
+  React.useEffect(() => {
+    fetchAttendanceData(session.category);
+  }, [session.id, session.category, fetchAttendanceData]);
+
+  React.useEffect(() => {
+    if (attendance.length > 0) {
+      const mapped = attendance.reduce((acc, curr) => ({
+        ...acc,
+        [curr.goalkeeper_id]: { status: curr.status, notes: curr.notes || '' }
+      }), {});
+      setLocalAttendance(mapped);
+    }
+  }, [attendance]);
+
+  const handleStatusChange = async (gkId: string, status: AttendanceStatus) => {
+    const currentNotes = localAttendance[gkId]?.notes || '';
+    setLocalAttendance(prev => ({
+      ...prev,
+      [gkId]: { status, notes: currentNotes }
+    }));
+    try {
+      await updateAttendance(gkId, status, currentNotes);
+    } catch (err) {
+      console.error('Failed to update attendance', err);
+    }
+  };
+
+  const handleNotesChange = async (gkId: string, notes: string) => {
+    const currentStatus = localAttendance[gkId]?.status || 'absent';
+    setLocalAttendance(prev => ({
+      ...prev,
+      [gkId]: { status: currentStatus, notes }
+    }));
+  };
+
+  const saveNotes = async (gkId: string) => {
+    const data = localAttendance[gkId];
+    if (!data) return;
+    try {
+      await updateAttendance(gkId, data.status, data.notes);
+    } catch (err) {
+      console.error('Failed to save notes', err);
+    }
+  };
+
   const hasObjectives =
     session.objectives.technical ||
     session.objectives.tactical ||
@@ -279,7 +335,113 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               </div>
             </div>
           )}
+
+          {/* Attendance Section */}
+          <div className="space-y-4 pt-6 border-t border-black/5">
+            <SectionHeading title={t('attendanceHeading')} icon={Users} />
+            
+            {loading && eligibleGoalkeepers.length === 0 ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3">
+                {eligibleGoalkeepers.length === 0 && !loading && (
+                    <p className="text-xs text-on-surface/50 italic">
+                      Nenhum goleiro encontrado para esta categoria.
+                    </p>
+                )}
+                {eligibleGoalkeepers.map((gk) => {
+                  const att = localAttendance[gk.id] || { status: 'absent', notes: '' };
+                  const isPresent = att.status === 'present';
+                  const isLate = att.status === 'late';
+                  const isJustified = att.status === 'justified';
+                  const isAbsent = att.status === 'absent';
+
+                  return (
+                    <div key={gk.id} className="bg-surface rounded-xl border border-black/5 p-3 flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-on-surface/5 flex items-center justify-center overflow-hidden border border-black/5">
+                            {gk.imageUrl ? (
+                              <img src={gk.imageUrl} alt={gk.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <Users className="w-4 h-4 text-on-surface/30" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-on-surface">{gk.name}</p>
+                            <p className="text-[10px] text-on-surface/40 uppercase font-semibold">{gk.category}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 p-1 bg-on-surface/5 rounded-lg">
+                          <button
+                            onClick={() => handleStatusChange(gk.id, 'present')}
+                            className={cn(
+                              "p-1.5 rounded-md transition-all flex items-center gap-1.5",
+                              isPresent ? "bg-primary text-white shadow-sm" : "text-on-surface/40 hover:text-on-surface/60"
+                            )}
+                            title={t('present')}
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            {isPresent && <span className="text-[10px] font-bold pr-1">{t('present')}</span>}
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(gk.id, 'late')}
+                            className={cn(
+                              "p-1.5 rounded-md transition-all flex items-center gap-1.5",
+                              isLate ? "bg-amber-500 text-white shadow-sm" : "text-on-surface/40 hover:text-on-surface/60"
+                            )}
+                            title={t('late')}
+                          >
+                            <Clock className="w-4 h-4" />
+                            {isLate && <span className="text-[10px] font-bold pr-1">{t('late')}</span>}
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(gk.id, 'justified')}
+                            className={cn(
+                              "p-1.5 rounded-md transition-all flex items-center gap-1.5",
+                              isJustified ? "bg-blue-500 text-white shadow-sm" : "text-on-surface/40 hover:text-on-surface/60"
+                            )}
+                            title={t('justified')}
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            {isJustified && <span className="text-[10px] font-bold pr-1">{t('justified')}</span>}
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(gk.id, 'absent')}
+                            className={cn(
+                              "p-1.5 rounded-md transition-all flex items-center gap-1.5",
+                              isAbsent ? "bg-error text-white shadow-sm" : "text-on-surface/40 hover:text-on-surface/60"
+                            )}
+                            title={t('absent')}
+                          >
+                            <XCircle className="w-4 h-4" />
+                            {isAbsent && <span className="text-[10px] font-bold pr-1">{t('absent')}</span>}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 group">
+                        <MessageSquare className="w-3.5 h-3.5 text-on-surface/30 group-focus-within:text-primary transition-colors" />
+                        <input
+                          type="text"
+                          value={att.notes}
+                          onChange={(e) => handleNotesChange(gk.id, e.target.value)}
+                          onBlur={() => saveNotes(gk.id)}
+                          placeholder={t('notesPlaceholder')}
+                          className="flex-1 bg-transparent text-xs text-on-surface placeholder:text-on-surface/20 outline-none border-b border-transparent focus:border-primary/30 transition-all font-medium"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
+
       </motion.div>
     </motion.div>
   );

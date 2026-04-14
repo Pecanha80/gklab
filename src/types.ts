@@ -1,7 +1,7 @@
 export interface Goalkeeper {
   id: string;
   name: string;
-  category: 'First Team' | 'U23' | 'U18';
+  category: 'firstTeam' | 'u23' | 'u21' | 'u18' | 'u16' | 'academy';
   status: 'Ready' | 'Minor Strain' | 'In Training' | 'Injured';
   form: number;
   recovery: number;
@@ -15,6 +15,18 @@ export interface Goalkeeper {
   trialEndDate?: string;
   trialNotes?: string;
 }
+
+export type AttendanceStatus = 'present' | 'absent' | 'late' | 'justified';
+
+export interface Attendance {
+  id: string;
+  session_id: string;
+  goalkeeper_id: string;
+  status: AttendanceStatus;
+  notes?: string;
+  created_at: string;
+}
+
 
 export interface Exercise {
   id: string;
@@ -75,7 +87,9 @@ export interface TrainingSession {
   focus?: string[];
   time?: string;
   attending?: string[];
+  attendance?: Attendance[];
 }
+
 
 export interface PerformanceVideo {
   id: string;

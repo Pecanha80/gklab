@@ -12,14 +12,14 @@ interface GoalkeepersTabProps {
   deleteGoalkeeper: (id: string) => Promise<void>;
 }
 
-type Category = 'All' | 'First Team' | 'U23' | 'U18';
+type Category = 'All' | 'firstTeam' | 'u23' | 'u21' | 'u18' | 'u16' | 'academy';
 type MembershipFilter = 'All' | 'permanent' | 'trial';
 
 const DEFAULT_IMAGE_URL =
   'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=256&h=256&auto=format&fit=crop';
 
-const categories: Category[] = ['All', 'First Team', 'U23', 'U18'];
-const gkCategories: Goalkeeper['category'][] = ['First Team', 'U23', 'U18'];
+const categories: Category[] = ['All', 'firstTeam', 'u23', 'u21', 'u18', 'u16', 'academy'];
+const gkCategories: Goalkeeper['category'][] = ['firstTeam', 'u23', 'u21', 'u18', 'u16', 'academy'];
 const statuses: Goalkeeper['status'][] = ['Ready', 'Minor Strain', 'In Training', 'Injured'];
 
 function getStatusClasses(status: Goalkeeper['status']): string {
@@ -54,7 +54,7 @@ interface FormState {
 
 const defaultForm: FormState = {
   name: '',
-  category: 'First Team',
+  category: 'firstTeam',
   status: 'Ready',
   form: 50,
   recovery: 50,
@@ -106,9 +106,12 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
 
   const categoryLabels: Record<Category, string> = {
     'All': t('all'),
-    'First Team': t('firstTeam'),
-    'U23': t('u23'),
-    'U18': t('u18'),
+    'firstTeam': t('firstTeam'),
+    'u23': t('u23'),
+    'u21': t('u21'),
+    'u18': t('u18'),
+    'u16': t('u16'),
+    'academy': t('academy'),
   };
 
   const statusLabels: Record<Goalkeeper['status'], string> = {

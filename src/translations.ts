@@ -524,6 +524,14 @@ export const translations = {
     positives: 'Positives',
     adjustments: 'Adjustments',
     successCriteriaLabel: 'Success Criteria',
+    attendanceHeading: 'Attendance',
+    attendanceChecklist: 'Attendance Checklist',
+    present: 'Present',
+    absent: 'Absent',
+    late: 'Late',
+    justified: 'Justified',
+    saveAttendance: 'Save Attendance',
+    notesPlaceholder: 'Notes/Justification...',
 
     // Exercise Detail Modal
     delete: 'Delete',
@@ -1175,6 +1183,14 @@ export const translations = {
     positives: 'Positivos',
     adjustments: 'Ajustes',
     successCriteriaLabel: 'Critérios de Sucesso',
+    attendanceHeading: 'Lista de Presença',
+    attendanceChecklist: 'Chamada de Atletas',
+    present: 'Presente',
+    absent: 'Ausente',
+    late: 'Atrasado',
+    justified: 'Justificado',
+    saveAttendance: 'Salvar Presença',
+    notesPlaceholder: 'Observações/Justificativa...',
 
     // Exercise Detail Modal
     delete: 'Excluir',

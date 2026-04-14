@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -32,16 +33,26 @@ export const QuickSelect = ({
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+    }
+  }, [isOpen]);
 
   const filteredOptions = options.filter(opt => {
     const translatedOpt = t(opt as any);
-    return translatedOpt.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    return translatedOpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
            opt.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => {
           setIsOpen(!isOpen);
@@ -51,15 +62,16 @@ export const QuickSelect = ({
       >
         {label} <ChevronDown className={cn("w-3 h-3 ml-1 transition-transform", isOpen && "rotate-180")} />
       </button>
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <div className="fixed inset-0 z-[60]" onClick={() => setIsOpen(false)} />
+      {isOpen && createPortal(
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
+          <AnimatePresence>
             <motion.div
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 5 }}
-              className="absolute left-0 top-full mt-1 w-64 bg-surface-container-highest border border-black/10 rounded-lg shadow-2xl z-[70] overflow-hidden"
+              className="fixed w-64 bg-surface-container-highest border border-black/10 rounded-lg shadow-2xl z-[9999] overflow-hidden"
+              style={{ top: dropdownPos.top, left: dropdownPos.left }}
             >
               <div className="p-2 border-b border-black/5">
                 <input
@@ -124,9 +136,10 @@ export const QuickSelect = ({
                 ))}
               </div>
             </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+          </AnimatePresence>
+        </>,
+        document.body
+      )}
     </div>
   );
 };

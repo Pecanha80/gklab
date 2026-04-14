@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, X, Trash2, Edit3, Search, Activity } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Plus, X, Trash2, Edit3, Search, Activity, Upload, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -42,6 +42,9 @@ interface FormState {
   recovery: number;
   load: number;
   imageUrl: string;
+  birthDate: string;
+  height: number | '';
+  weight: number | '';
 }
 
 const defaultForm: FormState = {
@@ -52,7 +55,20 @@ const defaultForm: FormState = {
   recovery: 50,
   load: 50,
   imageUrl: DEFAULT_IMAGE_URL,
+  birthDate: '',
+  height: '',
+  weight: '',
 };
+
+function calculateAge(birthDate: string): number | null {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
 
 export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
   goalkeepers,
@@ -65,6 +81,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [editingGoalkeeper, setEditingGoalkeeper] = useState<Goalkeeper | null>(null);
   const [formState, setFormState] = useState<FormState>(defaultForm);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categoryLabels: Record<Category, string> = {
     'All': t('all'),
@@ -101,6 +118,9 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
       recovery: gk.recovery,
       load: gk.load,
       imageUrl: gk.imageUrl,
+      birthDate: gk.birthDate || '',
+      height: gk.height || '',
+      weight: gk.weight || '',
     });
     setModalOpen(true);
   };
@@ -112,15 +132,19 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const data = {
+      ...formState,
+      height: formState.height === '' ? undefined : Number(formState.height),
+      weight: formState.weight === '' ? undefined : Number(formState.weight),
+      birthDate: formState.birthDate || undefined,
+    };
     if (editingGoalkeeper) {
-      await updateGoalkeeper({ id: editingGoalkeeper.id, ...formState });
+      await updateGoalkeeper({ id: editingGoalkeeper.id, ...data } as Goalkeeper);
     } else {
-      await addGoalkeeper(formState);
+      await addGoalkeeper(data as Omit<Goalkeeper, 'id'>);
     }
     closeModal();
   };
-
-  const clampValue = (val: number) => Math.max(0, Math.min(100, val));
 
   return (
     <div className="space-y-6">
@@ -168,7 +192,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
               className="group relative rounded-xl border border-black/5 bg-surface-container p-5 transition-shadow hover:shadow-md"
             >
               {/* Hover actions */}
-              <div className="absolute right-3 top-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="absolute right-3 top-3 flex gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
                 <button
                   onClick={() => openEditModal(gk)}
                   className="rounded-md bg-surface-container-highest p-1.5 text-on-surface-variant transition-colors hover:text-primary"
@@ -206,30 +230,26 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                 </div>
               </div>
 
-              {/* Progress bars */}
-              <div className="space-y-3">
-                {([
-                  { label: t('formLabel'), value: gk.form },
-                  { label: t('recovery'), value: gk.recovery },
-                  { label: t('loadLabel'), value: gk.load },
-                ] as const).map((item) => (
-                  <div key={item.label}>
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="font-label text-xs text-on-surface-variant">
-                        {item.label}
-                      </span>
-                      <span className="font-label text-xs font-medium text-on-surface">
-                        {item.value}%
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-black/5">
-                      <div
-                        style={{ width: `${item.value}%` }}
-                        className="h-full rounded-full bg-primary"
-                      />
-                    </div>
+              {/* Details */}
+              <div className="flex flex-wrap gap-3 text-xs">
+                {gk.birthDate && (
+                  <div className="rounded-md bg-surface-container-highest px-2.5 py-1.5">
+                    <span className="text-on-surface-variant">{t('age' as any)}: </span>
+                    <span className="font-medium text-on-surface">{calculateAge(gk.birthDate)} {t('years' as any)}</span>
                   </div>
-                ))}
+                )}
+                {gk.height && (
+                  <div className="rounded-md bg-surface-container-highest px-2.5 py-1.5">
+                    <span className="text-on-surface-variant">{t('height' as any)}: </span>
+                    <span className="font-medium text-on-surface">{gk.height} cm</span>
+                  </div>
+                )}
+                {gk.weight && (
+                  <div className="rounded-md bg-surface-container-highest px-2.5 py-1.5">
+                    <span className="text-on-surface-variant">{t('weight' as any)}: </span>
+                    <span className="font-medium text-on-surface">{gk.weight} kg</span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -328,70 +348,103 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   </div>
                 </div>
 
-                {/* Form / Recovery / Load */}
+                {/* Birth Date, Height, Weight */}
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
-                      {t('formLabel')}
+                      {t('birthDate' as any)}
+                    </label>
+                    <input
+                      type="date"
+                      value={formState.birthDate}
+                      onChange={(e) => setFormState((s) => ({ ...s, birthDate: e.target.value }))}
+                      className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                    />
+                    {formState.birthDate && (
+                      <p className="mt-1 font-label text-xs text-primary font-medium">
+                        {calculateAge(formState.birthDate)} {t('years' as any)}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                      {t('height' as any)} (cm)
                     </label>
                     <input
                       type="number"
-                      min={0}
-                      max={100}
-                      value={formState.form}
-                      onChange={(e) =>
-                        setFormState((s) => ({ ...s, form: clampValue(Number(e.target.value)) }))
-                      }
+                      min={100}
+                      max={220}
+                      value={formState.height}
+                      onChange={(e) => setFormState((s) => ({ ...s, height: e.target.value === '' ? '' : Number(e.target.value) }))}
                       className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      placeholder="185"
                     />
                   </div>
                   <div>
                     <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
-                      {t('recovery')}
+                      {t('weight' as any)} (kg)
                     </label>
                     <input
                       type="number"
-                      min={0}
-                      max={100}
-                      value={formState.recovery}
-                      onChange={(e) =>
-                        setFormState((s) => ({
-                          ...s,
-                          recovery: clampValue(Number(e.target.value)),
-                        }))
-                      }
+                      min={40}
+                      max={150}
+                      value={formState.weight}
+                      onChange={(e) => setFormState((s) => ({ ...s, weight: e.target.value === '' ? '' : Number(e.target.value) }))}
                       className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
-                      {t('loadLabel')}
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={formState.load}
-                      onChange={(e) =>
-                        setFormState((s) => ({ ...s, load: clampValue(Number(e.target.value)) }))
-                      }
-                      className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      placeholder="80"
                     />
                   </div>
                 </div>
 
-                {/* Image URL */}
+                {/* Image Upload */}
                 <div>
                   <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
                     {t('imageUrl')}
                   </label>
-                  <input
-                    type="text"
-                    value={formState.imageUrl}
-                    onChange={(e) => setFormState((s) => ({ ...s, imageUrl: e.target.value }))}
-                    className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
-                    placeholder="https://..."
-                  />
+                  <div className="flex items-center gap-4">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-dashed border-black/10 bg-surface-container">
+                      {formState.imageUrl ? (
+                        <img src={formState.imageUrl} alt="Preview" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <ImageIcon className="h-6 w-6 text-on-surface-variant/40" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-2 rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
+                      >
+                        <Upload className="h-4 w-4" />
+                        {t('uploadImage' as any)}
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            setFormState((s) => ({ ...s, imageUrl: ev.target?.result as string }));
+                          };
+                          reader.readAsDataURL(file);
+                          e.target.value = '';
+                        }}
+                      />
+                      <input
+                        type="text"
+                        value={formState.imageUrl.startsWith('data:') ? '' : formState.imageUrl}
+                        onChange={(e) => setFormState((s) => ({ ...s, imageUrl: e.target.value }))}
+                        className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-1.5 font-label text-xs text-on-surface outline-none focus:border-primary"
+                        placeholder={t('orPasteUrl' as any)}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Submit */}

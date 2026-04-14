@@ -16,10 +16,12 @@ import {
 import useImage from 'use-image';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../hooks/useTranslation';
+import { VectorAvatar, KitColors } from './VectorAvatar';
+import { VectorElement, EquipmentType } from './VectorElement';
 
 type ElementType =
   | 'player' | 'gk'
-  | 'ball' | 'cone' | 'disc' | 'goal' | 'ladder' | 'miniGoal' | 'ring'
+  | 'ball' | 'cone' | 'disc' | 'goal' | 'ladder' | 'miniGoal' | 'ring' | 'mannequin'
   | 'text'
   | 'arrow' | 'curvedArrow' | 'zigzag'
   | 'dashedArrow' | 'dashedCurvedArrow' | 'dashedZigzag'
@@ -38,6 +40,8 @@ interface TacticalElement {
   height?: number;
   scaleX?: number;
   scaleY?: number;
+  kitColors?: KitColors;
+  facing?: 'front' | 'back';
 }
 
 interface TacticalBoardProps {
@@ -81,84 +85,35 @@ const SPRITE_IMAGES: Record<string, string> = {
   gk: '/avatar.png',
 };
 
-const ELEMENT_IMAGES: Record<string, string> = {
-  ball: '/elements/ball.png',
-  cone: '/elements/cone.png',
-  disc: '/elements/disc.png',
-  goal: '/elements/goal.png',
-  ladder: '/elements/ladder.png',
-  miniGoal: '/elements/mini-goal.png',
-  ring: '/elements/ring.png',
-};
+const ELEMENT_TYPES: ElementType[] = ['ball', 'cone', 'disc', 'goal', 'ladder', 'miniGoal', 'ring', 'mannequin'];
 
-const ELEMENT_SPRITE_SIZE: Record<string, { w: number; h: number }> = {
-  ball: { w: 20, h: 20 },
-  cone: { w: 24, h: 24 },
-  disc: { w: 26, h: 10 },
-  goal: { w: 48, h: 32 },
-  ladder: { w: 20, h: 48 },
-  miniGoal: { w: 36, h: 24 },
-  ring: { w: 22, h: 22 },
-};
 
-const ELEMENT_TYPES: ElementType[] = ['ball', 'cone', 'disc', 'goal', 'ladder', 'miniGoal', 'ring'];
-
-const CollapsibleSection: React.FC<{ title: string; defaultOpen?: boolean; children: React.ReactNode }> = ({ title, defaultOpen = true, children }) => {
+const CollapsibleSection: React.FC<{ title: string; rightAction?: React.ReactNode; defaultOpen?: boolean; children: React.ReactNode }> = ({ title, rightAction, defaultOpen = true, children }) => {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div>
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1 w-full text-left text-[10px] text-on-surface-variant uppercase font-bold mb-2"
-      >
-        {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-        {title}
-      </button>
-      {open && children}
+    <div className="mb-2 w-full">
+      <div className="flex items-center justify-between w-full mb-2 group">
+        <button 
+          onClick={() => setOpen(o => !o)}
+          className="flex items-center gap-1 flex-1 text-left text-[10px] text-on-surface-variant uppercase font-bold"
+        >
+          {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+          {title}
+        </button>
+        {rightAction && <div onClick={e => e.stopPropagation()}>{rightAction}</div>}
+      </div>
+      <div className={cn("overflow-hidden transition-all", open ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0")}>
+        {children}
+      </div>
     </div>
   );
 };
 
-const AvatarSprite = ({ x, y, type, isSelected, draggable, onClick, onTap, onDragEnd, id }: {
-  x: number; y: number; type: 'player' | 'gk'; isSelected: boolean;
-  draggable?: boolean; onClick?: () => void; onTap?: () => void; onDragEnd?: (e: any) => void; id?: string;
-}) => {
-  const [img] = useImage(SPRITE_IMAGES[type]);
-  const size = AVATAR_SIZE;
-  const half = size / 2;
-  return (
-    <Group id={id} x={x} y={y} draggable={draggable} onClick={onClick} onTap={onTap} onDragEnd={onDragEnd}>
-      {isSelected && (
-        <Circle radius={half + 3} fill="transparent" stroke="#fff" strokeWidth={2} shadowBlur={10} shadowColor="white" />
-      )}
-      {img ? (
-        <Image image={img} x={-half} y={-half} width={size} height={size} />
-      ) : (
-        <Circle radius={half} fill="#555" />
-      )}
-    </Group>
-  );
-};
+// Removed old AvatarSprite
 
-const ElementSprite = ({ x, y, type, isSelected, draggable, onClick, onTap, onDragEnd, onTransformEnd, id }: {
-  x: number; y: number; type: ElementType; isSelected: boolean;
-  draggable?: boolean; onClick?: () => void; onTap?: () => void; onDragEnd?: (e: any) => void; onTransformEnd?: (e: any) => void; id?: string;
-}) => {
-  const [img] = useImage(ELEMENT_IMAGES[type]);
-  const size = ELEMENT_SPRITE_SIZE[type] || { w: 24, h: 24 };
-  return (
-    <Group id={id} x={x} y={y} draggable={draggable} onClick={onClick} onTap={onTap} onDragEnd={onDragEnd} onTransformEnd={onTransformEnd}>
-      {isSelected && (
-        <Rect x={-size.w / 2 - 3} y={-size.h / 2 - 3} width={size.w + 6} height={size.h + 6} stroke="#fff" strokeWidth={2} cornerRadius={4} shadowBlur={10} shadowColor="white" />
-      )}
-      {img ? (
-        <Image image={img} x={-size.w / 2} y={-size.h / 2} width={size.w} height={size.h} />
-      ) : (
-        <Rect x={-size.w / 2} y={-size.h / 2} width={size.w} height={size.h} fill="#555" cornerRadius={3} />
-      )}
-    </Group>
-  );
-};
+
+// Vector elements logic migrated to VectorElement.tsx
+
 
 const SoccerFieldBackground = ({ type, width, height }: { type: string; width: number; height: number }) => {
   const [image] = useImage(FIELD_IMAGES[type] || FIELD_IMAGES.full);
@@ -210,9 +165,38 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
   const [fieldType, setFieldType] = useState('full');
   const [activeTool, setActiveTool] = useState<ElementType | null>(null);
   const [drawingId, setDrawingId] = useState<string | null>(null);
+  
+  // Default kit colors for newly inserted avatars
+  const [playerColors, setPlayerColors] = useState<KitColors>({ shirt: '#3b82f6', shorts: '#ffffff', socks: '#3b82f6' });
+  const [gkColors, setGkColors] = useState<KitColors>({ shirt: '#eab308', shorts: '#111111', socks: '#eab308' });
+  
+  // Default color for insertion of cones/discs/etc
+  const [defaultElementColor, setDefaultElementColor] = useState<string>('#E63946');
+
+  // Handle changing the global element color and active selected object color
+  const updateDefaultElementColor = (val: string) => {
+    setDefaultElementColor(val);
+    if (selectedId) {
+      setElements(prev => prev.map(el => {
+        if (el.id === selectedId && ELEMENT_TYPES.includes(el.type)) {
+          return { ...el, color: val };
+        }
+        return el;
+      }));
+    }
+  };
+
   const stageRef = useRef<any>(null);
   const transformerRef = useRef<any>(null);
   const drawingRef = useRef<{ id: string; startX: number; startY: number; type: ElementType } | null>(null);
+
+  // Track latest state for keyboard listeners without rebinding
+  const stateRef = useRef({ elements, selectedId });
+  useEffect(() => {
+    stateRef.current = { elements, selectedId };
+  }, [elements, selectedId]);
+
+  const copiedElementRef = useRef<TacticalElement | null>(null);
 
   // Attach transformer to selected non-line elements
   useEffect(() => {
@@ -239,6 +223,58 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
     return pos || { x: 0, y: 0 };
   }, []);
 
+  // Keyboard Shortcuts (Copy, Paste, Delete)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input field
+      const activeTag = document.activeElement?.tagName;
+      if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+
+      const { elements: currentElements, selectedId: currentSelected } = stateRef.current;
+
+      // Delete
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (currentSelected) {
+          setElements(prev => prev.filter(el => el.id !== currentSelected));
+          setSelectedId(null);
+        }
+      }
+
+      // Copy (Ctrl+C or Cmd+C)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+        if (currentSelected) {
+          const elToCopy = currentElements.find(el => el.id === currentSelected);
+          if (elToCopy) {
+            copiedElementRef.current = elToCopy;
+          }
+        }
+      }
+
+      // Paste (Ctrl+V or Cmd+V)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+        if (copiedElementRef.current) {
+          const source = copiedElementRef.current;
+          const newId = `el-${crypto.randomUUID()}`;
+          const duplicate: TacticalElement = {
+            ...source,
+            id: newId,
+            x: source.x + 20,
+            y: source.y + 20,
+          };
+          // Deep clone arrays/objects inside
+          if (source.kitColors) duplicate.kitColors = { ...source.kitColors };
+          if (source.points) duplicate.points = [...source.points];
+          
+          setElements(prev => [...prev, duplicate]);
+          setSelectedId(newId);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Add instant element (non-draw tools)
   const addElement = (type: ElementType, color: string = '#ffffff', label: string = '') => {
     const newElement: TacticalElement = {
@@ -247,6 +283,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
       rotation: 0, scaleX: 1, scaleY: 1,
       width: type === 'shape' ? 100 : type === 'ellipse' ? 120 : undefined,
       height: type === 'shape' ? 70 : type === 'ellipse' ? 70 : undefined,
+      kitColors: type === 'player' ? { ...playerColors } : type === 'gk' ? { ...gkColors } : undefined
     };
     setElements(prev => [...prev, newElement]);
     setSelectedId(newElement.id);
@@ -410,6 +447,15 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
     }));
   };
 
+  // Calculate arrow pointer size proportional to arrow length
+  const getPointerSize = (pts: number[]) => {
+    const dx = pts[pts.length - 2] - pts[0];
+    const dy = pts[pts.length - 1] - pts[1];
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const scale = Math.max(0.4, Math.min(1.2, length / 80));
+    return { pointerLength: 16 * scale, pointerWidth: 12 * scale };
+  };
+
   // Render line/arrow element based on its points
   const renderLineElement = (el: TacticalElement, isSelected: boolean) => {
     const pts = el.points || [0, 0, 50, -30];
@@ -420,12 +466,13 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
     const isDashed = el.type === 'dashedArrow' || el.type === 'dashedCurvedArrow' || el.type === 'dashedZigzag';
 
     if (isArrow) {
+      const { pointerLength, pointerWidth } = getPointerSize(pts);
       return (
         <Arrow
           key={el.id} {...dragProps(el)}
           x={el.x} y={el.y}
           points={pts}
-          pointerLength={16} pointerWidth={12}
+          pointerLength={pointerLength} pointerWidth={pointerWidth}
           fill="white" stroke="white" strokeWidth={2.5}
           dash={isDashed ? [8, 6] : undefined}
           shadowBlur={selShadow} shadowColor="white"
@@ -447,11 +494,12 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
           t1 * t1 * lp[1] + 2 * t1 * t * lp[3] + t * t * lp[5],
         );
       }
+      const { pointerLength, pointerWidth } = getPointerSize(pts);
       return (
         <Group key={el.id} {...dragProps(el)} x={el.x} y={el.y}>
           <Arrow
             points={curvePts}
-            pointerLength={16} pointerWidth={12}
+            pointerLength={pointerLength} pointerWidth={pointerWidth}
             fill="white" stroke="white" strokeWidth={2.5}
             dash={isDashed ? [8, 6] : undefined}
             shadowBlur={selShadow} shadowColor="white"
@@ -463,12 +511,13 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
     if (isZigzag) {
       // pts = [0,0, ex,ey] - generate zigzag between them
       const zigPts = generateZigzag(pts[0], pts[1], pts[pts.length - 2], pts[pts.length - 1]);
+      const { pointerLength, pointerWidth } = getPointerSize(pts);
       return (
         <Arrow
           key={el.id} {...dragProps(el)}
           x={el.x} y={el.y}
           points={zigPts}
-          pointerLength={16} pointerWidth={12}
+          pointerLength={pointerLength} pointerWidth={pointerWidth}
           fill="white" stroke="white" strokeWidth={2.5}
           dash={isDashed ? [8, 6] : undefined}
           shadowBlur={selShadow} shadowColor="white"
@@ -572,31 +621,96 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
 
             {/* Players */}
             <CollapsibleSection title={t('playersAssets')}>
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => { setActiveTool(null); addElement('player', '#3b82f6', 'AT'); }} className="flex flex-col items-center gap-1 p-2 bg-surface-container rounded border border-black/5 hover:border-primary transition-all">
-                  <img src="/jogador.png" alt="Player" className="w-6 h-6 object-contain" />
-                  <span className="text-[9px] font-bold">{t('attacker')}</span>
-                </button>
-                <button onClick={() => { setActiveTool(null); addElement('gk', '#eab308', 'GK'); }} className="flex flex-col items-center gap-1 p-2 bg-surface-container rounded border border-black/5 hover:border-yellow-500 transition-all">
-                  <img src="/avatar.png" alt="GK" className="w-6 h-6 object-contain" />
-                  <span className="text-[9px] font-bold">{t('goalkeeperTool')}</span>
-                </button>
+              <div className="flex flex-col gap-3">
+                {/* Player Row */}
+                <div className="flex items-stretch gap-2 p-2 bg-surface-container rounded border border-black/5 hover:border-primary transition-all">
+                  <button onClick={() => { setActiveTool(null); addElement('player', '#3b82f6', 'AT'); }} className="flex flex-col items-center justify-center gap-1 flex-1">
+                    <Stage width={45} height={50} className="pointer-events-none">
+                      <Layer>
+                        <VectorAvatar x={22.5} y={25} type="player" isSelected={false} colors={playerColors} scaleXY={0.8} />
+                      </Layer>
+                    </Stage>
+                    <span className="text-[9px] font-bold">{t('attacker')}</span>
+                  </button>
+                  <div className="flex flex-col justify-center gap-1 pl-2 border-l border-black/10">
+                    <input type="color" title="Shirt" value={playerColors.shirt} onChange={(e) => {
+                      setPlayerColors(p => ({...p, shirt: e.target.value}));
+                      if (selectedId) setElements(prev => prev.map(el => el.id === selectedId && el.type === 'player' ? { ...el, kitColors: { ...(el.kitColors || playerColors), shirt: e.target.value } } : el));
+                    }} className="w-5 h-5 border-0 p-0 rounded-full cursor-pointer" />
+                    <input type="color" title="Shorts" value={playerColors.shorts} onChange={(e) => {
+                      setPlayerColors(p => ({...p, shorts: e.target.value}));
+                      if (selectedId) setElements(prev => prev.map(el => el.id === selectedId && el.type === 'player' ? { ...el, kitColors: { ...(el.kitColors || playerColors), shorts: e.target.value } } : el));
+                    }} className="w-5 h-5 border-0 p-0 rounded-full cursor-pointer" />
+                    <input type="color" title="Socks" value={playerColors.socks} onChange={(e) => {
+                      setPlayerColors(p => ({...p, socks: e.target.value}));
+                      if (selectedId) setElements(prev => prev.map(el => el.id === selectedId && el.type === 'player' ? { ...el, kitColors: { ...(el.kitColors || playerColors), socks: e.target.value } } : el));
+                    }} className="w-5 h-5 border-0 p-0 rounded-full cursor-pointer" />
+                  </div>
+                </div>
+
+                {/* GK Row */}
+                <div className="flex items-stretch gap-2 p-2 bg-surface-container rounded border border-black/5 hover:border-yellow-500 transition-all">
+                  <button onClick={() => { setActiveTool(null); addElement('gk', '#eab308', 'GK'); }} className="flex flex-col items-center justify-center gap-1 flex-1">
+                    <Stage width={45} height={50} className="pointer-events-none">
+                      <Layer>
+                        <VectorAvatar x={22.5} y={25} type="gk" isSelected={false} colors={gkColors} scaleXY={0.8} />
+                      </Layer>
+                    </Stage>
+                    <span className="text-[9px] font-bold">{t('goalkeeperTool')}</span>
+                  </button>
+                  <div className="flex flex-col justify-center gap-1 pl-2 border-l border-black/10">
+                    <input type="color" title="Shirt" value={gkColors.shirt} onChange={(e) => {
+                      setGkColors(p => ({...p, shirt: e.target.value}));
+                      if (selectedId) setElements(prev => prev.map(el => el.id === selectedId && el.type === 'gk' ? { ...el, kitColors: { ...(el.kitColors || gkColors), shirt: e.target.value } } : el));
+                    }} className="w-5 h-5 border-0 p-0 rounded-full cursor-pointer" />
+                    <input type="color" title="Shorts" value={gkColors.shorts} onChange={(e) => {
+                      setGkColors(p => ({...p, shorts: e.target.value}));
+                      if (selectedId) setElements(prev => prev.map(el => el.id === selectedId && el.type === 'gk' ? { ...el, kitColors: { ...(el.kitColors || gkColors), shorts: e.target.value } } : el));
+                    }} className="w-5 h-5 border-0 p-0 rounded-full cursor-pointer" />
+                    <input type="color" title="Socks" value={gkColors.socks} onChange={(e) => {
+                      setGkColors(p => ({...p, socks: e.target.value}));
+                      if (selectedId) setElements(prev => prev.map(el => el.id === selectedId && el.type === 'gk' ? { ...el, kitColors: { ...(el.kitColors || gkColors), socks: e.target.value } } : el));
+                    }} className="w-5 h-5 border-0 p-0 rounded-full cursor-pointer" />
+                  </div>
+                </div>
               </div>
             </CollapsibleSection>
 
             {/* Elements */}
-            <CollapsibleSection title={t('elements')}>
+            <CollapsibleSection 
+              title={t('elements')} 
+              rightAction={
+                <input 
+                  type="color" 
+                  value={defaultElementColor} 
+                  onChange={(e) => updateDefaultElementColor(e.target.value)} 
+                  title="Element Color" 
+                  className="w-5 h-5 border-0 p-0 rounded-full cursor-pointer shadow-sm" 
+                />
+              }
+            >
               <div className="grid grid-cols-3 gap-2">
-                {ELEMENT_TYPES.map(elType => (
-                  <button
-                    key={elType}
-                    onClick={() => { setActiveTool(null); addElement(elType); }}
-                    className="flex flex-col items-center gap-1 p-2 bg-surface-container rounded border border-black/5 hover:border-primary/50 transition-all"
-                  >
-                    <img src={ELEMENT_IMAGES[elType]} alt={elType} className="w-6 h-6 object-contain" />
-                    <span className="text-[9px] font-bold">{t(elType as any)}</span>
-                  </button>
-                ))}
+                {ELEMENT_TYPES.map(elType => {
+                  const cw = elType === 'goal' ? 40 : elType === 'miniGoal' ? 30 : 26;
+                  const ch = elType === 'ladder' ? 40 : elType === 'mannequin' ? 44 : 26;
+                  const displayScale = elType === 'goal' ? 0.5 : elType === 'ladder' ? 0.6 : elType === 'mannequin' ? 0.6 : 1;
+                  return (
+                    <button
+                      key={elType}
+                      onClick={() => { setActiveTool(null); addElement(elType, defaultElementColor); }}
+                      className="flex flex-col items-center justify-center gap-1 p-2 bg-surface-container rounded border border-black/5 hover:border-primary/50 transition-all h-16"
+                    >
+                      <Stage width={cw} height={ch} className="pointer-events-none">
+                        <Layer>
+                          <Group x={cw/2} y={ch/2} scaleX={displayScale} scaleY={displayScale}>
+                            <VectorElement x={0} y={0} type={elType as EquipmentType} color={defaultElementColor} isSelected={false} />
+                          </Group>
+                        </Layer>
+                      </Stage>
+                      <span className="text-[9px] font-bold">{t(elType as any)}</span>
+                    </button>
+                  );
+                })}
               </div>
             </CollapsibleSection>
 
@@ -631,18 +745,33 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
               )}
             </CollapsibleSection>
 
-            {/* Delete */}
-            {selectedId && (
-              <div className="mt-auto pt-4 border-t border-black/10">
-                <button
-                  onClick={removeSelected}
-                  className="w-full py-2 bg-error/10 text-error hover:bg-error/20 rounded text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  {t('deleteSelected')}
-                </button>
-              </div>
-            )}
+            {/* Avatar Color Config Removed - now in players list directly */}
+
+            {/* Selected Element Actions & Delete */}
+            {selectedId && (() => {
+              const el = elements.find(e => e.id === selectedId);
+              return (
+                <div className="mt-auto pt-4 border-t border-black/10 flex flex-col gap-2">
+                  {el && (el.type === 'player' || el.type === 'gk') && (
+                    <button
+                      onClick={() => {
+                        setElements(prev => prev.map(item => item.id === selectedId ? { ...item, facing: item.facing === 'back' ? 'front' : 'back' } : item));
+                      }}
+                      className="w-full flex justify-center items-center gap-2 p-2 bg-surface-container text-on-surface rounded text-[10px] uppercase font-bold hover:bg-black/5 transition-colors tracking-wider"
+                    >
+                      {el.facing === 'back' ? '👤 Virar de Frente' : '🔄 Virar de Costas'}
+                    </button>
+                  )}
+                  <button
+                    onClick={removeSelected}
+                    className="w-full py-2 bg-error/10 text-error hover:bg-error/20 rounded text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {t('deleteSelected')}
+                  </button>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Canvas Area */}
@@ -672,12 +801,18 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                     // Players & GK
                     if (el.type === 'player' || el.type === 'gk') {
                       return (
-                        <AvatarSprite
+                        <VectorAvatar
                           key={el.id}
                           {...dragProps(el)}
                           x={el.x} y={el.y}
                           type={el.type as 'player' | 'gk'}
                           isSelected={isSelected}
+                          colors={el.kitColors}
+                          facing={el.facing}
+                          label={el.label}
+                          scaleX={el.scaleX}
+                          scaleY={el.scaleY}
+                          rotation={el.rotation}
                         />
                       );
                     }
@@ -690,12 +825,16 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                     // Equipment elements (ball, cone, disc, goal, ladder, miniGoal, ring)
                     if (ELEMENT_TYPES.includes(el.type)) {
                       return (
-                        <ElementSprite
+                        <VectorElement
                           key={el.id}
                           {...dragProps(el)}
                           x={el.x} y={el.y}
-                          type={el.type}
+                          type={el.type as EquipmentType}
+                          color={el.color}
                           isSelected={isSelected}
+                          scaleX={el.scaleX}
+                          scaleY={el.scaleY}
+                          rotation={el.rotation}
                         />
                       );
                     }

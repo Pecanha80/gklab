@@ -52,8 +52,14 @@ export function useAppData() {
       ]);
 
       if (gkRes.data) {
-        setGoalkeepers(gkRes.data);
-        saveToStorage(STORAGE_KEYS.goalkeepers, gkRes.data);
+        // Merge local-only fields (birthDate, height, weight) from localStorage
+        const localGks = loadFromStorage<Goalkeeper>(STORAGE_KEYS.goalkeepers);
+        const merged = gkRes.data.map(gk => {
+          const local = localGks.find(l => l.id === gk.id);
+          return local ? { ...gk, birthDate: local.birthDate, height: local.height, weight: local.weight } : gk;
+        });
+        setGoalkeepers(merged);
+        saveToStorage(STORAGE_KEYS.goalkeepers, merged);
       }
       if (sessRes.data) {
         setSessions(sessRes.data);
@@ -108,6 +114,7 @@ export function useAppData() {
 
     if (error) {
       console.error('Error adding exercise:', error);
+      alert('Erro ao salvar exercício na biblioteca. Verifique sua conexão ou permissões.');
       return;
     }
     if (data) {
@@ -184,6 +191,7 @@ export function useAppData() {
 
     if (error) {
       console.error('Error adding session:', error);
+      alert('Erro ao salvar sessão de treino.');
       return false;
     }
     if (data) {
@@ -243,6 +251,12 @@ export function useAppData() {
 
   // --- Goalkeepers CRUD ---
 
+  // Strip fields that don't exist in the Supabase schema
+  const toSupabaseGk = (gk: Record<string, unknown>) => {
+    const { birthDate, height, weight, ...rest } = gk;
+    return rest;
+  };
+
   const addGoalkeeper = async (gk: Omit<Goalkeeper, 'id'>) => {
     if (!hasSupabaseConfig) {
       const local = { ...gk, id: crypto.randomUUID() } as Goalkeeper;
@@ -256,16 +270,19 @@ export function useAppData() {
 
     const { data, error } = await supabase
       .from('goalkeepers')
-      .insert([gk])
+      .insert([toSupabaseGk(gk)])
       .select();
 
     if (error) {
       console.error('Error adding goalkeeper:', error);
+      alert('Erro ao adicionar goleiro.');
       return;
     }
     if (data) {
+      // Merge local-only fields with Supabase data
+      const fullGk = { ...data[0], birthDate: gk.birthDate, height: gk.height, weight: gk.weight } as Goalkeeper;
       setGoalkeepers(prev => {
-        const updated = [...prev, data[0]];
+        const updated = [...prev, fullGk];
         saveToStorage(STORAGE_KEYS.goalkeepers, updated);
         return updated;
       });
@@ -283,9 +300,10 @@ export function useAppData() {
     }
 
     const { id, ...rest } = gk;
-    const { error } = await supabase.from('goalkeepers').update(rest).eq('id', id);
+    const { error } = await supabase.from('goalkeepers').update(toSupabaseGk(rest)).eq('id', id);
     if (error) {
       console.error('Error updating goalkeeper:', error);
+      alert('Erro ao atualizar goleiro. Tente novamente.');
       return;
     }
     setGoalkeepers(prev => {
@@ -308,6 +326,7 @@ export function useAppData() {
     const { error } = await supabase.from('goalkeepers').delete().eq('id', gkId);
     if (error) {
       console.error('Error deleting goalkeeper:', error);
+      alert('Erro ao excluir goleiro. Tente novamente.');
       return;
     }
     setGoalkeepers(prev => {
@@ -337,6 +356,7 @@ export function useAppData() {
 
     if (error) {
       console.error('Error adding video:', error);
+      alert('Erro ao adicionar vídeo.');
       return;
     }
     if (data) {

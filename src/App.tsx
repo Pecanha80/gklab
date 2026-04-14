@@ -116,6 +116,107 @@ export default function App() {
   const [showPreview, setShowPreview] = useState(false);
   const [currentDrill, setCurrentDrill] = useState<Omit<Exercise, 'id'>>({ ...emptyDrill });
 
+  // Microcycle planner state
+  const ALL_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+  type DayKey = typeof ALL_DAYS[number];
+
+  interface SavedMicrocycle {
+    id: string;
+    name: string;
+    startDate: string;
+    startDay: DayKey;
+    endDay: DayKey;
+    matchDay: DayKey | '';
+  }
+
+  const [microcycleName, setMicrocycleName] = useState('');
+  const [microcycleStartDate, setMicrocycleStartDate] = useState(() => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + diff);
+    return monday.toISOString().split('T')[0];
+  });
+  const [microcycleStartDay, setMicrocycleStartDay] = useState<DayKey>('monday');
+  const [microcycleEndDay, setMicrocycleEndDay] = useState<DayKey>('sunday');
+  const [matchDay, setMatchDay] = useState<DayKey | ''>('');
+  const [savedMicrocycles, setSavedMicrocycles] = useState<SavedMicrocycle[]>(() => {
+    try { return JSON.parse(localStorage.getItem('gk_microcycles') || '[]'); } catch { return []; }
+  });
+  const [showMicrocycleHistory, setShowMicrocycleHistory] = useState(false);
+
+  const getMicrocycleDays = () => {
+    const startIdx = ALL_DAYS.indexOf(microcycleStartDay);
+    const endIdx = ALL_DAYS.indexOf(microcycleEndDay);
+    if (endIdx >= startIdx) {
+      return ALL_DAYS.slice(startIdx, endIdx + 1);
+    }
+    return [...ALL_DAYS.slice(startIdx), ...ALL_DAYS.slice(0, endIdx + 1)];
+  };
+
+  const getDayDate = (dayKey: DayKey) => {
+    const startDayIdx = ALL_DAYS.indexOf(microcycleStartDay);
+    const dayIdx = ALL_DAYS.indexOf(dayKey);
+    let offset = dayIdx - startDayIdx;
+    if (offset < 0) offset += 7;
+    const date = new Date(microcycleStartDate);
+    date.setDate(date.getDate() + offset);
+    return date;
+  };
+
+  const formatDayDate = (dayKey: DayKey) => {
+    const date = getDayDate(dayKey);
+    return date.getDate().toString();
+  };
+
+  const formatMonthLabel = (dayKey: DayKey) => {
+    const date = getDayDate(dayKey);
+    return date.toLocaleDateString(isPortuguese ? 'pt-BR' : 'en-US', { month: 'short' }).toUpperCase();
+  };
+
+  const getMatchDayLabel = (dayKey: string) => {
+    if (!matchDay) return null;
+    const days = getMicrocycleDays();
+    const matchIdx = days.indexOf(matchDay as DayKey);
+    const dayIdx = days.indexOf(dayKey as DayKey);
+    if (matchIdx === -1 || dayIdx === -1) return null;
+    const diff = dayIdx - matchIdx;
+    if (diff === 0) return t('matchDayLabel');
+    if (diff > 0) return `${t('md')}+${diff}`;
+    return `${t('md')}${diff}`;
+  };
+
+  const saveMicrocycle = () => {
+    if (!microcycleName.trim()) return;
+    const mc: SavedMicrocycle = {
+      id: crypto.randomUUID(),
+      name: microcycleName,
+      startDate: microcycleStartDate,
+      startDay: microcycleStartDay,
+      endDay: microcycleEndDay,
+      matchDay,
+    };
+    const updated = [mc, ...savedMicrocycles];
+    setSavedMicrocycles(updated);
+    localStorage.setItem('gk_microcycles', JSON.stringify(updated));
+  };
+
+  const loadMicrocycle = (mc: SavedMicrocycle) => {
+    setMicrocycleName(mc.name);
+    setMicrocycleStartDate(mc.startDate);
+    setMicrocycleStartDay(mc.startDay);
+    setMicrocycleEndDay(mc.endDay);
+    setMatchDay(mc.matchDay);
+    setShowMicrocycleHistory(false);
+  };
+
+  const deleteMicrocycle = (id: string) => {
+    const updated = savedMicrocycles.filter(m => m.id !== id);
+    setSavedMicrocycles(updated);
+    localStorage.setItem('gk_microcycles', JSON.stringify(updated));
+  };
+
   const translateContent = (content: string) => {
     if (!content) return '';
     return content
@@ -353,8 +454,8 @@ export default function App() {
     const normalizedTitle = title.trim().toLowerCase();
     const allExercises: Exercise[] = [];
     Object.values(SESSION_TEMPLATES).forEach(template => {
-      if (template.exercises) allExercises.push(...(template.exercises as Exercise[]));
-      if (template.warmup) allExercises.push(...(template.warmup as Exercise[]));
+      if (Array.isArray(template.exercises)) allExercises.push(...template.exercises);
+      if (Array.isArray(template.warmup)) allExercises.push(...template.warmup);
     });
 
     // Add drills from library as well
@@ -395,7 +496,19 @@ export default function App() {
     }
   };
 
+  // Resolve a title to its template key (handles both raw keys and translated text)
+  const resolveTemplateKey = (title: string): string => {
+    if (SESSION_TEMPLATES[title]) return title;
+    // Reverse lookup: find key whose translation matches
+    const keys = Object.keys(SESSION_TEMPLATES);
+    const found = keys.find(k => t(k as any) === title || t(k as any).toLowerCase() === title.toLowerCase());
+    return found || title;
+  };
+
   const applySessionTemplates = (titles: string[]) => {
+    // Normalize titles to raw keys
+    const resolvedTitles = titles.map(resolveTemplateKey);
+
     let allWarmup: Exercise[] = [];
     let allExercises: Exercise[] = [];
     let technical = '';
@@ -405,7 +518,7 @@ export default function App() {
     let generalObjectives: string[] = [];
     let category = '';
 
-    titles.forEach(title => {
+    resolvedTitles.forEach(title => {
       const template = SESSION_TEMPLATES[title];
       if (template) {
         if (template.category) category = template.category;
@@ -463,7 +576,7 @@ export default function App() {
 
     setNewSession(prev => ({
       ...prev,
-      titles,
+      titles: resolvedTitles,
       category: category || prev.category,
       generalObjectives: generalObjectives,
       objectives: {
@@ -578,7 +691,7 @@ export default function App() {
         <nav className="flex-1 space-y-1">
           <SidebarItem icon={LayoutDashboard} labelKey="dashboard" active={activeTab === 'Dashboard'} onClick={() => setActiveTab('Dashboard')} isCollapsed={isSidebarCollapsed} t={t} />
           <SidebarItem icon={DumbbellIcon} labelKey="sessions" active={activeTab === 'Training'} onClick={() => setActiveTab('Training')} isCollapsed={isSidebarCollapsed} t={t} />
-          <SidebarItem icon={Target} labelKey="exercises" active={activeTab === 'Exercises'} onClick={() => setActiveTab('Exercises')} isCollapsed={isSidebarCollapsed} t={t} />
+          <SidebarItem icon={Library} labelKey="exerciseLibrary" active={activeTab === 'Exercises'} onClick={() => setActiveTab('Exercises')} isCollapsed={isSidebarCollapsed} t={t} />
           <SidebarItem icon={Users} labelKey="athletes" active={activeTab === 'Goalkeepers'} onClick={() => setActiveTab('Goalkeepers')} isCollapsed={isSidebarCollapsed} t={t} />
           <SidebarItem icon={Calendar} labelKey="planning" active={activeTab === 'Planning'} onClick={() => setActiveTab('Planning')} isCollapsed={isSidebarCollapsed} t={t} />
           <SidebarItem icon={Video} labelKey="videos" active={activeTab === 'Videos'} onClick={() => setActiveTab('Videos')} isCollapsed={isSidebarCollapsed} t={t} />
@@ -677,38 +790,61 @@ export default function App() {
                 <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                   <div className="lg:col-span-8 space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-2xl font-bold font-headline tracking-tight">{t('trainingSchedule')} <span className="text-on-surface-variant font-medium text-lg ml-2">{t('week')} 42</span></h3>
+                      <h3 className="text-2xl font-bold font-headline tracking-tight">
+                        {t('trainingSchedule')}
+                        {microcycleName && <span className="text-on-surface-variant font-medium text-lg ml-2">{microcycleName}</span>}
+                      </h3>
                       <button onClick={() => setActiveTab('Planning')} className="bg-primary hover:bg-primary-dim text-on-primary px-4 py-2 rounded-md font-label text-xs font-bold transition-all active:scale-95 flex items-center">
                         <Edit3 className="w-3 h-3 mr-2" />
                         {t('modifyPlan')}
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
-                      {(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const).map((dayKey, i) => {
-                        const day = t(dayKey);
-                        const isToday = dayKey === 'wed';
-                        const isOff = dayKey === 'sun' || dayKey === 'sat';
-                        return (
-                          <div
-                            key={dayKey}
-                            className={cn(
-                              "p-4 rounded-lg border-t-2 transition-all",
-                              isToday ? "bg-surface-container-high border-primary ring-1 ring-primary/20" : "bg-surface-container border-black/5",
-                              isOff && "opacity-50"
-                            )}
-                          >
-                            <p className={cn("text-[10px] font-label uppercase mb-2", isToday ? "text-primary" : "text-on-surface-variant")}>
-                              {day} {isToday && `(${t('today')})`}
-                            </p>
-                            <p className="text-xs font-bold font-headline">
-                              {i === 0 ? t('recovery') : i === 1 ? t('reaction') : i === 2 ? t('u23Dev') : i === 3 ? t('crosses') : i === 4 ? t('matchPrep') : t('off')}
-                            </p>
-                            {isToday && <span className="text-[9px] text-on-surface-variant block mt-1">02:30 PM</span>}
-                          </div>
-                        );
-                      })}
-                    </div>
+                    {getMicrocycleDays().length > 0 ? (
+                      <div className="grid grid-cols-2 md:grid-cols-7 gap-2" style={{ gridTemplateColumns: `repeat(${getMicrocycleDays().length}, minmax(0, 1fr))` }}>
+                        {getMicrocycleDays().map((dayKey) => {
+                          const dayDate = getDayDate(dayKey);
+                          const dateStr = dayDate.toISOString().split('T')[0];
+                          const todayStr = new Date().toISOString().split('T')[0];
+                          const isToday = dateStr === todayStr;
+                          const isMatch = dayKey === matchDay;
+                          const daySessions = sessions.filter(s => s.date === dateStr);
+                          return (
+                            <div
+                              key={dayKey}
+                              className={cn(
+                                "p-3 rounded-lg border-t-2 transition-all",
+                                isMatch ? "bg-yellow-500/10 border-yellow-500" : isToday ? "bg-surface-container-high border-primary ring-1 ring-primary/20" : "bg-surface-container border-black/5"
+                              )}
+                            >
+                              <p className={cn("text-[10px] font-label uppercase mb-1", isMatch ? "text-yellow-600" : isToday ? "text-primary" : "text-on-surface-variant")}>
+                                {t(dayKey)} {isToday && `(${t('today')})`}
+                              </p>
+                              <p className={cn("text-lg font-bold", isMatch ? "text-yellow-600" : isToday ? "text-primary" : "text-on-surface")}>
+                                {dayDate.getDate()}
+                              </p>
+                              {isMatch && (
+                                <span className="text-[8px] font-bold uppercase text-yellow-600">{t('matchDayLabel')}</span>
+                              )}
+                              {daySessions.map(s => (
+                                <p key={s.id} className="text-[10px] font-bold text-on-surface mt-1 truncate">{s.titles?.map(t_ => t(t_ as any)).join(' & ')}</p>
+                              ))}
+                              {!isMatch && daySessions.length === 0 && (
+                                <p className="text-[10px] text-on-surface-variant mt-1">—</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="bg-surface-container rounded-xl border border-dashed border-black/10 p-8 text-center">
+                        <Calendar className="w-8 h-8 text-on-surface-variant/30 mx-auto mb-3" />
+                        <p className="text-sm text-on-surface-variant">{t('noMicrocycleYet' as any)}</p>
+                        <button onClick={() => setActiveTab('Planning')} className="mt-3 text-primary text-xs font-bold uppercase hover:underline">
+                          {t('createFirstMicrocycle' as any)}
+                        </button>
+                      </div>
+                    )}
 
                     {sessions.length > 0 && (
                       <div className="bg-surface-container-low rounded-xl overflow-hidden border border-black/5">
@@ -834,18 +970,15 @@ export default function App() {
 
                   {isSelectingFromLibrary && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+                      <div
                         onClick={() => setIsSelectingFromLibrary(false)}
-                        className="absolute inset-0 bg-surface/80 backdrop-blur-sm"
+                        className="absolute inset-0 bg-surface/80 backdrop-blur-sm z-0"
                       />
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative bg-surface-container border border-black/10 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col"
+                        className="relative z-10 bg-surface-container border border-black/10 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col"
                       >
                         <div className="p-6 border-b border-black/10 flex items-center justify-between bg-surface-container-highest">
                           <div>
@@ -883,9 +1016,11 @@ export default function App() {
                                   key={ex.id}
                                   type="button"
                                   onClick={() => {
+                                    const exerciseWithNewId = { ...ex, id: crypto.randomUUID() };
                                     setNewSession(prev => ({
                                       ...prev,
-                                      exercises: [...prev.exercises, ex]
+                                      warmup: drillContext === 'warmup' ? [...prev.warmup, exerciseWithNewId] : prev.warmup,
+                                      exercises: drillContext === 'main' ? [...prev.exercises, exerciseWithNewId] : prev.exercises,
                                     }));
                                     setIsSelectingFromLibrary(false);
                                   }}
@@ -983,13 +1118,30 @@ export default function App() {
                                    isDeletable={(val) => customPresets.sessionTitles.includes(val)}
                                  />
                                </div>
-                               <textarea 
-                                 value={newSession.titles.map(t_ => t(t_ as any)).join(', ')} 
-                                 onChange={e => setNewSession({ ...newSession, titles: e.target.value.split(',').map(s => s.trim()).filter(s => s !== '') })} 
-                                 onBlur={() => newSession.titles.forEach(t_ => addCustomPreset('sessionTitles', t_, PRESETS.sessionTitles))}
-                                 className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-sm min-h-[40px]" 
-                                 placeholder={t('drillTitlePlaceholder')} 
-                               />
+                               <div className="flex flex-wrap gap-1.5 min-h-[40px] bg-surface-container-highest border border-black/10 rounded px-2 py-2">
+                                 {newSession.titles.length === 0 && (
+                                   <span className="text-xs text-on-surface-variant/50 py-0.5">{t('drillTitlePlaceholder')}</span>
+                                 )}
+                                 {newSession.titles.map(title => (
+                                   <span key={title} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-full">
+                                     {t(title as any)}
+                                     <button
+                                       type="button"
+                                       onClick={() => {
+                                         const updated = newSession.titles.filter(t_ => t_ !== title);
+                                         if (updated.length === 0) {
+                                           setNewSession({ ...emptySession, date: newSession.date, category: newSession.category, numAthletes: newSession.numAthletes });
+                                         } else {
+                                           applySessionTemplates(updated);
+                                         }
+                                       }}
+                                       className="hover:text-error transition-colors"
+                                     >
+                                       <X className="w-3 h-3" />
+                                     </button>
+                                   </span>
+                                 ))}
+                               </div>
                             </div>
                             <div className="space-y-1">
                               <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('date')}</label>
@@ -1299,18 +1451,31 @@ export default function App() {
                                 </div>
                               </div>
                             ) : (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setDrillContext('warmup');
-                                  setIsAddingDrill(true);
-                                  setCurrentDrill({ ...emptyDrill, type: 'warmup' });
-                                }}
-                                className="w-full py-4 border-2 border-dashed border-black/10 rounded-lg text-on-surface-variant hover:border-primary hover:text-primary transition-all flex flex-col items-center justify-center gap-2"
-                              >
-                                <Plus className="w-6 h-6" />
-                                <span className="text-[10px] font-bold uppercase tracking-widest">{t('addWarmup')}</span>
-                              </button>
+                              <div className="flex gap-4">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDrillContext('warmup');
+                                    setIsAddingDrill(true);
+                                    setCurrentDrill({ ...emptyDrill, type: 'warmup' });
+                                  }}
+                                  className="flex-1 py-4 border-2 border-dashed border-black/10 rounded-lg text-on-surface-variant hover:border-primary hover:text-primary transition-all flex flex-col items-center justify-center gap-2"
+                                >
+                                  <Plus className="w-6 h-6" />
+                                  <span className="text-[10px] font-bold uppercase tracking-widest">{t('createNewExercise')}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDrillContext('warmup');
+                                    setIsSelectingFromLibrary(true);
+                                  }}
+                                  className="flex-1 py-4 border-2 border-dashed border-black/10 rounded-lg text-on-surface-variant hover:border-secondary hover:text-secondary transition-all flex flex-col items-center justify-center gap-2"
+                                >
+                                  <Library className="w-6 h-6" />
+                                  <span className="text-[10px] font-bold uppercase tracking-widest">{t('addFromLibrary')}</span>
+                                </button>
+                              </div>
                             )}
                           </div>
                         </Section>
@@ -2216,7 +2381,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="space-y-8"
+                className="space-y-6"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -2224,6 +2389,16 @@ export default function App() {
                     <p className="text-on-surface-variant text-sm mt-1">{t('uefaWeeklyPeriodization')}</p>
                   </div>
                   <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowMicrocycleHistory(!showMicrocycleHistory)}
+                      className={cn(
+                        "px-4 py-2 rounded-md font-label text-xs font-bold transition-all active:scale-95 flex items-center border",
+                        showMicrocycleHistory ? "bg-primary/10 border-primary text-primary" : "border-black/10 text-on-surface-variant hover:border-primary hover:text-primary"
+                      )}
+                    >
+                      <Clock className="w-4 h-4 mr-2" />
+                      {t('history' as any)}
+                    </button>
                     <button onClick={() => { setActiveTab('Training'); setIsAddingSession(true); }} className="bg-primary hover:bg-primary-dim text-on-primary px-4 py-2 rounded-md font-label text-xs font-bold transition-all active:scale-95 flex items-center">
                       <Plus className="w-4 h-4 mr-2" />
                       {t('newSession')}
@@ -2231,40 +2406,181 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
-                  {(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const).map((dayKey, idx) => (
-                    <div key={dayKey} className="space-y-4">
-                      <div className="bg-surface-container-highest p-3 rounded-t-xl border-b-2 border-primary text-center">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">{t(dayKey)}</span>
-                        <div className="text-xl font-bold text-on-surface mt-1">{idx + 6} APR</div>
-                      </div>
-                      <div className="bg-surface-container rounded-b-xl border border-black/5 min-h-[400px] p-3 space-y-3">
-                        {sessions.filter(s => {
-                          const sessionDate = new Date(s.date);
-                          return sessionDate.getDay() === (idx + 1) % 7;
-                        }).map(session => (
-                          <div key={session.id} onClick={() => setViewingSession(session)} className="bg-surface-container-highest p-3 rounded-lg border border-black/10 group cursor-pointer hover:border-primary transition-all">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-[8px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">{t(session.category as any)}</span>
-                              <Clock className="w-3 h-3 text-on-surface-variant" />
-                            </div>
-                            <h4 className="text-xs font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2">{session.titles?.map(t_ => t(t_ as any)).join(' & ')}</h4>
-                            <div className="flex items-center gap-2 mt-2">
-                              <div className="flex -space-x-1">
-                                {[1, 2, 3].map(i => (
-                                  <div key={i} className="w-4 h-4 rounded-full border border-surface-container bg-surface-variant text-[6px] flex items-center justify-center font-bold">GK</div>
-                                ))}
-                              </div>
-                              <span className="text-[9px] text-on-surface-variant">{session.numAthletes} {t('gks')}</span>
-                            </div>
+                {/* Microcycle History */}
+                <AnimatePresence>
+                  {showMicrocycleHistory && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="bg-surface-container rounded-xl border border-black/10 p-5 space-y-3">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">{t('savedMicrocycles' as any)}</h3>
+                        {savedMicrocycles.length === 0 ? (
+                          <p className="text-xs text-on-surface-variant italic">{t('noSavedMicrocycles' as any)}</p>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {savedMicrocycles.map(mc => {
+                              const startDate = new Date(mc.startDate);
+                              return (
+                                <div key={mc.id} className="bg-surface-container-highest p-3 rounded-lg border border-black/10 flex items-center justify-between group hover:border-primary transition-all">
+                                  <button onClick={() => loadMicrocycle(mc)} className="flex-1 text-left">
+                                    <div className="text-xs font-bold text-on-surface">{mc.name}</div>
+                                    <div className="text-[10px] text-on-surface-variant mt-0.5">
+                                      {startDate.toLocaleDateString(isPortuguese ? 'pt-BR' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                      {mc.matchDay && <> · <Trophy className="w-2.5 h-2.5 inline-block text-yellow-500" /> {t(mc.matchDay as any)}</>}
+                                    </div>
+                                  </button>
+                                  <button onClick={() => deleteMicrocycle(mc.id)} className="p-1.5 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              );
+                            })}
                           </div>
-                        ))}
-                        <button onClick={() => { setActiveTab('Training'); setIsAddingSession(true); }} className="w-full py-3 border border-dashed border-black/10 rounded-lg text-on-surface-variant hover:border-primary hover:text-primary transition-all flex items-center justify-center">
-                          <Plus className="w-4 h-4" />
-                        </button>
+                        )}
                       </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Microcycle Config */}
+                <div className="bg-surface-container rounded-xl border border-black/10 p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('microcycleName')}</label>
+                      <input
+                        type="text"
+                        value={microcycleName}
+                        onChange={e => setMicrocycleName(e.target.value)}
+                        placeholder={t('microcycleNamePlaceholder')}
+                        className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
+                      />
                     </div>
-                  ))}
+                    <div className="space-y-1">
+                      <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('startDate' as any)}</label>
+                      <input
+                        type="date"
+                        value={microcycleStartDate}
+                        onChange={e => {
+                          setMicrocycleStartDate(e.target.value);
+                          const d = new Date(e.target.value);
+                          const jsDay = d.getDay();
+                          setMicrocycleStartDay(ALL_DAYS[(jsDay + 6) % 7]);
+                        }}
+                        className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('endDay')}</label>
+                      <select
+                        value={microcycleEndDay}
+                        onChange={e => {
+                          setMicrocycleEndDay(e.target.value as DayKey);
+                        }}
+                        className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
+                      >
+                        {ALL_DAYS.map(d => <option key={d} value={d}>{t(d)}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('matchDay')}</label>
+                      <select
+                        value={matchDay}
+                        onChange={e => setMatchDay(e.target.value as DayKey | '')}
+                        className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
+                      >
+                        <option value="">{t('noMatch')}</option>
+                        {getMicrocycleDays().map(d => <option key={d} value={d}>{t(d)}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-1 flex flex-col justify-end">
+                      <button
+                        onClick={saveMicrocycle}
+                        disabled={!microcycleName.trim()}
+                        className={cn(
+                          "w-full px-3 py-2 rounded font-label text-xs font-bold transition-all flex items-center justify-center gap-2",
+                          microcycleName.trim()
+                            ? "bg-primary hover:bg-primary-dim text-on-primary active:scale-95"
+                            : "bg-black/5 text-on-surface-variant cursor-not-allowed"
+                        )}
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        {t('save' as any)}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4" style={{ gridTemplateColumns: `repeat(${getMicrocycleDays().length}, minmax(0, 1fr))` }}>
+                  {getMicrocycleDays().map((dayKey) => {
+                    const isMatch = dayKey === matchDay;
+                    const mdLabel = getMatchDayLabel(dayKey);
+                    const dayDate = getDayDate(dayKey);
+                    const dateStr = dayDate.toISOString().split('T')[0];
+                    const isToday = dateStr === new Date().toISOString().split('T')[0];
+                    return (
+                      <div key={dayKey} className="space-y-0">
+                        <div className={cn(
+                          "p-3 rounded-t-xl border-b-2 text-center",
+                          isMatch ? "bg-yellow-500/10 border-yellow-500" : isToday ? "bg-primary/10 border-primary" : "bg-surface-container-highest border-primary/50"
+                        )}>
+                          <span className={cn(
+                            "text-[10px] font-black uppercase tracking-widest",
+                            isMatch ? "text-yellow-600" : "text-primary"
+                          )}>{t(dayKey)}</span>
+                          <div className={cn(
+                            "text-lg font-bold mt-0.5",
+                            isMatch ? "text-yellow-600" : isToday ? "text-primary" : "text-on-surface"
+                          )}>
+                            {formatDayDate(dayKey)}
+                          </div>
+                          <span className="text-[8px] text-on-surface-variant uppercase tracking-widest">{formatMonthLabel(dayKey)}</span>
+                          {mdLabel && (
+                            <div className={cn(
+                              "text-[8px] font-bold uppercase tracking-widest mt-1 rounded-full px-2 py-0.5 inline-block",
+                              isMatch ? "bg-yellow-500/20 text-yellow-600" : "bg-primary/10 text-primary"
+                            )}>
+                              {mdLabel}
+                            </div>
+                          )}
+                        </div>
+                        <div className={cn(
+                          "rounded-b-xl border border-black/5 min-h-[300px] p-3 space-y-3",
+                          isMatch ? "bg-yellow-500/5" : "bg-surface-container"
+                        )}>
+                          {sessions.filter(s => s.date === dateStr).map(session => (
+                            <div key={session.id} onClick={() => setViewingSession(session)} className="bg-surface-container-highest p-3 rounded-lg border border-black/10 group cursor-pointer hover:border-primary transition-all">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-[8px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">{t(session.category as any)}</span>
+                                <Clock className="w-3 h-3 text-on-surface-variant" />
+                              </div>
+                              <h4 className="text-xs font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2">{session.titles?.map(t_ => t(t_ as any)).join(' & ')}</h4>
+                              <div className="flex items-center gap-2 mt-2">
+                                <div className="flex -space-x-1">
+                                  {[1, 2, 3].map(i => (
+                                    <div key={i} className="w-4 h-4 rounded-full border border-surface-container bg-surface-variant text-[6px] flex items-center justify-center font-bold">GK</div>
+                                  ))}
+                                </div>
+                                <span className="text-[9px] text-on-surface-variant">{session.numAthletes} {t('gks')}</span>
+                              </div>
+                            </div>
+                          ))}
+                          {isMatch ? (
+                            <div className="flex flex-col items-center justify-center py-6 text-center">
+                              <Trophy className="w-8 h-8 text-yellow-500 mb-2" />
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-600">{t('matchDayLabel')}</span>
+                            </div>
+                          ) : (
+                            <button onClick={() => { setActiveTab('Training'); setIsAddingSession(true); }} className="w-full py-3 border border-dashed border-black/10 rounded-lg text-on-surface-variant hover:border-primary hover:text-primary transition-all flex items-center justify-center">
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </motion.div>
             )}

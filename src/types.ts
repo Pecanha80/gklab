@@ -7,6 +7,9 @@ export interface Goalkeeper {
   recovery: number;
   load: number;
   imageUrl: string;
+  birthDate?: string;
+  height?: number;
+  weight?: number;
 }
 
 export interface Exercise {

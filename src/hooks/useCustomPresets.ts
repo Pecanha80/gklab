@@ -82,13 +82,13 @@ export function useCustomPresets() {
     localStorage.setItem('gk_custom_presets', JSON.stringify(customPresets));
   }, [customPresets]);
 
-  const getOptions = (key: keyof CustomPresetsState, defaultOptions: string[]) => {
+  const getOptions = (key: keyof CustomPresetsState, defaultOptions: readonly string[]) => {
     const custom = Array.isArray(customPresets[key]) ? customPresets[key] : [];
     const combined = [...defaultOptions, ...custom];
     return Array.from(new Set(combined));
   };
 
-  const addCustomPreset = (key: keyof CustomPresetsState, value: string, defaultOptions: string[]) => {
+  const addCustomPreset = (key: keyof CustomPresetsState, value: string, defaultOptions: readonly string[]) => {
     if (!value || value.trim() === '' || defaultOptions.includes(value) || customPresets[key].includes(value)) return;
     setCustomPresets(prev => ({
       ...prev,

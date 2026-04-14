@@ -210,4 +210,14 @@ export const PRESETS = {
   drillTypes: ['analytical', 'decision', 'contextualized', 'warmup'] as const,
   intensities: ['low', 'medium', 'high'] as const,
   durations: ['dur_5min', 'dur_10min', 'dur_15min', 'dur_20min', 'dur_30min'],
-};
+} as const;
+
+// Deep freeze to prevent runtime mutations
+function deepFreeze<T extends object>(obj: T): T {
+  Object.freeze(obj);
+  Object.values(obj).forEach(v => {
+    if (v && typeof v === 'object' && !Object.isFrozen(v)) deepFreeze(v as object);
+  });
+  return obj;
+}
+deepFreeze(PRESETS);

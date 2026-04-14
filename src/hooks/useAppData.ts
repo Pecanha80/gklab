@@ -56,7 +56,7 @@ export function useAppData() {
         const localGks = loadFromStorage<Goalkeeper>(STORAGE_KEYS.goalkeepers);
         const merged = gkRes.data.map(gk => {
           const local = localGks.find(l => l.id === gk.id);
-          return local ? { ...gk, birthDate: local.birthDate, height: local.height, weight: local.weight } : gk;
+          return local ? { ...gk, birthDate: local.birthDate, height: local.height, weight: local.weight, membership: local.membership || 'permanent', trialStartDate: local.trialStartDate, trialEndDate: local.trialEndDate, trialNotes: local.trialNotes } : { ...gk, membership: 'permanent' as const };
         });
         setGoalkeepers(merged);
         saveToStorage(STORAGE_KEYS.goalkeepers, merged);
@@ -253,7 +253,7 @@ export function useAppData() {
 
   // Strip fields that don't exist in the Supabase schema
   const toSupabaseGk = (gk: Record<string, unknown>) => {
-    const { birthDate, height, weight, ...rest } = gk;
+    const { birthDate, height, weight, membership, trialStartDate, trialEndDate, trialNotes, ...rest } = gk;
     return rest;
   };
 
@@ -280,7 +280,7 @@ export function useAppData() {
     }
     if (data) {
       // Merge local-only fields with Supabase data
-      const fullGk = { ...data[0], birthDate: gk.birthDate, height: gk.height, weight: gk.weight } as Goalkeeper;
+      const fullGk = { ...data[0], birthDate: gk.birthDate, height: gk.height, weight: gk.weight, membership: gk.membership || 'permanent', trialStartDate: gk.trialStartDate, trialEndDate: gk.trialEndDate, trialNotes: gk.trialNotes } as Goalkeeper;
       setGoalkeepers(prev => {
         const updated = [...prev, fullGk];
         saveToStorage(STORAGE_KEYS.goalkeepers, updated);

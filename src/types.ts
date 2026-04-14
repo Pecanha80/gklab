@@ -10,6 +10,10 @@ export interface Goalkeeper {
   birthDate?: string;
   height?: number;
   weight?: number;
+  membership?: 'permanent' | 'trial';
+  trialStartDate?: string;
+  trialEndDate?: string;
+  trialNotes?: string;
 }
 
 export interface Exercise {

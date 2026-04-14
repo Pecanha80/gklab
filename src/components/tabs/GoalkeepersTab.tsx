@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Plus, X, Trash2, Edit3, Search, Activity, Upload, Image as ImageIcon } from 'lucide-react';
+import { Plus, X, Trash2, Edit3, Search, Activity, Upload, Image as ImageIcon, UserCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -13,6 +13,7 @@ interface GoalkeepersTabProps {
 }
 
 type Category = 'All' | 'First Team' | 'U23' | 'U18';
+type MembershipFilter = 'All' | 'permanent' | 'trial';
 
 const DEFAULT_IMAGE_URL =
   'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=256&h=256&auto=format&fit=crop';
@@ -45,6 +46,10 @@ interface FormState {
   birthDate: string;
   height: number | '';
   weight: number | '';
+  membership: 'permanent' | 'trial';
+  trialStartDate: string;
+  trialEndDate: string;
+  trialNotes: string;
 }
 
 const defaultForm: FormState = {
@@ -58,7 +63,22 @@ const defaultForm: FormState = {
   birthDate: '',
   height: '',
   weight: '',
+  membership: 'permanent',
+  trialStartDate: '',
+  trialEndDate: '',
+  trialNotes: '',
 };
+
+function getTrialStatus(gk: Goalkeeper): 'active' | 'expiring' | 'expired' | null {
+  if ((gk.membership || 'permanent') !== 'trial') return null;
+  if (!gk.trialEndDate) return 'active';
+  const end = new Date(gk.trialEndDate);
+  const now = new Date();
+  const daysLeft = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysLeft < 0) return 'expired';
+  if (daysLeft <= 3) return 'expiring';
+  return 'active';
+}
 
 function calculateAge(birthDate: string): number | null {
   if (!birthDate) return null;
@@ -78,6 +98,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
 }) => {
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<Category>('All');
+  const [activeMembership, setActiveMembership] = useState<MembershipFilter>('All');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingGoalkeeper, setEditingGoalkeeper] = useState<Goalkeeper | null>(null);
   const [formState, setFormState] = useState<FormState>(defaultForm);
@@ -97,10 +118,17 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
     'Injured': t('injured'),
   };
 
-  const filteredGoalkeepers =
-    activeCategory === 'All'
-      ? goalkeepers
-      : goalkeepers.filter((gk) => gk.category === activeCategory);
+  const membershipLabels: Record<MembershipFilter, string> = {
+    'All': t('all'),
+    'permanent': t('permanentAthletes' as any),
+    'trial': t('trialAthletes' as any),
+  };
+
+  const filteredGoalkeepers = goalkeepers.filter((gk) => {
+    const catMatch = activeCategory === 'All' || gk.category === activeCategory;
+    const memMatch = activeMembership === 'All' || (gk.membership || 'permanent') === activeMembership;
+    return catMatch && memMatch;
+  });
 
   const openAddModal = () => {
     setEditingGoalkeeper(null);
@@ -121,6 +149,10 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
       birthDate: gk.birthDate || '',
       height: gk.height || '',
       weight: gk.weight || '',
+      membership: gk.membership || 'permanent',
+      trialStartDate: gk.trialStartDate || '',
+      trialEndDate: gk.trialEndDate || '',
+      trialNotes: gk.trialNotes || '',
     });
     setModalOpen(true);
   };
@@ -137,6 +169,10 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
       height: formState.height === '' ? undefined : Number(formState.height),
       weight: formState.weight === '' ? undefined : Number(formState.weight),
       birthDate: formState.birthDate || undefined,
+      membership: formState.membership,
+      trialStartDate: formState.membership === 'trial' ? (formState.trialStartDate || undefined) : undefined,
+      trialEndDate: formState.membership === 'trial' ? (formState.trialEndDate || undefined) : undefined,
+      trialNotes: formState.membership === 'trial' ? (formState.trialNotes || undefined) : undefined,
     };
     if (editingGoalkeeper) {
       await updateGoalkeeper({ id: editingGoalkeeper.id, ...data } as Goalkeeper);
@@ -168,6 +204,22 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
               </button>
             ))}
           </div>
+          <div className="flex gap-1 rounded-lg bg-surface-container p-1">
+            {(['All', 'permanent', 'trial'] as MembershipFilter[]).map((mem) => (
+              <button
+                key={mem}
+                onClick={() => setActiveMembership(mem)}
+                className={cn(
+                  'rounded-md px-3 py-1.5 font-label text-sm font-medium transition-colors',
+                  activeMembership === mem
+                    ? 'bg-primary text-on-primary'
+                    : 'text-on-surface-variant hover:bg-surface-container-highest'
+                )}
+              >
+                {membershipLabels[mem]}
+              </button>
+            ))}
+          </div>
           <button
             onClick={openAddModal}
             className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-label text-sm font-semibold text-on-primary transition-opacity hover:opacity-90"
@@ -193,6 +245,19 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
             >
               {/* Hover actions */}
               <div className="absolute right-3 top-3 flex gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
+                {(gk.membership || 'permanent') === 'trial' && (
+                  <button
+                    onClick={() => {
+                      if (confirm(t('confirmConvert' as any))) {
+                        updateGoalkeeper({ ...gk, membership: 'permanent', trialStartDate: undefined, trialEndDate: undefined, trialNotes: undefined });
+                      }
+                    }}
+                    className="rounded-md bg-surface-container-highest p-1.5 text-on-surface-variant transition-colors hover:text-tertiary"
+                    title={t('convertToPermanent' as any)}
+                  >
+                    <UserCheck className="h-4 w-4" />
+                  </button>
+                )}
                 <button
                   onClick={() => openEditModal(gk)}
                   className="rounded-md bg-surface-container-highest p-1.5 text-on-surface-variant transition-colors hover:text-primary"
@@ -219,14 +284,35 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                     {gk.name}
                   </h3>
                   <p className="font-label text-sm text-on-surface-variant">{categoryLabels[gk.category]}</p>
-                  <span
-                    className={cn(
-                      'mt-1 inline-block rounded-md px-2 py-0.5 font-label text-xs font-medium',
-                      getStatusClasses(gk.status)
-                    )}
-                  >
-                    {statusLabels[gk.status]}
-                  </span>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    <span
+                      className={cn(
+                        'inline-block rounded-md px-2 py-0.5 font-label text-xs font-medium',
+                        getStatusClasses(gk.status)
+                      )}
+                    >
+                      {statusLabels[gk.status]}
+                    </span>
+                    {(() => {
+                      const trialStatus = getTrialStatus(gk);
+                      if (!trialStatus) return null;
+                      const badgeClasses = {
+                        active: 'bg-amber-100 text-amber-700',
+                        expiring: 'bg-orange-100 text-orange-700',
+                        expired: 'bg-red-100 text-red-700',
+                      };
+                      const badgeText = {
+                        active: t('trial' as any),
+                        expiring: t('trialExpiring' as any),
+                        expired: t('trialExpired' as any),
+                      };
+                      return (
+                        <span className={cn('inline-block rounded-md px-2 py-0.5 font-label text-xs font-medium', badgeClasses[trialStatus])}>
+                          {badgeText[trialStatus]}
+                        </span>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
 
@@ -248,6 +334,18 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   <div className="rounded-md bg-surface-container-highest px-2.5 py-1.5">
                     <span className="text-on-surface-variant">{t('weight' as any)}: </span>
                     <span className="font-medium text-on-surface">{gk.weight} kg</span>
+                  </div>
+                )}
+                {(gk.membership || 'permanent') === 'trial' && gk.trialStartDate && (
+                  <div className="rounded-md bg-amber-50 px-2.5 py-1.5">
+                    <span className="text-amber-600">{t('trialStartDate' as any)}: </span>
+                    <span className="font-medium text-amber-800">{new Date(gk.trialStartDate).toLocaleDateString()}</span>
+                  </div>
+                )}
+                {(gk.membership || 'permanent') === 'trial' && gk.trialEndDate && (
+                  <div className="rounded-md bg-amber-50 px-2.5 py-1.5">
+                    <span className="text-amber-600">{t('trialEndDate' as any)}: </span>
+                    <span className="font-medium text-amber-800">{new Date(gk.trialEndDate).toLocaleDateString()}</span>
                   </div>
                 )}
               </div>
@@ -302,8 +400,8 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   />
                 </div>
 
-                {/* Category & Status */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Category, Status & Membership */}
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
                       {t('category')}
@@ -346,7 +444,67 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                       ))}
                     </select>
                   </div>
+                  <div>
+                    <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                      {t('membership' as any)}
+                    </label>
+                    <select
+                      value={formState.membership}
+                      onChange={(e) =>
+                        setFormState((s) => ({
+                          ...s,
+                          membership: e.target.value as 'permanent' | 'trial',
+                        }))
+                      }
+                      className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                    >
+                      <option value="permanent">{t('permanent' as any)}</option>
+                      <option value="trial">{t('trial' as any)}</option>
+                    </select>
+                  </div>
                 </div>
+
+                {/* Trial fields (conditional) */}
+                {formState.membership === 'trial' && (
+                  <div className="space-y-4 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                          {t('trialStartDate' as any)}
+                        </label>
+                        <input
+                          type="date"
+                          value={formState.trialStartDate}
+                          onChange={(e) => setFormState((s) => ({ ...s, trialStartDate: e.target.value }))}
+                          className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                          {t('trialEndDate' as any)}
+                        </label>
+                        <input
+                          type="date"
+                          value={formState.trialEndDate}
+                          onChange={(e) => setFormState((s) => ({ ...s, trialEndDate: e.target.value }))}
+                          className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                        {t('trialNotes' as any)}
+                      </label>
+                      <textarea
+                        value={formState.trialNotes}
+                        onChange={(e) => setFormState((s) => ({ ...s, trialNotes: e.target.value }))}
+                        rows={3}
+                        className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary resize-none"
+                        placeholder={t('trialNotesPlaceholder' as any)}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Birth Date, Height, Weight */}
                 <div className="grid grid-cols-3 gap-4">

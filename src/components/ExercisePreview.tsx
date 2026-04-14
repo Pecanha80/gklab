@@ -34,44 +34,46 @@ export const ExercisePreview = ({ drill }: { drill: Omit<Exercise, 'id'> }) => {
 
         <div>
           <h5 className="text-[9px] text-primary uppercase font-label font-bold tracking-widest mb-2">{t('durationIntensity')}</h5>
-          <p className="text-sm text-on-surface">{t(drill.duration as any)} • {t(drill.intensity as any)}</p>
+          <p className="text-sm text-on-surface">
+            {Array.isArray(drill.duration) ? drill.duration.map(d => t(d as any)).join(', ') : t(drill.duration as any)} • {t(drill.intensity as any)}
+          </p>
         </div>
       </div>
 
-      {drill.objective && (
         <div>
           <h5 className="text-[9px] text-primary uppercase font-label font-bold tracking-widest mb-2">{t('objective')}</h5>
-          <p className="text-xs text-on-surface-variant">{t(drill.objective as any)}</p>
+          <p className="text-xs text-on-surface-variant">
+            {Array.isArray(drill.objective) ? drill.objective.map(o => t(o as any)).join(', ') : t(drill.objective as any)}
+          </p>
         </div>
-      )}
 
-      {drill.organization && (
         <div>
           <h5 className="text-[9px] text-primary uppercase font-label font-bold tracking-widest mb-2">{t('organization')}</h5>
-          <p className="text-xs text-on-surface-variant">{t(drill.organization as any)}</p>
+          <p className="text-xs text-on-surface-variant">
+            {Array.isArray(drill.organization) ? drill.organization.map(o => t(o as any)).join(', ') : t(drill.organization as any)}
+          </p>
         </div>
-      )}
 
-      {drill.execution && (
         <div>
           <h5 className="text-[9px] text-primary uppercase font-label font-bold tracking-widest mb-2">{t('execution')}</h5>
-          <p className="text-xs text-on-surface-variant">{t(drill.execution as any)}</p>
+          <p className="text-xs text-on-surface-variant">
+            {Array.isArray(drill.execution) ? drill.execution.map(e => t(e as any)).join(', ') : t(drill.execution as any)}
+          </p>
         </div>
-      )}
 
-      {drill.progression && (
         <div>
           <h5 className="text-[9px] text-primary uppercase font-label font-bold tracking-widest mb-2">{t('progressionVariables')}</h5>
-          <p className="text-xs text-on-surface-variant">{t(drill.progression as any)}</p>
+          <p className="text-xs text-on-surface-variant">
+            {Array.isArray(drill.progression) ? drill.progression.map(p => t(p as any)).join(', ') : t(drill.progression as any)}
+          </p>
         </div>
-      )}
 
-      {drill.successCriteria && (
         <div>
           <h5 className="text-[9px] text-primary uppercase font-label font-bold tracking-widest mb-2">{t('successCriteria')}</h5>
-          <p className="text-xs text-on-surface-variant">{t(drill.successCriteria as any)}</p>
+          <p className="text-xs text-on-surface-variant">
+            {Array.isArray(drill.successCriteria) ? drill.successCriteria.map(sc => t(sc as any)).join(', ') : t(drill.successCriteria as any)}
+          </p>
         </div>
-      )}
     </div>
   );
 };

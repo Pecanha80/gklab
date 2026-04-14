@@ -24,14 +24,15 @@ const SectionHeading: React.FC<{ title: string; icon?: React.ComponentType<{ cla
   </div>
 );
 
-const Field: React.FC<{ label: string; value?: string }> = ({ label, value }) => {
-  if (!value) return null;
+const Field: React.FC<{ label: string; value?: string | string[] }> = ({ label, value }) => {
+  if (!value || (Array.isArray(value) && value.length === 0)) return null;
+  const displayValue = Array.isArray(value) ? value.join(', ') : value;
   return (
     <div className="space-y-1">
       <p className="text-[10px] text-on-surface/50 uppercase font-label font-bold tracking-wider">
         {label}
       </p>
-      <p className="text-sm text-on-surface leading-relaxed whitespace-pre-wrap">{value}</p>
+      <p className="text-sm text-on-surface leading-relaxed whitespace-pre-wrap">{displayValue}</p>
     </div>
   );
 };
@@ -175,13 +176,13 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             {session.category && (
               <div className="flex items-center gap-1.5 text-on-surface/60 text-xs">
                 <Trophy className="w-3.5 h-3.5" />
-                <span>{session.category}</span>
+                <span>{Array.isArray(session.category) ? session.category.map(c => t(c as any)).join(', ') : t(session.category as any)}</span>
               </div>
             )}
             {session.duration && (
               <div className="flex items-center gap-1.5 text-on-surface/60 text-xs">
                 <Clock className="w-3.5 h-3.5" />
-                <span>{session.duration}</span>
+                <span>{Array.isArray(session.duration) ? session.duration.map(d => t(d as any)).join(', ') : t(session.duration as any)}</span>
               </div>
             )}
             {session.numAthletes > 0 && (
@@ -318,8 +319,8 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
           {session.coolDown && (
             <div className="space-y-3">
               <SectionHeading title={t('coolDownHeading')} icon={Wind} />
-              <p className="text-sm text-on-surface leading-relaxed">
-                {session.coolDown}
+              <p className="text-sm text-on-surface leading-relaxed whitespace-pre-wrap">
+                {Array.isArray(session.coolDown) ? session.coolDown.join('\n') : session.coolDown}
               </p>
             </div>
           )}

@@ -88,11 +88,15 @@ export function useCustomPresets() {
     return Array.from(new Set(combined));
   };
 
-  const addCustomPreset = (key: keyof CustomPresetsState, value: string, defaultOptions: readonly string[]) => {
-    if (!value || value.trim() === '' || defaultOptions.includes(value) || customPresets[key].includes(value)) return;
+  const addCustomPreset = (key: keyof CustomPresetsState, value: string | string[], defaultOptions: readonly string[]) => {
+    const valuesToAdd = (Array.isArray(value) ? value : [value])
+      .filter(v => v && v.trim() !== '' && !defaultOptions.includes(v) && !customPresets[key].includes(v));
+    
+    if (valuesToAdd.length === 0) return;
+    
     setCustomPresets(prev => ({
       ...prev,
-      [key]: [...prev[key], value]
+      [key]: [...prev[key], ...valuesToAdd]
     }));
   };
 

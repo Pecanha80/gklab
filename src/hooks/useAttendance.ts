@@ -8,7 +8,7 @@ export function useAttendance(sessionId: string) {
   const [eligibleGoalkeepers, setEligibleGoalkeepers] = useState<Goalkeeper[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAttendanceData = useCallback(async (category?: string) => {
+  const fetchAttendanceData = useCallback(async (category?: string | string[]) => {
     if (!sessionId) return;
     
     setLoading(true);
@@ -28,7 +28,13 @@ export function useAttendance(sessionId: string) {
       
       // If category is provided, filter by it
       if (category) {
-        query = query.eq('category', category);
+        if (Array.isArray(category)) {
+          if (category.length > 0) {
+            query = query.in('category', category);
+          }
+        } else {
+          query = query.eq('category', category);
+        }
       }
 
       const { data: gkData, error: gkError } = await query;

@@ -55,24 +55,24 @@ import { jsPDF } from 'jspdf';
 
 const emptySession: Omit<TrainingSession, 'id'> = {
   date: new Date().toISOString().split('T')[0],
-  category: 'firstTeam',
+  category: [],
   numAthletes: 3,
-  duration: 'dur_90min',
+  duration: [],
   generalObjectives: [],
   objectives: {
-    technical: '',
-    tactical: '',
-    physical: '',
-    cognitive: '',
+    technical: [],
+    tactical: [],
+    physical: [],
+    cognitive: [],
   },
   warmup: [],
   exercises: [],
   integratedWithTeam: [],
-  coolDown: '',
+  coolDown: [],
   observations: {
-    positives: '',
-    adjustments: '',
-    individualEval: '',
+    positives: [],
+    adjustments: [],
+    individualEval: [],
   },
   titles: [],
   focus: [],
@@ -81,14 +81,15 @@ const emptySession: Omit<TrainingSession, 'id'> = {
 };
 
 const emptyDrill: Omit<Exercise, 'id'> = {
+  id: '',
   type: 'analytical',
   title: '',
-  objective: '',
-  organization: '',
-  execution: '',
-  progression: '',
-  successCriteria: '',
-  duration: 'dur_15min',
+  objective: [],
+  organization: [],
+  execution: [],
+  progression: [],
+  successCriteria: [],
+  duration: [],
   intensity: 'medium',
 };
 
@@ -217,12 +218,12 @@ export default function App() {
     localStorage.setItem('gk_microcycles', JSON.stringify(updated));
   };
 
-  const translateContent = (content: string) => {
+  const translateContent = (content: string | string[] | undefined) => {
     if (!content) return '';
-    return content
-      .split('\n')
-      .map(line => t(line.trim() as any))
-      .join('\n');
+    if (Array.isArray(content)) {
+      return content.map(item => t(item as any)).join('\n');
+    }
+    return t(content as any);
   };
 
   const handleExportSession = async (sessionId: string) => {
@@ -248,12 +249,17 @@ export default function App() {
 
   const validateDrill = (drill: Omit<Exercise, 'id'>): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
+    const checkEmpty = (val: string | string[]) => {
+      if (Array.isArray(val)) return val.length === 0;
+      return !val.trim();
+    };
+
     if (!drill.title.trim()) errors.push(t('drillTitleRequiredMsg'));
-    if (!drill.objective.trim()) errors.push(t('objectiveRequiredMsg'));
-    if (!drill.organization.trim()) errors.push(t('organizationRequiredMsg'));
-    if (!drill.execution.trim()) errors.push(t('executionRequiredMsg'));
-    if (!drill.progression.trim()) errors.push(t('progressionRequiredMsg'));
-    if (!drill.successCriteria.trim()) errors.push(t('successCriteriaRequiredMsg'));
+    if (checkEmpty(drill.objective)) errors.push(t('objectiveRequiredMsg'));
+    if (checkEmpty(drill.organization)) errors.push(t('organizationRequiredMsg'));
+    if (checkEmpty(drill.execution)) errors.push(t('executionRequiredMsg'));
+    if (checkEmpty(drill.progression)) errors.push(t('progressionRequiredMsg'));
+    if (checkEmpty(drill.successCriteria)) errors.push(t('successCriteriaRequiredMsg'));
     return { isValid: errors.length === 0, errors };
   };
 
@@ -271,41 +277,38 @@ export default function App() {
     const updatedSpecifics = { ...newSession.objectives };
     const newWarmupDrills: Exercise[] = [];
 
+    const addToObjective = (field: keyof typeof updatedSpecifics, value: string) => {
+      const current = updatedSpecifics[field];
+      if (Array.isArray(current)) {
+        if (!current.includes(value)) {
+          updatedSpecifics[field] = [...current, value];
+        }
+      } else {
+        if (!current.includes(value)) {
+          updatedSpecifics[field] = current ? `${current}\n${value}` : value;
+        }
+      }
+    };
+
     selected.forEach(objKey => {
       const mapping = OBJECTIVE_MAPPINGS[objKey];
       if (mapping) {
-        if (mapping.technical && !updatedSpecifics.technical.includes(mapping.technical)) {
-          updatedSpecifics.technical = updatedSpecifics.technical 
-            ? `${updatedSpecifics.technical}\n${mapping.technical}` 
-            : mapping.technical;
-        }
-        if (mapping.tactical && !updatedSpecifics.tactical.includes(mapping.tactical)) {
-          updatedSpecifics.tactical = updatedSpecifics.tactical 
-            ? `${updatedSpecifics.tactical}\n${mapping.tactical}` 
-            : mapping.tactical;
-        }
-        if (mapping.physical && !updatedSpecifics.physical.includes(mapping.physical)) {
-          updatedSpecifics.physical = updatedSpecifics.physical 
-            ? `${updatedSpecifics.physical}\n${mapping.physical}` 
-            : mapping.physical;
-        }
-        if (mapping.cognitive && !updatedSpecifics.cognitive.includes(mapping.cognitive)) {
-          updatedSpecifics.cognitive = updatedSpecifics.cognitive 
-            ? `${updatedSpecifics.cognitive}\n${mapping.cognitive}` 
-            : mapping.cognitive;
-        }
+        if (mapping.technical) addToObjective('technical', mapping.technical);
+        if (mapping.tactical) addToObjective('tactical', mapping.tactical);
+        if (mapping.physical) addToObjective('physical', mapping.physical);
+        if (mapping.cognitive) addToObjective('cognitive', mapping.cognitive);
         
         if (mapping.warmupObjective) {
           newWarmupDrills.push({
             id: crypto.randomUUID(),
             type: 'warmup',
             title: mapping.warmupObjective,
-            objective: mapping.warmupObjective,
-            organization: mapping.warmupOrganization || '',
-            execution: mapping.warmupDescription || '',
-            progression: '',
-            successCriteria: '',
-            duration: 'dur_10min',
+            objective: [mapping.warmupObjective],
+            organization: [mapping.warmupOrganization || ''],
+            execution: [mapping.warmupDescription || ''],
+            progression: [],
+            successCriteria: [],
+            duration: ['dur_10min'],
             intensity: 'low'
           });
         }
@@ -323,25 +326,33 @@ export default function App() {
   const handleAddSession = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    addCustomPreset('sessionTitles', newSession.titles[0] || '', PRESETS.sessionTitles);
-    addCustomPreset('categories', newSession.category, PRESETS.categories);
+    const savePresets = (field: keyof CustomPresetsState, values: string | string[], defaultOpts: readonly string[]) => {
+      const vals = Array.isArray(values) ? values : [values];
+      vals.forEach(v => {
+        if (v && v.trim()) addCustomPreset(field, v, defaultOpts);
+      });
+    };
+
+    savePresets('sessionTitles', newSession.titles, PRESETS.sessionTitles);
+    savePresets('categories', newSession.category, PRESETS.categories);
     newSession.generalObjectives.forEach(obj => addCustomPreset('generalObjectives', obj, PRESETS.objectives.general));
-    addCustomPreset('technical', newSession.objectives.technical, PRESETS.objectives.technical);
-    addCustomPreset('tactical', newSession.objectives.tactical, PRESETS.objectives.tactical);
-    addCustomPreset('physical', newSession.objectives.physical, PRESETS.objectives.physical);
-    addCustomPreset('cognitive', newSession.objectives.cognitive, PRESETS.objectives.cognitive);
+    savePresets('technical', newSession.objectives.technical, PRESETS.objectives.technical);
+    savePresets('tactical', newSession.objectives.tactical, PRESETS.objectives.tactical);
+    savePresets('physical', newSession.objectives.physical, PRESETS.objectives.physical);
+    savePresets('cognitive', newSession.objectives.cognitive, PRESETS.objectives.cognitive);
+    
     newSession.warmup.forEach(drill => {
       addCustomPreset('drillTitles', drill.title, PRESETS.drills.titles);
-      addCustomPreset('drillObjectives', drill.objective, PRESETS.drills.objectives);
-      addCustomPreset('drillOrganizations', drill.organization, PRESETS.drills.organizations);
-      addCustomPreset('drillExecutions', drill.execution, PRESETS.drills.executions);
-      addCustomPreset('drillProgressions', drill.progression, PRESETS.drills.progressions);
-      addCustomPreset('drillSuccessCriteria', drill.successCriteria, PRESETS.drills.successCriteria);
+      savePresets('drillObjectives', drill.objective, PRESETS.drills.objectives);
+      savePresets('drillOrganizations', drill.organization, PRESETS.drills.organizations);
+      savePresets('drillExecutions', drill.execution, PRESETS.drills.executions);
+      savePresets('drillProgressions', drill.progression, PRESETS.drills.progressions);
+      savePresets('drillSuccessCriteria', drill.successCriteria, PRESETS.drills.successCriteria);
     });
-    addCustomPreset('coolDowns', newSession.coolDown, PRESETS.coolDowns);
-    addCustomPreset('obsPositives', newSession.observations.positives, PRESETS.observations.positives);
-    addCustomPreset('obsAdjustments', newSession.observations.adjustments, PRESETS.observations.adjustments);
-    addCustomPreset('obsEvaluations', newSession.observations.individualEval, PRESETS.observations.evaluations);
+    savePresets('coolDowns', newSession.coolDown, PRESETS.coolDowns);
+    savePresets('obsPositives', newSession.observations.positives, PRESETS.observations.positives);
+    savePresets('obsAdjustments', newSession.observations.adjustments, PRESETS.observations.adjustments);
+    savePresets('obsEvaluations', newSession.observations.individualEval, PRESETS.observations.evaluations);
 
     if (newSession.integratedWithTeam) {
       newSession.integratedWithTeam.forEach(integrated => {
@@ -354,12 +365,12 @@ export default function App() {
 
     newSession.exercises.forEach(ex => {
       addCustomPreset('drillTitles', ex.title, PRESETS.drills.titles);
-      addCustomPreset('drillObjectives', ex.objective, PRESETS.drills.objectives);
-      addCustomPreset('drillOrganizations', ex.organization, PRESETS.drills.organizations);
-      addCustomPreset('drillExecutions', ex.execution, PRESETS.drills.executions);
-      addCustomPreset('drillProgressions', ex.progression, PRESETS.drills.progressions);
-      addCustomPreset('drillSuccessCriteria', ex.successCriteria, PRESETS.drills.successCriteria);
-      addCustomPreset('durations', ex.duration, PRESETS.durations);
+      savePresets('drillObjectives', ex.objective, PRESETS.drills.objectives);
+      savePresets('drillOrganizations', ex.organization, PRESETS.drills.organizations);
+      savePresets('drillExecutions', ex.execution, PRESETS.drills.executions);
+      savePresets('drillProgressions', ex.progression, PRESETS.drills.progressions);
+      savePresets('drillSuccessCriteria', ex.successCriteria, PRESETS.drills.successCriteria);
+      savePresets('durations', ex.duration, PRESETS.durations);
     });
 
     const success = await addSession(newSession);
@@ -374,21 +385,25 @@ export default function App() {
   const handleAddDrill = () => {
     if (!currentDrill.title) return;
 
+    const savePresets = (field: keyof CustomPresetsState, values: string | string[], defaultOpts: readonly string[]) => {
+      const vals = Array.isArray(values) ? values : [values];
+      vals.forEach(v => {
+        if (v && v.trim()) addCustomPreset(field, v, defaultOpts);
+      });
+    };
+
     // Auto-save individual fields to presets for immediate use in dropdowns
     addCustomPreset('drillTitles', currentDrill.title, PRESETS.drills.titles);
-    addCustomPreset('drillObjectives', currentDrill.objective, PRESETS.drills.objectives);
-    addCustomPreset('drillOrganizations', currentDrill.organization, PRESETS.drills.organizations);
-    addCustomPreset('drillExecutions', currentDrill.execution, PRESETS.drills.executions);
-    addCustomPreset('drillProgressions', currentDrill.progression, PRESETS.drills.progressions);
-    addCustomPreset('drillSuccessCriteria', currentDrill.successCriteria, PRESETS.drills.successCriteria);
-    addCustomPreset('durations', currentDrill.duration, PRESETS.durations);
+    savePresets('drillObjectives', currentDrill.objective, PRESETS.drills.objectives);
+    savePresets('drillOrganizations', currentDrill.organization, PRESETS.drills.organizations);
+    savePresets('drillExecutions', currentDrill.execution, PRESETS.drills.executions);
+    savePresets('drillProgressions', currentDrill.progression, PRESETS.drills.progressions);
+    savePresets('drillSuccessCriteria', currentDrill.successCriteria, PRESETS.drills.successCriteria);
+    savePresets('durations', currentDrill.duration, PRESETS.durations);
 
     // Auto-save to library to enable future pre-filling by title
-    if (currentDrill.title && currentDrill.objective && currentDrill.organization) {
-      const alreadyInLibrary = exercisesLibrary.find(ex => ex.title === currentDrill.title);
-      if (!alreadyInLibrary) {
-        addExerciseToLibrary(currentDrill);
-      }
+    if (currentDrill.title) {
+       addExerciseToLibrary(currentDrill);
     }
 
     if (editingDrillId) {
@@ -472,12 +487,12 @@ export default function App() {
         ...prev,
         title: t(foundExercise.title as any),
         type: foundExercise.type || prev.type,
-        objective: foundExercise.objective ? t(foundExercise.objective as any) : '',
-        organization: foundExercise.organization ? t(foundExercise.organization as any) : '',
-        execution: foundExercise.execution ? t(foundExercise.execution as any) : '',
-        progression: foundExercise.progression ? t(foundExercise.progression as any) : '',
-        successCriteria: foundExercise.successCriteria ? t(foundExercise.successCriteria as any) : '',
-        duration: foundExercise.duration || prev.duration,
+        objective: Array.isArray(foundExercise.objective) ? foundExercise.objective : [foundExercise.objective ? t(foundExercise.objective as any) : ''],
+        organization: Array.isArray(foundExercise.organization) ? foundExercise.organization : [foundExercise.organization ? t(foundExercise.organization as any) : ''],
+        execution: Array.isArray(foundExercise.execution) ? foundExercise.execution : [foundExercise.execution ? t(foundExercise.execution as any) : ''],
+        progression: Array.isArray(foundExercise.progression) ? foundExercise.progression : [foundExercise.progression ? t(foundExercise.progression as any) : ''],
+        successCriteria: Array.isArray(foundExercise.successCriteria) ? foundExercise.successCriteria : [foundExercise.successCriteria ? t(foundExercise.successCriteria as any) : ''],
+        duration: Array.isArray(foundExercise.duration) ? foundExercise.duration : [foundExercise.duration || ''],
         intensity: foundExercise.intensity || prev.intensity,
       }));
     } else {
@@ -485,11 +500,12 @@ export default function App() {
         ...prev, 
         title: t(title as any),
         ...(title.trim() === '' ? {
-          objective: '',
-          organization: '',
-          execution: '',
-          progression: '',
-          successCriteria: '',
+          objective: [],
+          organization: [],
+          execution: [],
+          progression: [],
+          successCriteria: [],
+          duration: [],
           type: 'analytical'
         } : {})
       }));
@@ -1007,10 +1023,11 @@ export default function App() {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {exercisesLibrary
-                              .filter(ex =>
-                                ex.title.toLowerCase().includes(exerciseSearchTerm.toLowerCase()) ||
-                                ex.objective.toLowerCase().includes(exerciseSearchTerm.toLowerCase())
-                              )
+                              .filter(ex => {
+                                const objectiveStr = Array.isArray(ex.objective) ? ex.objective.join(' ') : (ex.objective || '');
+                                return ex.title.toLowerCase().includes(exerciseSearchTerm.toLowerCase()) ||
+                                       objectiveStr.toLowerCase().includes(exerciseSearchTerm.toLowerCase());
+                              })
                               .map(ex => (
                                 <button
                                   key={ex.id}
@@ -1152,17 +1169,19 @@ export default function App() {
                               <div className="flex gap-2">
                                 <input 
                                   type="text" 
-                                  value={translateContent(newSession.category as string)} 
-                                  onChange={e => setNewSession({ ...newSession, category: e.target.value })} 
-                                  onBlur={() => addCustomPreset('categories', newSession.category, PRESETS.categories)}
+                                  value={Array.isArray(newSession.category) ? newSession.category.map(c => t(c as any)).join(', ') : t(newSession.category as any)} 
+                                  onChange={e => setNewSession({ ...newSession, category: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                                   className="flex-1 bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-sm" 
                                 />
                                 <QuickSelect
                                   label="Presets"
                                   options={getOptions('categories', PRESETS.categories)}
                                   onSelect={(val) => setNewSession({ ...newSession, category: val })}
+                                  selectedValues={Array.isArray(newSession.category) ? newSession.category : [newSession.category]}
+                                  multiSelect={true}
                                   onDelete={(val) => removeCustomPreset('categories', val)}
                                   isDeletable={(val) => customPresets.categories.includes(val)}
+                                  onAdd={(val) => addCustomPreset('categories', val, PRESETS.categories)}
                                 />
                               </div>
                             </div>
@@ -1175,13 +1194,22 @@ export default function App() {
                             <div className="space-y-1">
                               <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('totalDuration')}</label>
                               <div className="flex gap-2">
-                                <input type="text" value={translateContent(newSession.duration as string)} onChange={e => setNewSession({ ...newSession, duration: e.target.value })} className="flex-1 bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-sm" placeholder={t('duration')} />
+                                <input 
+                                  type="text" 
+                                  value={Array.isArray(newSession.duration) ? newSession.duration.map(d => t(d as any)).join(', ') : t(newSession.duration as any)} 
+                                  onChange={e => setNewSession({ ...newSession, duration: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} 
+                                  className="flex-1 bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-sm" 
+                                  placeholder={t('duration')} 
+                                />
                                 <QuickSelect
                                   label="Presets"
                                   options={getOptions('durations', PRESETS.durations)}
                                   onSelect={(val) => setNewSession({ ...newSession, duration: val })}
+                                  selectedValues={Array.isArray(newSession.duration) ? newSession.duration : [newSession.duration]}
+                                  multiSelect={true}
                                   onDelete={(val) => removeCustomPreset('durations', val)}
                                   isDeletable={(val) => customPresets.durations.includes(val)}
+                                  onAdd={(val) => addCustomPreset('durations', val, PRESETS.durations)}
                                 />
                               </div>
                             </div>
@@ -1196,6 +1224,7 @@ export default function App() {
                                   onSelect={(val) => handleGeneralObjectivesChange(val as string[])}
                                   onDelete={(val) => removeCustomPreset('generalObjectives', val)}
                                   isDeletable={(val) => customPresets.generalObjectives.includes(val)}
+                                  onAdd={(val) => addCustomPreset('generalObjectives', val, PRESETS.objectives.general)}
                                 />
                               </div>
                                <textarea 
@@ -1211,58 +1240,35 @@ export default function App() {
                         {/* 2. Specific Objectives */}
                         <Section title={t('sectionObjectives')} icon={Target}>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <div className="flex justify-between items-center">
-                                <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('technical')}</label>
-                                <QuickSelect
-                                  label="Presets"
-                                  options={getOptions('technical', PRESETS.objectives.technical)}
-                                  onSelect={(val) => setNewSession({ ...newSession, objectives: { ...newSession.objectives, technical: val } })}
-                                  onDelete={(val) => removeCustomPreset('technical', val)}
-                                  isDeletable={(val) => customPresets.technical.includes(val)}
+                            {(['technical', 'tactical', 'physical', 'cognitive'] as const).map((objKey) => (
+                              <div key={objKey} className="space-y-1">
+                                <div className="flex justify-between items-center">
+                                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t(objKey)}</label>
+                                  <QuickSelect
+                                    label="Presets"
+                                    options={getOptions(objKey, PRESETS.objectives[objKey])}
+                                    onSelect={(val) => setNewSession({
+                                      ...newSession,
+                                      objectives: { ...newSession.objectives, [objKey]: val }
+                                    })}
+                                    multiSelect={true}
+                                    selectedValues={Array.isArray(newSession.objectives[objKey]) ? newSession.objectives[objKey] as string[] : [newSession.objectives[objKey] as string]}
+                                    onDelete={(val) => removeCustomPreset(objKey, val)}
+                                    isDeletable={(val) => customPresets[objKey].includes(val)}
+                                    onAdd={(val) => addCustomPreset(objKey, val, PRESETS.objectives[objKey])}
+                                  />
+                                </div>
+                                <textarea 
+                                  value={translateContent(newSession.objectives[objKey])} 
+                                  onChange={e => setNewSession({ 
+                                    ...newSession, 
+                                    objectives: { ...newSession.objectives, [objKey]: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) } 
+                                  })} 
+                                  className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[60px]" 
+                                  placeholder={t(`${objKey}Placeholder` as any)} 
                                 />
                               </div>
-                              <textarea value={translateContent(newSession.objectives.technical as string)} onChange={e => setNewSession({ ...newSession, objectives: { ...newSession.objectives, technical: e.target.value } })} className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[60px]" placeholder={t('technical')} />
-                            </div>
-                            <div className="space-y-1">
-                              <div className="flex justify-between items-center">
-                                <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('tactical')}</label>
-                                <QuickSelect
-                                  label="Presets"
-                                  options={getOptions('tactical', PRESETS.objectives.tactical)}
-                                  onSelect={(val) => setNewSession({ ...newSession, objectives: { ...newSession.objectives, tactical: val } })}
-                                  onDelete={(val) => removeCustomPreset('tactical', val)}
-                                  isDeletable={(val) => customPresets.tactical.includes(val)}
-                                />
-                              </div>
-                              <textarea value={translateContent(newSession.objectives.tactical as string)} onChange={e => setNewSession({ ...newSession, objectives: { ...newSession.objectives, tactical: e.target.value } })} className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[60px]" placeholder="Tactical positioning/decisions..." />
-                            </div>
-                            <div className="space-y-1">
-                              <div className="flex justify-between items-center">
-                                <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('physical')}</label>
-                                <QuickSelect
-                                  label="Presets"
-                                  options={getOptions('physical', PRESETS.objectives.physical)}
-                                  onSelect={(val) => setNewSession({ ...newSession, objectives: { ...newSession.objectives, physical: val } })}
-                                  onDelete={(val) => removeCustomPreset('physical', val)}
-                                  isDeletable={(val) => customPresets.physical.includes(val)}
-                                />
-                              </div>
-                              <textarea value={translateContent(newSession.objectives.physical as string)} onChange={e => setNewSession({ ...newSession, objectives: { ...newSession.objectives, physical: e.target.value } })} className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[60px]" placeholder="Physical load/focus..." />
-                            </div>
-                            <div className="space-y-1">
-                              <div className="flex justify-between items-center">
-                                <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('cognitive')}</label>
-                                <QuickSelect
-                                  label="Presets"
-                                  options={getOptions('cognitive', PRESETS.objectives.cognitive)}
-                                  onSelect={(val) => setNewSession({ ...newSession, objectives: { ...newSession.objectives, cognitive: val } })}
-                                  onDelete={(val) => removeCustomPreset('cognitive', val)}
-                                  isDeletable={(val) => customPresets.cognitive.includes(val)}
-                                />
-                              </div>
-                              <textarea value={translateContent(newSession.objectives.cognitive as string)} onChange={e => setNewSession({ ...newSession, objectives: { ...newSession.objectives, cognitive: e.target.value } })} className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[60px]" placeholder="Decision making focus..." />
-                            </div>
+                            ))}
                           </div>
                         </Section>
 
@@ -1760,19 +1766,27 @@ export default function App() {
                                   <X className="w-3 h-3" />
                                 </button>
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                  <div className="space-y-1">
-                                    <div className="flex justify-between items-center">
-                                      <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('format')}</label>
-                                      <QuickSelect
-                                        label="Presets"
-                                        options={getOptions('integratedFormats', PRESETS.integrated.formats)}
-                                        onSelect={(val) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, format: val } : i) }))}
-                                        onDelete={(val) => removeCustomPreset('integratedFormats', val)}
-                                        isDeletable={(val) => customPresets.integratedFormats.includes(val)}
+                                    <div className="flex flex-col gap-1">
+                                      <div className="flex justify-between items-center">
+                                        <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('format')}</label>
+                                        <QuickSelect
+                                          label="Presets"
+                                          options={getOptions('integratedFormats', PRESETS.integrated.formats)}
+                                          onSelect={(val) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, format: val } : i) }))}
+                                          selectedValues={Array.isArray(integrated.format) ? integrated.format : [integrated.format]}
+                                          multiSelect={true}
+                                          onDelete={(val) => removeCustomPreset('integratedFormats', val)}
+                                          isDeletable={(val) => customPresets.integratedFormats.includes(val)}
+                                          onAdd={(val) => addCustomPreset('integratedFormats', val, PRESETS.integrated.formats)}
+                                        />
+                                      </div>
+                                      <input 
+                                        type="text" 
+                                        value={Array.isArray(integrated.format) ? integrated.format.map(f => t(f as any)).join(', ') : t(integrated.format as any)} 
+                                        onChange={e => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, format: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } : i) }))} 
+                                        className="w-full bg-surface border border-black/10 rounded px-3 py-2 text-xs" 
                                       />
                                     </div>
-                                    <input type="text" value={translateContent(integrated.format)} onChange={e => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, format: e.target.value } : i) }))} className="w-full bg-surface border border-black/10 rounded px-3 py-2 text-xs" />
-                                  </div>
                                   <div className="space-y-1">
                                     <div className="flex justify-between items-center">
                                       <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('number')}</label>
@@ -1780,11 +1794,19 @@ export default function App() {
                                         label="Presets"
                                         options={getOptions('integratedNumbers', PRESETS.integrated.numbers)}
                                         onSelect={(val) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, number: val } : i) }))}
+                                        selectedValues={Array.isArray(integrated.number) ? integrated.number : [integrated.number]}
+                                        multiSelect={true}
                                         onDelete={(val) => removeCustomPreset('integratedNumbers', val)}
                                         isDeletable={(val) => customPresets.integratedNumbers.includes(val)}
+                                        onAdd={(val) => addCustomPreset('integratedNumbers', val, PRESETS.integrated.numbers)}
                                       />
                                     </div>
-                                    <input type="text" value={translateContent(integrated.number)} onChange={e => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, number: e.target.value } : i) }))} className="w-full bg-surface border border-black/10 rounded px-3 py-2 text-xs" />
+                                    <input 
+                                      type="text" 
+                                      value={Array.isArray(integrated.number) ? integrated.number.map(n => t(n as any)).join(', ') : t(integrated.number as any)} 
+                                      onChange={e => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, number: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } : i) }))} 
+                                      className="w-full bg-surface border border-black/10 rounded px-3 py-2 text-xs" 
+                                    />
                                   </div>
                                   <div className="space-y-1">
                                     <div className="flex justify-between items-center">
@@ -1793,11 +1815,20 @@ export default function App() {
                                         label="Presets"
                                         options={getOptions('integratedSpaces', PRESETS.integrated.spaces)}
                                         onSelect={(val) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, space: val } : i) }))}
+                                        selectedValues={Array.isArray(integrated.space) ? integrated.space : [integrated.space]}
+                                        multiSelect={true}
                                         onDelete={(val) => removeCustomPreset('integratedSpaces', val)}
                                         isDeletable={(val) => customPresets.integratedSpaces.includes(val)}
+                                        onAdd={(val) => addCustomPreset('integratedSpaces', val, PRESETS.integrated.spaces)}
                                       />
                                     </div>
-                                    <input type="text" value={translateContent(integrated.space)} onChange={e => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, space: e.target.value } : i) }))} className="w-full bg-surface border border-black/10 rounded px-3 py-2 text-xs" placeholder={t('spacePlaceholder' as any)} />
+                                    <input 
+                                      type="text" 
+                                      value={Array.isArray(integrated.space) ? integrated.space.map(s => t(s as any)).join(', ') : t(integrated.space as any)} 
+                                      onChange={e => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, space: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } : i) }))} 
+                                      className="w-full bg-surface border border-black/10 rounded px-3 py-2 text-xs" 
+                                      placeholder={t('spacePlaceholder' as any)} 
+                                    />
                                   </div>
                                   <div className="space-y-1">
                                     <div className="flex justify-between items-center">
@@ -1806,11 +1837,20 @@ export default function App() {
                                         label="Presets"
                                         options={getOptions('integratedTimes', PRESETS.integrated.times)}
                                         onSelect={(val) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, time: val } : i) }))}
+                                        selectedValues={Array.isArray(integrated.time) ? integrated.time : [integrated.time]}
+                                        multiSelect={true}
                                         onDelete={(val) => removeCustomPreset('integratedTimes', val)}
                                         isDeletable={(val) => customPresets.integratedTimes.includes(val)}
+                                        onAdd={(val) => addCustomPreset('integratedTimes', val, PRESETS.integrated.times)}
                                       />
                                     </div>
-                                    <input type="text" value={translateContent(integrated.time)} onChange={e => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, time: e.target.value } : i) }))} className="w-full bg-surface border border-black/10 rounded px-3 py-2 text-xs" placeholder={t('durationPlaceholder' as any)} />
+                                    <input 
+                                      type="text" 
+                                      value={Array.isArray(integrated.time) ? integrated.time.map(time => t(time as any)).join(', ') : t(integrated.time as any)} 
+                                      onChange={e => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, time: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } : i) }))} 
+                                      className="w-full bg-surface border border-black/10 rounded px-3 py-2 text-xs" 
+                                      placeholder={t('durationPlaceholder' as any)} 
+                                    />
                                   </div>
                                 </div>
                               </div>
@@ -1834,11 +1874,18 @@ export default function App() {
                                 label="Presets"
                                 options={getOptions('coolDowns', PRESETS.coolDowns)}
                                 onSelect={(val) => setNewSession({ ...newSession, coolDown: val })}
+                                selectedValues={Array.isArray(newSession.coolDown) ? newSession.coolDown : [newSession.coolDown as string]}
+                                multiSelect={true}
                                 onDelete={(val) => removeCustomPreset('coolDowns', val)}
                                 isDeletable={(val) => customPresets.coolDowns.includes(val)}
+                                onAdd={(val) => addCustomPreset('coolDowns', val, PRESETS.coolDowns)}
                               />
                             </div>
-                            <textarea value={translateContent(newSession.coolDown as string)} onChange={e => setNewSession({ ...newSession, coolDown: e.target.value })} className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[60px]" />
+                            <textarea 
+                              value={translateContent(newSession.coolDown)} 
+                              onChange={e => setNewSession({ ...newSession, coolDown: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })} 
+                              className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[60px]" 
+                            />
                           </div>
                         </Section>
 
@@ -1852,11 +1899,18 @@ export default function App() {
                                   label="Presets"
                                   options={getOptions('obsPositives', PRESETS.observations.positives)}
                                   onSelect={(val) => setNewSession({ ...newSession, observations: { ...newSession.observations, positives: val } })}
+                                  selectedValues={Array.isArray(newSession.observations.positives) ? newSession.observations.positives : [newSession.observations.positives as string]}
+                                  multiSelect={true}
                                   onDelete={(val) => removeCustomPreset('obsPositives', val)}
                                   isDeletable={(val) => customPresets.obsPositives.includes(val)}
+                                  onAdd={(val) => addCustomPreset('obsPositives', val, PRESETS.observations.positives)}
                                 />
                               </div>
-                              <textarea value={translateContent(newSession.observations.positives as string)} onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, positives: e.target.value } })} className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[80px]" />
+                              <textarea 
+                                value={translateContent(newSession.observations.positives)} 
+                                onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, positives: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) } })} 
+                                className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[80px]" 
+                              />
                             </div>
                             <div className="space-y-1">
                               <div className="flex justify-between items-center">
@@ -1865,11 +1919,18 @@ export default function App() {
                                   label="Presets"
                                   options={getOptions('obsAdjustments', PRESETS.observations.adjustments)}
                                   onSelect={(val) => setNewSession({ ...newSession, observations: { ...newSession.observations, adjustments: val } })}
+                                  selectedValues={Array.isArray(newSession.observations.adjustments) ? newSession.observations.adjustments : [newSession.observations.adjustments as string]}
+                                  multiSelect={true}
                                   onDelete={(val) => removeCustomPreset('obsAdjustments', val)}
                                   isDeletable={(val) => customPresets.obsAdjustments.includes(val)}
+                                  onAdd={(val) => addCustomPreset('obsAdjustments', val, PRESETS.observations.adjustments)}
                                 />
                               </div>
-                              <textarea value={translateContent(newSession.observations.adjustments as string)} onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, adjustments: e.target.value } })} className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[80px]" />
+                              <textarea 
+                                value={translateContent(newSession.observations.adjustments)} 
+                                onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, adjustments: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) } })} 
+                                className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[80px]" 
+                              />
                             </div>
                             <div className="space-y-1">
                               <div className="flex justify-between items-center">
@@ -1878,11 +1939,18 @@ export default function App() {
                                   label="Presets"
                                   options={getOptions('obsEvaluations', PRESETS.observations.evaluations)}
                                   onSelect={(val) => setNewSession({ ...newSession, observations: { ...newSession.observations, individualEval: val } })}
+                                  selectedValues={Array.isArray(newSession.observations.individualEval) ? newSession.observations.individualEval : [newSession.observations.individualEval as string]}
+                                  multiSelect={true}
                                   onDelete={(val) => removeCustomPreset('obsEvaluations', val)}
                                   isDeletable={(val) => customPresets.obsEvaluations.includes(val)}
+                                  onAdd={(val) => addCustomPreset('obsEvaluations', val, PRESETS.observations.evaluations)}
                                 />
                               </div>
-                              <textarea value={translateContent(newSession.observations.individualEval as string)} onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, individualEval: e.target.value } })} className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[80px]" />
+                              <textarea 
+                                value={translateContent(newSession.observations.individualEval)} 
+                                onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, individualEval: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) } })} 
+                                className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[80px]" 
+                              />
                             </div>
                           </div>
                         </Section>
@@ -2069,6 +2137,7 @@ export default function App() {
                                 onSelect={applyDrillTemplate}
                                 onDelete={(val) => removeCustomPreset('drillTitles', val)}
                                 isDeletable={(val) => customPresets.drillTitles.includes(val)}
+                                onAdd={(val) => addCustomPreset('drillTitles', val, PRESETS.drills.titles)}
                               />
                             </div>
                             <input
@@ -2111,12 +2180,20 @@ export default function App() {
                               <QuickSelect
                                 label={t('presets')}
                                 options={getOptions('drillObjectives', PRESETS.drills.objectives)}
-                                onSelect={(val) => setCurrentDrill({ ...currentDrill, objective: t(val as any) })}
+                                onSelect={(val) => setCurrentDrill({ ...currentDrill, objective: val })}
+                                selectedValues={Array.isArray(currentDrill.objective) ? currentDrill.objective : [currentDrill.objective]}
+                                multiSelect={true}
                                 onDelete={(val) => removeCustomPreset('drillObjectives', val)}
                                 isDeletable={(val) => customPresets.drillObjectives.includes(val)}
+                                onAdd={(val) => addCustomPreset('drillObjectives', val, PRESETS.drills.objectives)}
                               />
                             </div>
-                            <textarea value={currentDrill.objective} onChange={e => setCurrentDrill({ ...currentDrill, objective: e.target.value })} className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]" placeholder={t('objectivePlaceholder')} />
+                            <textarea 
+                              value={translateContent(currentDrill.objective)} 
+                              onChange={e => setCurrentDrill({ ...currentDrill, objective: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })} 
+                              className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]" 
+                              placeholder={t('objectivePlaceholder')} 
+                            />
                           </div>
                           <div className="space-y-1">
                             <div className="flex justify-between items-center">
@@ -2124,12 +2201,20 @@ export default function App() {
                               <QuickSelect
                                 label={t('presets')}
                                 options={getOptions('drillOrganizations', PRESETS.drills.organizations)}
-                                onSelect={(val) => setCurrentDrill({ ...currentDrill, organization: t(val as any) })}
+                                onSelect={(val) => setCurrentDrill({ ...currentDrill, organization: val })}
+                                selectedValues={Array.isArray(currentDrill.organization) ? currentDrill.organization : [currentDrill.organization]}
+                                multiSelect={true}
                                 onDelete={(val) => removeCustomPreset('drillOrganizations', val)}
                                 isDeletable={(val) => customPresets.drillOrganizations.includes(val)}
+                                onAdd={(val) => addCustomPreset('drillOrganizations', val, PRESETS.drills.organizations)}
                               />
                             </div>
-                            <textarea value={currentDrill.organization} onChange={e => setCurrentDrill({ ...currentDrill, organization: e.target.value })} className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]" placeholder={t('organizationPlaceholder')} />
+                            <textarea 
+                              value={translateContent(currentDrill.organization)} 
+                              onChange={e => setCurrentDrill({ ...currentDrill, organization: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })} 
+                              className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]" 
+                              placeholder={t('organizationPlaceholder')} 
+                            />
                           </div>
                         </div>
                         <div className="space-y-1">
@@ -2138,12 +2223,20 @@ export default function App() {
                             <QuickSelect
                               label={t('presets')}
                               options={getOptions('drillExecutions', PRESETS.drills.executions)}
-                              onSelect={(val) => setCurrentDrill({ ...currentDrill, execution: t(val as any) })}
+                              onSelect={(val) => setCurrentDrill({ ...currentDrill, execution: val })}
+                              selectedValues={Array.isArray(currentDrill.execution) ? currentDrill.execution : [currentDrill.execution]}
+                              multiSelect={true}
                               onDelete={(val) => removeCustomPreset('drillExecutions', val)}
                               isDeletable={(val) => customPresets.drillExecutions.includes(val)}
+                              onAdd={(val) => addCustomPreset('drillExecutions', val, PRESETS.drills.executions)}
                             />
                           </div>
-                          <textarea value={currentDrill.execution} onChange={e => setCurrentDrill({ ...currentDrill, execution: e.target.value })} className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]" placeholder={t('executionPlaceholder')} />
+                          <textarea 
+                            value={translateContent(currentDrill.execution)} 
+                            onChange={e => setCurrentDrill({ ...currentDrill, execution: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })} 
+                            className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]" 
+                            placeholder={t('executionPlaceholder')} 
+                          />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
@@ -2152,12 +2245,21 @@ export default function App() {
                               <QuickSelect
                                 label={t('presets')}
                                 options={getOptions('drillProgressions', PRESETS.drills.progressions)}
-                                onSelect={(val) => setCurrentDrill({ ...currentDrill, progression: t(val as any) })}
+                                onSelect={(val) => setCurrentDrill({ ...currentDrill, progression: val })}
+                                selectedValues={Array.isArray(currentDrill.progression) ? currentDrill.progression : [currentDrill.progression]}
+                                multiSelect={true}
                                 onDelete={(val) => removeCustomPreset('drillProgressions', val)}
                                 isDeletable={(val) => customPresets.drillProgressions.includes(val)}
+                                onAdd={(val) => addCustomPreset('drillProgressions', val, PRESETS.drills.progressions)}
                               />
                             </div>
-                            <input type="text" value={currentDrill.progression} onChange={e => setCurrentDrill({ ...currentDrill, progression: e.target.value })} className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs" placeholder={t('progressionPlaceholder')} />
+                            <input 
+                              type="text" 
+                              value={translateContent(currentDrill.progression)} 
+                              onChange={e => setCurrentDrill({ ...currentDrill, progression: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} 
+                              className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs" 
+                              placeholder={t('progressionPlaceholder')} 
+                            />
                           </div>
                           <div className="space-y-1">
                             <div className="flex justify-between items-center">
@@ -2165,12 +2267,21 @@ export default function App() {
                               <QuickSelect
                                 label={t('presets')}
                                 options={getOptions('drillSuccessCriteria', PRESETS.drills.successCriteria)}
-                                onSelect={(val) => setCurrentDrill({ ...currentDrill, successCriteria: t(val as any) })}
+                                onSelect={(val) => setCurrentDrill({ ...currentDrill, successCriteria: val })}
+                                selectedValues={Array.isArray(currentDrill.successCriteria) ? currentDrill.successCriteria : [currentDrill.successCriteria]}
+                                multiSelect={true}
                                 onDelete={(val) => removeCustomPreset('drillSuccessCriteria', val)}
                                 isDeletable={(val) => customPresets.drillSuccessCriteria.includes(val)}
+                                onAdd={(val) => addCustomPreset('drillSuccessCriteria', val, PRESETS.drills.successCriteria)}
                               />
                             </div>
-                            <input type="text" value={currentDrill.successCriteria} onChange={e => setCurrentDrill({ ...currentDrill, successCriteria: e.target.value })} className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs" placeholder={t('successCriteriaPlaceholder')} />
+                            <input 
+                              type="text" 
+                              value={translateContent(currentDrill.successCriteria)} 
+                              onChange={e => setCurrentDrill({ ...currentDrill, successCriteria: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} 
+                              className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs" 
+                              placeholder={t('successCriteriaPlaceholder')} 
+                            />
                           </div>
                         </div>
 
@@ -2183,8 +2294,11 @@ export default function App() {
                                 label={t('presets')}
                                 options={getOptions('durations', PRESETS.durations)}
                                 onSelect={(val) => setCurrentDrill({ ...currentDrill, duration: val })}
+                                selectedValues={Array.isArray(currentDrill.duration) ? currentDrill.duration : [currentDrill.duration]}
+                                multiSelect={true}
                                 onDelete={(val) => removeCustomPreset('durations', val)}
                                 isDeletable={(val) => customPresets.durations.includes(val)}
+                                onAdd={(val) => addCustomPreset('durations', val, PRESETS.durations)}
                               />
                             </div>
                           </div>
@@ -2310,10 +2424,11 @@ export default function App() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {exercisesLibrary
-                        .filter(ex =>
-                          ex.title.toLowerCase().includes(exerciseSearchTerm.toLowerCase()) ||
-                          ex.objective.toLowerCase().includes(exerciseSearchTerm.toLowerCase())
-                        )
+                        .filter(ex => {
+                          const objectiveStr = Array.isArray(ex.objective) ? ex.objective.join(' ') : (ex.objective || '');
+                          return ex.title.toLowerCase().includes(exerciseSearchTerm.toLowerCase()) ||
+                                 objectiveStr.toLowerCase().includes(exerciseSearchTerm.toLowerCase());
+                        })
                         .map(ex => (
                           <motion.div
                             key={ex.id}
@@ -2323,7 +2438,7 @@ export default function App() {
                           >
                             {ex.diagram && (
                               <div className="h-40 bg-black/5 relative overflow-hidden border-b border-black/5">
-                                <img src={ex.diagram} alt={ex.title} className="w-full h-full object-contain p-4" referrerPolicy="no-referrer" />
+                                <img src={ex.diagram} alt={ex.title as string} className="w-full h-full object-contain p-4" referrerPolicy="no-referrer" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent opacity-60" />
                               </div>
                             )}
@@ -2331,12 +2446,12 @@ export default function App() {
                               <div className="flex items-center justify-between">
                                 <span className="bg-primary/20 text-primary text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">{t(ex.type as any)}</span>
                                 <div className="flex items-center text-[10px] text-on-surface-variant">
-                                  <Clock className="w-3 h-3 mr-1" /> {t(ex.duration as any)}
+                                  <Clock className="w-3 h-3 mr-1" /> {Array.isArray(ex.duration) ? ex.duration.map(d => t(d as any)).join(', ') : t(ex.duration as any)}
                                 </div>
                               </div>
                               <div>
                                 <h3 className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">{t(ex.title as any)}</h3>
-                                <p className="text-xs text-on-surface-variant line-clamp-2 mt-1">{t(ex.objective as any)}</p>
+                                <p className="text-xs text-on-surface-variant line-clamp-2 mt-1">{Array.isArray(ex.objective) ? ex.objective.map(o => t(o as any)).join(', ') : t(ex.objective as any)}</p>
                               </div>
                               <div className="grid grid-cols-2 gap-3 pt-2 border-t border-black/5">
                                 <div className="space-y-1">
@@ -2474,26 +2589,42 @@ export default function App() {
                     </div>
                     <div className="space-y-1">
                       <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('endDay')}</label>
-                      <select
-                        value={microcycleEndDay}
-                        onChange={e => {
-                          setMicrocycleEndDay(e.target.value as DayKey);
-                        }}
-                        className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
-                      >
-                        {ALL_DAYS.map(d => <option key={d} value={d}>{t(d)}</option>)}
-                      </select>
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          value={microcycleEndDay} 
+                          onChange={e => setMicrocycleEndDay(e.target.value as DayKey)} 
+                          className="flex-1 bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs" 
+                        />
+                        <QuickSelect
+                          label="Presets"
+                          options={ALL_DAYS.map(d => ({ value: d, label: t(d as any) }))}
+                          onSelect={(val) => setMicrocycleEndDay(val as any)}
+                          onDelete={() => {}} 
+                          isDeletable={() => false}
+                        />
+                      </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('matchDay')}</label>
-                      <select
-                        value={matchDay}
-                        onChange={e => setMatchDay(e.target.value as DayKey | '')}
-                        className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
-                      >
-                        <option value="">{t('noMatch')}</option>
-                        {getMicrocycleDays().map(d => <option key={d} value={d}>{t(d)}</option>)}
-                      </select>
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          value={matchDay} 
+                          onChange={e => setMatchDay(e.target.value as DayKey)} 
+                          className="flex-1 bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs" 
+                        />
+                        <QuickSelect
+                          label="Presets"
+                          options={[
+                            { value: '', label: t('noMatch') },
+                            ...getMicrocycleDays().map(d => ({ value: d, label: t(d as any) }))
+                          ]}
+                          onSelect={(val) => setMatchDay(val as any)}
+                          onDelete={() => {}} 
+                          isDeletable={() => false}
+                        />
+                      </div>
                     </div>
                     <div className="space-y-1 flex flex-col justify-end">
                       <button

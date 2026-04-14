@@ -32,38 +32,38 @@ export interface Exercise {
   id: string;
   type: 'analytical' | 'decision' | 'contextualized' | 'warmup';
   title: string;
-  objective: string;
-  organization: string; // space, materials, players
-  execution: string;
-  progression: string;
-  successCriteria: string;
-  duration: string;
+  objective: string | string[];
+  organization: string | string[]; // space, materials, players
+  execution: string | string[];
+  progression: string | string[];
+  successCriteria: string | string[];
+  duration: string | string[];
   intensity: 'low' | 'medium' | 'high';
   diagram?: string; // JSON or Base64 image
 }
 
 export interface IntegratedExercise {
   id: string;
-  format: string;
-  number: string;
-  space: string;
-  time: string;
+  format: string | string[];
+  number: string | string[];
+  space: string | string[];
+  time: string | string[];
 }
 
 export interface TrainingSession {
   id: string;
   date: string;
-  category: string;
+  category: string | string[];
   numAthletes: number;
-  duration: string;
+  duration: string | string[];
   generalObjectives: string[];
   
   // Specific Objectives
   objectives: {
-    technical: string;
-    tactical: string;
-    physical: string;
-    cognitive: string;
+    technical: string | string[];
+    tactical: string | string[];
+    physical: string | string[];
+    cognitive: string | string[];
   };
 
   warmup: Exercise[]; // Warmup drills
@@ -72,12 +72,12 @@ export interface TrainingSession {
 
   integratedWithTeam?: IntegratedExercise[];
 
-  coolDown: string;
+  coolDown: string | string[];
 
   observations: {
-    positives: string;
-    adjustments: string;
-    individualEval: string;
+    positives: string | string[];
+    adjustments: string | string[];
+    individualEval: string | string[];
   };
 
   // UI metadata

@@ -35,14 +35,15 @@ function getIntensityClasses(intensity: Exercise['intensity']): string {
   }
 }
 
-const Field: React.FC<{ label: string; value?: string }> = ({ label, value }) => {
-  if (!value) return null;
+const Field: React.FC<{ label: string; value?: string | string[] }> = ({ label, value }) => {
+  if (!value || (Array.isArray(value) && value.length === 0)) return null;
+  const displayValue = Array.isArray(value) ? value.join(', ') : value;
   return (
     <div className="space-y-1.5">
       <p className="text-[10px] text-on-surface/50 uppercase font-label font-bold tracking-wider">
         {label}
       </p>
-      <p className="text-sm text-on-surface leading-relaxed whitespace-pre-wrap">{value}</p>
+      <p className="text-sm text-on-surface leading-relaxed whitespace-pre-wrap">{displayValue}</p>
     </div>
   );
 };
@@ -99,7 +100,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
             {exercise.duration && (
               <div className="flex items-center gap-1.5 text-on-surface/60 text-xs">
                 <Clock className="w-3.5 h-3.5" />
-                <span>{exercise.duration}</span>
+                <span>{Array.isArray(exercise.duration) ? exercise.duration.map(d => t(d as any)).join(', ') : t(exercise.duration as any)}</span>
               </div>
             )}
             {exercise.intensity && (

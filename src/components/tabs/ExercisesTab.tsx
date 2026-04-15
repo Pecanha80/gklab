@@ -87,10 +87,10 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
   const cleanExerciseData = (exercise: Omit<Exercise, 'id'>): Omit<Exercise, 'id'> => {
     const arrayFields = ['objective', 'organization', 'execution', 'progression', 'successCriteria'] as const;
     const cleaned = { ...exercise };
-    
+
     arrayFields.forEach(field => {
       let value = cleaned[field];
-      
+
       // If the field is a string that looks like a JSON array, it's already corrupted
       // We need to strip brackets/quotes if it's being treated as a single string item
       if (Array.isArray(value)) {
@@ -112,7 +112,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
         });
       }
     });
-    
+
     return cleaned;
   };
 
@@ -479,7 +479,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
               .filter(ex => {
                 const objectiveStr = Array.isArray(ex.objective) ? ex.objective.join(' ') : (ex.objective || '');
                 return ex.title.toLowerCase().includes(exerciseSearchTerm.toLowerCase()) ||
-                       objectiveStr.toLowerCase().includes(exerciseSearchTerm.toLowerCase());
+                  objectiveStr.toLowerCase().includes(exerciseSearchTerm.toLowerCase());
               })
               .map(ex => (
                 <motion.div
@@ -515,15 +515,15 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       <div className="flex items-center justify-between mb-1">
                         <h3 className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">{t(ex.title as any)}</h3>
                         {!ex.diagram && (
-                           <button
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             setEditingExercise(ex);
-                           }}
-                           className="p-1.5 text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
-                         >
-                           <Edit3 className="w-3.5 h-3.5" />
-                         </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingExercise(ex);
+                            }}
+                            className="p-1.5 text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
                         )}
                       </div>
                       <p className="text-xs text-on-surface-variant line-clamp-2">{Array.isArray(ex.objective) ? ex.objective.map(o => t(o as any)).join(', ') : t(ex.objective as any)}</p>

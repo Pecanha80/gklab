@@ -27,7 +27,10 @@
       "Bash(SUPA_URL=\"https://oygsnnuqnrypcqeeavlu.supabase.co\" && SUPA_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95Z3NubnVxbnJ5cGNxZWVhdmx1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxODg3MzEsImV4cCI6MjA4Mzc2NDczMX0.N14tv9lXEjFc9Hg-QmS0NLommg7OY5krkOMrazOEWV8\" && curl -s -X DELETE \"$SUPA_URL/rest/v1/videos?id=neq.null\" -H \"apikey: $SUPA_KEY\" -H \"Authorization: Bearer $SUPA_KEY\" && curl -s -X DELETE \"$SUPA_URL/rest/v1/exercises?id=neq.null\" -H \"apikey: $SUPA_KEY\" -H \"Authorization: Bearer $SUPA_KEY\" && echo \"Done\")",
       "Bash(SUPA_URL=\"https://oygsnnuqnrypcqeeavlu.supabase.co\" && SUPA_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95Z3NubnVxbnJ5cGNxZWVhdmx1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxODg3MzEsImV4cCI6MjA4Mzc2NDczMX0.N14tv9lXEjFc9Hg-QmS0NLommg7OY5krkOMrazOEWV8\" && curl -s -X DELETE \"$SUPA_URL/rest/v1/videos?id=eq.e1680a0c-3868-4bb6-bed2-4209e20ea1ac\" -H \"apikey: $SUPA_KEY\" -H \"Authorization: Bearer $SUPA_KEY\" && curl -s -X DELETE \"$SUPA_URL/rest/v1/videos?id=eq.dbc010fc-23ea-40f2-a79f-d19443c7db4a\" -H \"apikey: $SUPA_KEY\" -H \"Authorization: Bearer $SUPA_KEY\" && curl -s -X DELETE \"$SUPA_URL/rest/v1/videos?id=eq.8513554b-b76d-44dc-847a-b082b2098ac3\" -H \"apikey: $SUPA_KEY\" -H \"Authorization: Bearer $SUPA_KEY\" && curl -s -X DELETE \"$SUPA_URL/rest/v1/videos?id=eq.7d61956a-0643-409a-8f12-dcc1cec2cdc0\" -H \"apikey: $SUPA_KEY\" -H \"Authorization: Bearer $SUPA_KEY\" && curl -s -X DELETE \"$SUPA_URL/rest/v1/exercises?id=eq.4cd706de-d25c-42e8-a644-2d46ebcc3560\" -H \"apikey: $SUPA_KEY\" -H \"Authorization: Bearer $SUPA_KEY\" && echo \"Done\")",
       "Bash(which supabase:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(npm install:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npm test:*)"
     ]
   }
 }

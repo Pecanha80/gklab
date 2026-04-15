@@ -48,6 +48,7 @@ export const emptyDrill: Omit<Exercise, 'id'> = {
 
 export function useSessionForm(
   addSession: (session: Omit<TrainingSession, 'id'>) => Promise<boolean>,
+  updateSession: (session: TrainingSession) => Promise<void>,
   addExerciseToLibrary: (exercise: Omit<Exercise, 'id'>) => Promise<void>,
   exercisesLibrary: Exercise[],
 ) {
@@ -55,6 +56,7 @@ export function useSessionForm(
   const { customPresets, addCustomPreset } = useCustomPresets();
 
   const [isAddingSession, setIsAddingSession] = useState(false);
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [newSession, setNewSession] = useState<Omit<TrainingSession, 'id'>>({ ...emptySession });
 
   const [isAddingDrill, setIsAddingDrill] = useState(false);
@@ -172,13 +174,27 @@ export function useSessionForm(
       savePresets('durations', ex.duration, PRESETS.durations);
     });
 
-    const success = await addSession(newSession);
-    if (success) {
+    if (editingSessionId) {
+      await updateSession({ ...newSession, id: editingSessionId } as TrainingSession);
       setIsAddingSession(false);
+      setEditingSessionId(null);
       setNewSession({ ...emptySession, date: getTodayDateString() });
     } else {
-      alert('Error adding session. Check console for details.');
+      const success = await addSession(newSession);
+      if (success) {
+        setIsAddingSession(false);
+        setNewSession({ ...emptySession, date: getTodayDateString() });
+      } else {
+        alert('Error adding session. Check console for details.');
+      }
     }
+  };
+
+  const handleEditSession = (session: TrainingSession) => {
+    setEditingSessionId(session.id);
+    const { id, created_at, ...data } = session as any;
+    setNewSession(data);
+    setIsAddingSession(true);
   };
 
   const handleAddDrill = () => {
@@ -517,7 +533,11 @@ export function useSessionForm(
   return {
     // Session state
     isAddingSession,
-    setIsAddingSession,
+    setIsAddingSession: (v: boolean) => {
+      setIsAddingSession(v);
+      if (!v) setEditingSessionId(null);
+    },
+    editingSessionId,
     newSession,
     setNewSession,
     // Drill state
@@ -544,6 +564,7 @@ export function useSessionForm(
     applyDrillTemplate,
     applySessionTemplates,
     loadExample,
+    handleEditSession,
     handleTacticalBoardSave,
     // Constants
     emptySession,

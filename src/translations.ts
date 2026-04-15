@@ -12,6 +12,7 @@ export const translations = {
     settings: 'Settings',
     logout: 'Logout',
     videos: 'Videos',
+    editSession: 'Edit Session',
 
     // Dashboard Stats
     activeAthletes: 'Active Athletes',
@@ -668,6 +669,7 @@ export const translations = {
     settings: 'Configuracoes',
     logout: 'Sair',
     videos: 'Vídeos',
+    editSession: 'Editar Sessão',
 
     // Dashboard Stats
     activeAthletes: 'Atletas Ativos',

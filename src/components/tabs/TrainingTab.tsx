@@ -63,6 +63,8 @@ interface TrainingTabProps {
   applyDrillTemplate: (title: string) => void;
   applySessionTemplates: (titles: string[]) => void;
   loadExample: () => void;
+  handleEditSession: (session: TrainingSession) => void;
+  editingSessionId: string | null;
   // Navigation
   setActiveTab: (tab: string) => void;
   setViewingSession: (session: TrainingSession | null) => void;
@@ -99,6 +101,8 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
   applyDrillTemplate,
   applySessionTemplates,
   loadExample,
+  handleEditSession,
+  editingSessionId,
   setActiveTab,
   setViewingSession,
   exerciseSearchTerm,
@@ -174,7 +178,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
             <div>
               <h3 className="text-xl font-bold text-on-surface flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary" />
-                {t('professionalTrainingSheet')}
+                {editingSessionId ? t('editSession') : t('professionalTrainingSheet')}
               </h3>
               <p className="text-[10px] text-on-surface-variant uppercase font-label tracking-widest mt-1">{t('structuredMethodology')}</p>
             </div>
@@ -707,7 +711,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
               type="submit"
               className="bg-primary hover:bg-primary-dim text-on-primary px-8 py-2 rounded-md font-label text-xs font-bold transition-all shadow-lg shadow-primary/20"
             >
-              {t('saveTrainingSheet')}
+              {editingSessionId ? t('saveChanges') : t('saveTrainingSheet')}
             </button>
           </div>
         </motion.div>
@@ -733,6 +737,16 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                     title={t('exportPdf')}
                   >
                     <Download className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditSession(session);
+                    }}
+                    className="p-2 bg-white/80 backdrop-blur-md rounded-md text-on-surface hover:bg-primary hover:text-on-primary transition-all"
+                    title={t('editSession')}
+                  >
+                    <Edit3 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={(e) => {

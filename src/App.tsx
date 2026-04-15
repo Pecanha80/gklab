@@ -20,7 +20,7 @@ import { handleExportSession } from './lib/exportSession';
 
 export default function App() {
   const { t } = useTranslation();
-  const { goalkeepers, sessions, videos, exercisesLibrary, isLoading, addExerciseToLibrary, deleteExercise, addSession, deleteSession, addGoalkeeper, updateGoalkeeper, deleteGoalkeeper, addVideo, deleteVideo } = useAppData();
+  const { goalkeepers, sessions, videos, exercisesLibrary, isLoading, addExerciseToLibrary, deleteExercise, addSession, updateSession, deleteSession, addGoalkeeper, updateGoalkeeper, deleteGoalkeeper, addVideo, deleteVideo } = useAppData();
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -28,7 +28,7 @@ export default function App() {
   const [viewingExercise, setViewingExercise] = useState<Exercise | null>(null);
   const [exerciseSearchTerm, setExerciseSearchTerm] = useState('');
 
-  const sessionForm = useSessionForm(addSession, addExerciseToLibrary, exercisesLibrary);
+  const sessionForm = useSessionForm(addSession, updateSession, addExerciseToLibrary, exercisesLibrary);
   const microcycle = useMicrocycle();
 
   if (isLoading) {
@@ -111,6 +111,8 @@ export default function App() {
               applyDrillTemplate={sessionForm.applyDrillTemplate}
               applySessionTemplates={sessionForm.applySessionTemplates}
               loadExample={sessionForm.loadExample}
+              handleEditSession={sessionForm.handleEditSession}
+              editingSessionId={sessionForm.editingSessionId}
               setActiveTab={setActiveTab}
               setViewingSession={setViewingSession}
               exerciseSearchTerm={exerciseSearchTerm}
@@ -216,6 +218,7 @@ export default function App() {
           onClose={() => setViewingSession(null)}
           onExport={(id) => { handleExportSession(id); setViewingSession(null); }}
           onDelete={(id) => { deleteSession(id); setViewingSession(null); }}
+          onEdit={(session) => { sessionForm.handleEditSession(session); setViewingSession(null); }}
         />
       )}
       {viewingExercise && (

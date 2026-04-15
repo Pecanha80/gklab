@@ -12,6 +12,7 @@ interface SessionDetailModalProps {
   onClose: () => void;
   onExport: (id: string) => void;
   onDelete?: (id: string) => void;
+  onEdit?: (session: TrainingSession) => void;
 }
 
 const SectionHeading: React.FC<{ title: string; icon?: React.ComponentType<{ className?: string }> }> = ({
@@ -47,6 +48,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   onClose,
   onExport,
   onDelete,
+  onEdit,
 }) => {
   const { t } = useTranslation();
   const { 
@@ -157,6 +159,15 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               <Download className="w-3.5 h-3.5" />
               {t('exportPdf')}
             </button>
+            {onEdit && (
+              <button
+                onClick={() => onEdit(session)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                {t('editSession')}
+              </button>
+            )}
             <button
               aria-label={t('close')}
               onClick={onClose}
@@ -470,6 +481,15 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               <Download className="w-3.5 h-3.5" />
               {t('exportPdf')}
             </button>
+            {onEdit && (
+              <button
+                onClick={() => onEdit(session)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                {t('editSession')}
+              </button>
+            )}
           </div>
           <button
             onClick={onClose}

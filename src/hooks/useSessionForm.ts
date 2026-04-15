@@ -341,12 +341,12 @@ export function useSessionForm(
     let physical = '';
     let cognitive = '';
     let generalObjectives: string[] = [];
-    let category = '';
+    let category: string | string[] = '';
 
     resolvedTitles.forEach(title => {
       const template = SESSION_TEMPLATES[title];
       if (template) {
-        if (template.category) category = t(template.category as any);
+        if (template.category) category = template.category;
         if (template.warmup) {
           allWarmup = [...allWarmup, ...template.warmup.map(ex => ({
             ...ex,
@@ -437,7 +437,7 @@ export function useSessionForm(
   const loadExample = () => {
     setNewSession({
       date: getTodayDateString(),
-      category: [t('firstTeam')],
+      category: ['firstTeam'],
       numAthletes: 3,
       duration: [t('dur_90min')],
       titles: ['crossesAerialDominance'],

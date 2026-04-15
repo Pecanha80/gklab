@@ -259,7 +259,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                       <QuickSelect
                         label="Presets"
                         options={getOptions('categories', PRESETS.categories)}
-                        onSelect={(vals) => setNewSession({ ...newSession, category: vals.map(v => t(v as any)).join(', ') })}
+                        onSelect={(vals) => setNewSession({ ...newSession, category: vals })}
                         selectedValues={typeof newSession.category === 'string' ? newSession.category.split(', ') : newSession.category}
                         onDelete={(val) => removeCustomPreset('categories', val)}
                         isDeletable={(val) => customPresets.categories.includes(val)}

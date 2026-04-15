@@ -25,6 +25,44 @@ function saveToStorage<T>(key: string, data: T[]) {
   localStorage.setItem(key, JSON.stringify(data));
 }
 
+function normalizeExercise(ex: any): Exercise {
+  if (!ex) return ex;
+  const arrayFields = ['objective', 'organization', 'execution', 'progression', 'successCriteria'];
+  const normalized = { ...ex };
+  
+  arrayFields.forEach(field => {
+    let value = normalized[field];
+    
+    // Recursive parsing to handle multiple levels of stringification
+    while (typeof value === 'string' && value.trim().startsWith('[')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed) || typeof parsed === 'string') {
+          value = parsed;
+        } else {
+          break;
+        }
+      } catch {
+        // Fallback: if it looks like an array but isn't valid JSON (e.g., ["Item"]), split it
+        const trimmed = value.trim();
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+          value = trimmed.slice(1, -1).split(',').map((s: string) => s.trim().replace(/^["']|["']$/g, ''));
+        }
+        break;
+      }
+    }
+    
+    // Ensure it's an array for consistency
+    if (!Array.isArray(value)) {
+      value = value ? [value] : [];
+    }
+    
+    normalized[field] = value;
+  });
+  
+  return normalized as Exercise;
+}
+
 export function useAppData() {
   const [goalkeepers, setGoalkeepers] = useState<Goalkeeper[]>([]);
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
@@ -38,7 +76,7 @@ export function useAppData() {
       setGoalkeepers(loadFromStorage<Goalkeeper>(STORAGE_KEYS.goalkeepers));
       setSessions(loadFromStorage<TrainingSession>(STORAGE_KEYS.sessions));
       setVideos(loadFromStorage<PerformanceVideo>(STORAGE_KEYS.videos));
-      setExercisesLibrary(loadFromStorage<Exercise>(STORAGE_KEYS.exercises));
+      setExercisesLibrary(loadFromStorage<Exercise>(STORAGE_KEYS.exercises).map(normalizeExercise));
       setIsLoading(false);
       return;
     }
@@ -70,8 +108,9 @@ export function useAppData() {
         saveToStorage(STORAGE_KEYS.videos, vidRes.data);
       }
       if (exRes.data) {
-        setExercisesLibrary(exRes.data);
-        saveToStorage(STORAGE_KEYS.exercises, exRes.data);
+        const normalized = exRes.data.map(normalizeExercise);
+        setExercisesLibrary(normalized);
+        saveToStorage(STORAGE_KEYS.exercises, normalized);
       }
 
       // Log any errors
@@ -86,7 +125,8 @@ export function useAppData() {
       setGoalkeepers(loadFromStorage<Goalkeeper>(STORAGE_KEYS.goalkeepers));
       setSessions(loadFromStorage<TrainingSession>(STORAGE_KEYS.sessions));
       setVideos(loadFromStorage<PerformanceVideo>(STORAGE_KEYS.videos));
-      setExercisesLibrary(loadFromStorage<Exercise>(STORAGE_KEYS.exercises));
+      setVideos(loadFromStorage<PerformanceVideo>(STORAGE_KEYS.videos));
+      setExercisesLibrary(loadFromStorage<Exercise>(STORAGE_KEYS.exercises).map(normalizeExercise));
     } finally {
       setIsLoading(false);
     }
@@ -150,7 +190,9 @@ export function useAppData() {
   };
 
   const deleteExercise = async (exerciseId: string) => {
+    console.log('useAppData: deleteExercise called for', exerciseId);
     if (!hasSupabaseConfig) {
+      console.log('useAppData: Local delete (no Supabase)');
       setExercisesLibrary(prev => {
         const updated = prev.filter(e => e.id !== exerciseId);
         saveToStorage(STORAGE_KEYS.exercises, updated);
@@ -159,16 +201,21 @@ export function useAppData() {
       return;
     }
 
-    const { error } = await supabase.from('exercises').delete().eq('id', exerciseId);
-    if (error) {
-      console.error('Error deleting exercise:', error);
-      return;
+    try {
+      const { error } = await supabase.from('exercises').delete().eq('id', exerciseId);
+      if (error) {
+        console.error('useAppData: Supabase delete error:', error);
+        return;
+      }
+      console.log('useAppData: Supabase delete success');
+      setExercisesLibrary(prev => {
+        const updated = prev.filter(e => e.id !== exerciseId);
+        saveToStorage(STORAGE_KEYS.exercises, updated);
+        return updated;
+      });
+    } catch (err) {
+      console.error('useAppData: Unexpected error in deleteExercise:', err);
     }
-    setExercisesLibrary(prev => {
-      const updated = prev.filter(e => e.id !== exerciseId);
-      saveToStorage(STORAGE_KEYS.exercises, updated);
-      return updated;
-    });
   };
 
   // --- Sessions CRUD ---

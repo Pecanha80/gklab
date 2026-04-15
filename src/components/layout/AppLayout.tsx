@@ -9,6 +9,8 @@ import {
   MoreHorizontal,
   HelpCircle,
   Globe,
+  Heart,
+  Activity,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -111,6 +113,26 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               >
                 <Video className="w-4 h-4" />
                 {t('videos')}
+              </button>
+              <button
+                onClick={() => { setActiveTab('Wellness'); setMoreMenuOpen(false); }}
+                className={cn(
+                  "flex items-center gap-3 w-full px-4 py-2.5 text-sm font-label transition-colors",
+                  activeTab === 'Wellness' ? "text-primary bg-primary/5" : "text-on-surface-variant hover:bg-surface-container-highest"
+                )}
+              >
+                <Heart className="w-4 h-4" />
+                {t('wellnessTab' as any)}
+              </button>
+              <button
+                onClick={() => { setActiveTab('RPE'); setMoreMenuOpen(false); }}
+                className={cn(
+                  "flex items-center gap-3 w-full px-4 py-2.5 text-sm font-label transition-colors",
+                  activeTab === 'RPE' ? "text-primary bg-primary/5" : "text-on-surface-variant hover:bg-surface-container-highest"
+                )}
+              >
+                <Activity className="w-4 h-4" />
+                {t('rpeTab' as any)}
               </button>
               <button
                 onClick={() => { setActiveTab('Support'); setMoreMenuOpen(false); }}

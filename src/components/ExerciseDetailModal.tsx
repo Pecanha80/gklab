@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Clock, Zap, Trash2 } from 'lucide-react';
+import { X, Clock, Zap, Trash2, Edit3 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../hooks/useTranslation';
@@ -10,6 +10,7 @@ interface ExerciseDetailModalProps {
   exercise: Exercise;
   onClose: () => void;
   onDelete: (id: string) => void;
+  onEdit?: (exercise: Exercise) => void;
 }
 
 function getTypeBadgeClasses(type: Exercise['type']): string {
@@ -41,6 +42,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
   exercise,
   onClose,
   onDelete,
+  onEdit,
 }) => {
   const { t } = useTranslation();
 
@@ -145,13 +147,33 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-surface-container border-t border-black/5 px-6 py-4 flex items-center justify-between rounded-b-2xl">
-          <button
-            onClick={() => { if (window.confirm(t('confirmDeleteExercise' as any))) onDelete(exercise.id); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-error/10 text-error text-xs font-semibold hover:bg-error/20 transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            {t('delete')}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => { 
+                console.log('Modal: Delete button clicked for', exercise.id);
+                const confirmed = window.confirm(t('confirmDeleteExercise' as any));
+                if (confirmed) {
+                  console.log('Modal: Deletion confirmed');
+                  onDelete(exercise.id); 
+                } else {
+                  console.log('Modal: Deletion cancelled');
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-error/10 text-error text-xs font-semibold hover:bg-error/20 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {t('delete')}
+            </button>
+            {onEdit && (
+              <button
+                onClick={() => onEdit(exercise)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                {t('edit')}
+              </button>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="px-4 py-1.5 rounded-lg bg-on-surface/5 text-on-surface text-xs font-semibold hover:bg-on-surface/10 transition-colors"

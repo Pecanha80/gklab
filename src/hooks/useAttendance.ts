@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase, hasSupabaseConfig } from '../lib/supabase';
 import { Attendance, AttendanceStatus, Goalkeeper } from '../types';
+import { categoriesMatch, normalizeCategoryForMatch } from '../lib/categoryMatch';
 
 const STORAGE_KEYS = {
   attendance: 'gk_attendance',
@@ -41,8 +42,13 @@ export function useAttendance(sessionId: string) {
 
       const allGks = loadFromStorage<Goalkeeper>(STORAGE_KEYS.goalkeepers);
       if (category) {
-        const cats = Array.isArray(category) ? category : [category];
-        setEligibleGoalkeepers(cats.length > 0 ? allGks.filter(gk => cats.includes(gk.category)) : allGks);
+        const sessionCats = Array.isArray(category) ? category : [category];
+
+        const filtered = allGks.filter(gk =>
+          gk.category && categoriesMatch(sessionCats, gk.category)
+        );
+
+        setEligibleGoalkeepers(filtered.length > 0 ? filtered : allGks);
       } else {
         setEligibleGoalkeepers(allGks);
       }
@@ -63,20 +69,20 @@ export function useAttendance(sessionId: string) {
       // 2. Fetch eligible goalkeepers
       let query = supabase.from('goalkeepers').select('*');
 
-      // If category is provided, filter by it
-      if (category) {
-        if (Array.isArray(category)) {
-          if (category.length > 0) {
-            query = query.in('category', category);
-          }
-        } else {
-          query = query.eq('category', category);
-        }
-      }
-
+      // Fetch all goalkeepers and filter client-side to handle translated category values
       const { data: gkData, error: gkError } = await query;
       if (gkError) throw gkError;
-      setEligibleGoalkeepers(gkData || []);
+
+      const allGks = gkData || [];
+      if (category && allGks.length > 0) {
+        const sessionCats = Array.isArray(category) ? category : [category];
+        const filtered = allGks.filter(gk =>
+          gk.category && categoriesMatch(sessionCats, gk.category)
+        );
+        setEligibleGoalkeepers(filtered.length > 0 ? filtered : allGks);
+      } else {
+        setEligibleGoalkeepers(allGks);
+      }
 
     } catch (err: any) {
       setError(err.message);
@@ -88,20 +94,24 @@ export function useAttendance(sessionId: string) {
   const updateAttendance = async (
     goalkeeperId: string,
     status: AttendanceStatus,
-    notes?: string
+    notes?: string,
+    rpe?: number
   ) => {
     if (!hasSupabaseConfig) {
       const allAttendance = loadFromStorage<Attendance>(STORAGE_KEYS.attendance);
       const index = allAttendance.findIndex(
         a => a.session_id === sessionId && a.goalkeeper_id === goalkeeperId
       );
+      const existing = index >= 0 ? allAttendance[index] : null;
       const record: Attendance = {
-        id: index >= 0 ? allAttendance[index].id : crypto.randomUUID(),
+        id: existing?.id || crypto.randomUUID(),
         session_id: sessionId,
         goalkeeper_id: goalkeeperId,
         status,
         notes,
-      } as Attendance;
+        rpe: rpe !== undefined ? rpe : existing?.rpe,
+        created_at: existing?.created_at || new Date().toISOString(),
+      };
 
       if (index >= 0) {
         allAttendance[index] = record;
@@ -124,14 +134,17 @@ export function useAttendance(sessionId: string) {
     }
 
     try {
+      const payload: Record<string, unknown> = {
+        session_id: sessionId,
+        goalkeeper_id: goalkeeperId,
+        status,
+        notes,
+      };
+      if (rpe !== undefined) payload.rpe = rpe;
+
       const { data, error: upsertError } = await supabase
         .from('attendance')
-        .upsert({
-          session_id: sessionId,
-          goalkeeper_id: goalkeeperId,
-          status,
-          notes,
-        }, {
+        .upsert(payload, {
           onConflict: 'session_id,goalkeeper_id'
         })
         .select()
@@ -154,6 +167,14 @@ export function useAttendance(sessionId: string) {
       setError(err.message);
       throw err;
     }
+  };
+
+  const updateRpe = async (goalkeeperId: string, rpe: number) => {
+    // Find existing record to preserve status/notes
+    const existing = attendance.find(a => a.goalkeeper_id === goalkeeperId);
+    const status = existing?.status || 'present';
+    const notes = existing?.notes;
+    return updateAttendance(goalkeeperId, status, notes, rpe);
   };
 
   const bulkUpdateAttendance = async (
@@ -218,6 +239,7 @@ export function useAttendance(sessionId: string) {
     error,
     fetchAttendanceData,
     updateAttendance,
+    updateRpe,
     bulkUpdateAttendance,
   };
 }

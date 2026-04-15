@@ -11,6 +11,8 @@ import { TrainingTab } from './components/tabs/TrainingTab';
 import { ExercisesTab } from './components/tabs/ExercisesTab';
 import { PlanningTab } from './components/tabs/PlanningTab';
 import { GoalkeepersTab } from './components/tabs/GoalkeepersTab';
+import { WellnessTab } from './components/tabs/WellnessTab';
+import { RPETab } from './components/tabs/RPETab';
 import { VideosTab } from './components/tabs/VideosTab';
 import { SupportTab } from './components/tabs/SupportTab';
 import { TacticalBoard } from './components/TacticalBoard';
@@ -20,13 +22,32 @@ import { handleExportSession } from './lib/exportSession';
 
 export default function App() {
   const { t } = useTranslation();
-  const { goalkeepers, sessions, videos, exercisesLibrary, isLoading, addExerciseToLibrary, deleteExercise, addSession, updateSession, deleteSession, addGoalkeeper, updateGoalkeeper, deleteGoalkeeper, addVideo, deleteVideo } = useAppData();
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [viewingSession, setViewingSession] = useState<TrainingSession | null>(null);
-  const [viewingExercise, setViewingExercise] = useState<Exercise | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [exerciseSearchTerm, setExerciseSearchTerm] = useState('');
+
+  const { 
+    goalkeepers, 
+    sessions, 
+    videos, 
+    exercisesLibrary, 
+    isLoading, 
+    addExerciseToLibrary, 
+    updateExercise,
+    deleteExercise, 
+    addSession, 
+    updateSession, 
+    deleteSession, 
+    addGoalkeeper, 
+    updateGoalkeeper, 
+    deleteGoalkeeper, 
+    addVideo, 
+    deleteVideo 
+  } = useAppData();
 
   const sessionForm = useSessionForm(addSession, updateSession, addExerciseToLibrary, exercisesLibrary);
   const microcycle = useMicrocycle();
@@ -133,12 +154,16 @@ export default function App() {
             <ExercisesTab
               exercisesLibrary={exercisesLibrary}
               addExerciseToLibrary={addExerciseToLibrary}
-              setViewingExercise={setViewingExercise}
+              selectedExercise={selectedExercise}
+              setSelectedExercise={setSelectedExercise}
               setIsTacticalBoardOpen={sessionForm.setIsTacticalBoardOpen}
               currentDrill={sessionForm.currentDrill}
               setCurrentDrill={sessionForm.setCurrentDrill}
               applyDrillTemplate={sessionForm.applyDrillTemplate}
               translateContent={sessionForm.translateContent}
+              updateExercise={updateExercise}
+              editingExercise={editingExercise}
+              setEditingExercise={setEditingExercise}
             />
           </motion.div>
         )}
@@ -188,6 +213,18 @@ export default function App() {
             <GoalkeepersTab goalkeepers={goalkeepers} addGoalkeeper={addGoalkeeper} updateGoalkeeper={updateGoalkeeper} deleteGoalkeeper={deleteGoalkeeper} />
           </motion.div>
         )}
+        
+        {activeTab === 'Wellness' && (
+          <motion.div key="wellness" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+            <WellnessTab />
+          </motion.div>
+        )}
+
+        {activeTab === 'RPE' && (
+          <motion.div key="rpe" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+            <RPETab />
+          </motion.div>
+        )}
 
         {activeTab === 'Videos' && (
           <motion.div key="videos" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
@@ -221,8 +258,21 @@ export default function App() {
           onEdit={(session) => { sessionForm.handleEditSession(session); setViewingSession(null); }}
         />
       )}
-      {viewingExercise && (
-        <ExerciseDetailModal exercise={viewingExercise} onClose={() => setViewingExercise(null)} onDelete={(id) => { deleteExercise(id); setViewingExercise(null); }} />
+      {selectedExercise && (
+        <ExerciseDetailModal 
+          exercise={selectedExercise} 
+          onClose={() => setSelectedExercise(null)} 
+          onDelete={async (id) => { 
+            console.log('App: Deleting exercise', id);
+            await deleteExercise(id); 
+            setSelectedExercise(null); 
+          }}
+          onEdit={(ex) => {
+            setEditingExercise(ex);
+            setActiveTab('Exercises');
+            setSelectedExercise(null);
+          }}
+        />
       )}
     </AppLayout>
   );

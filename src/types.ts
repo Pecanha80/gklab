@@ -24,6 +24,21 @@ export interface Attendance {
   goalkeeper_id: string;
   status: AttendanceStatus;
   notes?: string;
+  rpe?: number; // Rate of Perceived Exertion (1-10)
+  created_at: string;
+}
+
+export interface WellnessLog {
+  id: string;
+  goalkeeper_id: string;
+  date: string;
+  sleep: number;    // 1-5
+  stress: number;   // 1-5
+  fatigue: number;  // 1-5
+  soreness: number; // 1-5
+  mood: number;     // 1-5
+  score: number;    // calculated average
+  notes?: string;
   created_at: string;
 }
 

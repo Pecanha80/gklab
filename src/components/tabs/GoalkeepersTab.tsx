@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { Plus, X, Trash2, Edit3, Activity, Upload, Image as ImageIcon, UserCheck } from 'lucide-react';
+import { Plus, X, Trash2, Edit3, Activity, Upload, Image as ImageIcon, UserCheck, Heart, Moon, Brain, Frown, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useWellness } from '../../hooks/useWellness';
+import { WellnessModal } from '../WellnessModal';
 import type { Goalkeeper } from '../../types';
 
 interface GoalkeepersTabProps {
@@ -97,12 +99,27 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
   deleteGoalkeeper,
 }) => {
   const { t } = useTranslation();
+  const { saveWellnessLog, fetchLogs } = useWellness();
   const [activeCategory, setActiveCategory] = useState<Category>('All');
   const [activeMembership, setActiveMembership] = useState<MembershipFilter>('All');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingGoalkeeper, setEditingGoalkeeper] = useState<Goalkeeper | null>(null);
   const [formState, setFormState] = useState<FormState>(defaultForm);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Wellness
+  const [wellnessModalOpen, setWellnessModalOpen] = useState(false);
+  const [wellnessGk, setWellnessGk] = useState<Goalkeeper | null>(null);
+
+  const openWellnessModal = (gk: Goalkeeper) => {
+    setWellnessGk(gk);
+    setWellnessModalOpen(true);
+  };
+
+  const closeWellnessModal = () => {
+    setWellnessModalOpen(false);
+    setWellnessGk(null);
+  };
 
   const categoryLabels: Record<Category, string> = {
     'All': t('all'),
@@ -257,6 +274,14 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
             >
               {/* Hover actions */}
               <div className="absolute right-3 top-3 flex gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
+                <button
+                  onClick={() => openWellnessModal(gk)}
+                  className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 p-1.5 text-emerald-700 transition-colors hover:bg-emerald-500 hover:text-white"
+                  title={t('logWellness' as any)}
+                >
+                  <Heart className="h-4 w-4" />
+                  <span className="text-[10px] font-bold uppercase tracking-tight pr-1">Wellness</span>
+                </button>
                 {(gk.membership || 'permanent') === 'trial' && (
                   <button
                     onClick={() => {
@@ -324,6 +349,12 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                         </span>
                       );
                     })()}
+
+                    {/* Quick Wellness Info */}
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/60">Wellness:</span>
+                      <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">NEW</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -640,6 +671,16 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
               </form>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Wellness Modal */}
+      <AnimatePresence>
+        {wellnessModalOpen && wellnessGk && (
+          <WellnessModal 
+            goalkeeper={wellnessGk} 
+            onClose={closeWellnessModal} 
+            onSuccess={() => fetchLogs(wellnessGk.id)}
+          />
         )}
       </AnimatePresence>
     </div>

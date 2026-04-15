@@ -5,6 +5,7 @@ import {
   Target,
   Clock,
   Search,
+  Edit3,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -19,23 +20,31 @@ import { emptyDrill } from '../../hooks/useSessionForm';
 interface ExercisesTabProps {
   exercisesLibrary: Exercise[];
   addExerciseToLibrary: (exercise: Omit<Exercise, 'id'>) => Promise<void>;
-  setViewingExercise: (exercise: Exercise | null) => void;
+  selectedExercise: Exercise | null;
+  setSelectedExercise: (exercise: Exercise | null) => void;
   setIsTacticalBoardOpen: (v: boolean) => void;
   currentDrill: Omit<Exercise, 'id'>;
   setCurrentDrill: React.Dispatch<React.SetStateAction<Omit<Exercise, 'id'>>>;
   applyDrillTemplate: (title: string) => void;
   translateContent: (content: string | string[] | undefined) => string;
+  updateExercise: (exercise: Exercise) => Promise<void>;
+  editingExercise: Exercise | null;
+  setEditingExercise: (exercise: Exercise | null) => void;
 }
 
 export const ExercisesTab: React.FC<ExercisesTabProps> = ({
   exercisesLibrary,
   addExerciseToLibrary,
-  setViewingExercise,
+  selectedExercise,
+  setSelectedExercise,
   setIsTacticalBoardOpen,
   currentDrill,
   setCurrentDrill,
   applyDrillTemplate,
   translateContent,
+  updateExercise,
+  editingExercise,
+  setEditingExercise,
 }) => {
   const { t } = useTranslation();
   const { customPresets, getOptions, addCustomPreset, removeCustomPreset } = useCustomPresets();
@@ -44,6 +53,21 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
   const [exerciseSearchTerm, setExerciseSearchTerm] = useState('');
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+
+  React.useEffect(() => {
+    if (editingExercise) {
+      setCurrentDrill({ ...editingExercise });
+      setIsAddingExerciseToLibrary(true);
+    }
+  }, [editingExercise, setCurrentDrill]);
+
+  const handleCloseForm = () => {
+    setIsAddingExerciseToLibrary(false);
+    setEditingExercise(null);
+    setValidationErrors([]);
+    setShowPreview(false);
+    setCurrentDrill({ ...emptyDrill });
+  };
 
   const validateDrill = (drill: Omit<Exercise, 'id'>): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
@@ -60,6 +84,38 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
     return { isValid: errors.length === 0, errors };
   };
 
+  const cleanExerciseData = (exercise: Omit<Exercise, 'id'>): Omit<Exercise, 'id'> => {
+    const arrayFields = ['objective', 'organization', 'execution', 'progression', 'successCriteria'] as const;
+    const cleaned = { ...exercise };
+    
+    arrayFields.forEach(field => {
+      let value = cleaned[field];
+      
+      // If the field is a string that looks like a JSON array, it's already corrupted
+      // We need to strip brackets/quotes if it's being treated as a single string item
+      if (Array.isArray(value)) {
+        cleaned[field] = value.map(item => {
+          if (typeof item === 'string') {
+            // Remove redundant brackets and quotes at the start/end if they exist
+            let s = item.trim();
+            if (s.startsWith('[') && s.endsWith(']')) {
+              try {
+                const parsed = JSON.parse(s);
+                return Array.isArray(parsed) ? parsed[0] : parsed;
+              } catch {
+                return s.slice(1, -1).replace(/^["']|["']$/g, '');
+              }
+            }
+            return s;
+          }
+          return item;
+        });
+      }
+    });
+    
+    return cleaned;
+  };
+
   const handleAddExerciseToLibrary = async (exercise: Omit<Exercise, 'id'>): Promise<boolean> => {
     const validation = validateDrill(exercise);
     if (!validation.isValid) {
@@ -67,7 +123,12 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
       return false;
     }
     setValidationErrors([]);
-    await addExerciseToLibrary(exercise);
+    const cleanedExercise = cleanExerciseData(exercise);
+    if (editingExercise) {
+      await updateExercise({ ...cleanedExercise, id: editingExercise.id } as Exercise);
+    } else {
+      await addExerciseToLibrary(cleanedExercise);
+    }
     return true;
   };
 
@@ -94,12 +155,12 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
             <div>
               <h3 className="text-xl font-bold text-on-surface flex items-center gap-2">
                 <Target className="w-5 h-5 text-primary" />
-                {t('exercisePlannerEditor')}
+                {editingExercise ? t('editExercise') : t('exercisePlannerEditor')}
               </h3>
               <p className="text-[10px] text-on-surface-variant uppercase font-label tracking-widest mt-1">{t('designUEFAStandardDrills')}</p>
             </div>
             <button
-              onClick={() => setIsAddingExerciseToLibrary(false)}
+              onClick={handleCloseForm}
               className="text-on-surface-variant hover:text-on-surface transition-colors"
             >
               <X className="w-6 h-6" />
@@ -383,11 +444,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  setIsAddingExerciseToLibrary(false);
-                  setValidationErrors([]);
-                  setShowPreview(false);
-                }}
+                onClick={handleCloseForm}
                 className="px-6 py-2 rounded-md font-label text-xs font-bold text-on-surface-variant hover:text-on-surface transition-all"
               >
                 {t('discard')}
@@ -395,15 +452,11 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
               <button
                 onClick={async () => {
                   const success = await handleAddExerciseToLibrary(currentDrill);
-                  if (!success) return;
-                  setIsAddingExerciseToLibrary(false);
-                  setValidationErrors([]);
-                  setShowPreview(false);
-                  setCurrentDrill({ ...emptyDrill });
+                  if (success) handleCloseForm();
                 }}
                 className="bg-primary hover:bg-primary-dim text-on-primary px-8 py-2 rounded-md font-label text-xs font-bold transition-all shadow-lg shadow-primary/20"
               >
-                {t('saveToLibrary')}
+                {editingExercise ? t('saveChanges') : t('saveToLibrary')}
               </button>
             </div>
           </div>
@@ -432,13 +485,23 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                 <motion.div
                   key={ex.id}
                   whileHover={{ y: -4 }}
-                  onClick={() => setViewingExercise(ex)}
+                  onClick={() => setSelectedExercise(ex)}
                   className="bg-surface-container rounded-xl border border-black/10 overflow-hidden group cursor-pointer"
                 >
                   {ex.diagram && (
                     <div className="h-40 bg-black/5 relative overflow-hidden border-b border-black/5">
                       <img src={ex.diagram} alt={ex.title as string} className="w-full h-full object-contain p-4" referrerPolicy="no-referrer" />
                       <div className="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent opacity-60" />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingExercise(ex);
+                        }}
+                        className="absolute top-2 right-2 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all z-10"
+                        title={t('edit' as any)}
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
                     </div>
                   )}
                   <div className="p-5 space-y-4">
@@ -449,8 +512,21 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">{t(ex.title as any)}</h3>
-                      <p className="text-xs text-on-surface-variant line-clamp-2 mt-1">{Array.isArray(ex.objective) ? ex.objective.map(o => t(o as any)).join(', ') : t(ex.objective as any)}</p>
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">{t(ex.title as any)}</h3>
+                        {!ex.diagram && (
+                           <button
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             setEditingExercise(ex);
+                           }}
+                           className="p-1.5 text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                         >
+                           <Edit3 className="w-3.5 h-3.5" />
+                         </button>
+                        )}
+                      </div>
+                      <p className="text-xs text-on-surface-variant line-clamp-2">{Array.isArray(ex.objective) ? ex.objective.map(o => t(o as any)).join(', ') : t(ex.objective as any)}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-3 pt-2 border-t border-black/5">
                       <div className="space-y-1">
@@ -462,7 +538,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                         <div className="text-[10px] text-on-surface font-medium line-clamp-1">{t(ex.organization as any)}</div>
                       </div>
                     </div>
-                    <button onClick={(e) => { e.stopPropagation(); setViewingExercise(ex); }} className="w-full py-2 bg-black/5 hover:bg-black/10 rounded text-[10px] font-bold uppercase tracking-widest transition-all">
+                    <button onClick={(e) => { e.stopPropagation(); setSelectedExercise(ex); }} className="w-full py-2 bg-black/5 hover:bg-black/10 rounded text-[10px] font-bold uppercase tracking-widest transition-all">
                       {t('viewDetails')}
                     </button>
                   </div>

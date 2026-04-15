@@ -11,6 +11,8 @@ import {
   Library,
   Globe,
   Dumbbell as DumbbellIcon,
+  Heart,
+  Activity,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -53,6 +55,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <SidebarItem icon={DumbbellIcon} labelKey="sessions" active={activeTab === 'Training'} onClick={() => setActiveTab('Training')} isCollapsed={isSidebarCollapsed} t={t} />
         <SidebarItem icon={Library} labelKey="exerciseLibrary" active={activeTab === 'Exercises'} onClick={() => setActiveTab('Exercises')} isCollapsed={isSidebarCollapsed} t={t} />
         <SidebarItem icon={Users} labelKey="athletes" active={activeTab === 'Goalkeepers'} onClick={() => setActiveTab('Goalkeepers')} isCollapsed={isSidebarCollapsed} t={t} />
+        
+        {!isSidebarCollapsed && (
+          <p className="px-6 pt-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50">
+            {t('monitoring' as any)}
+          </p>
+        )}
+        <SidebarItem icon={Heart} labelKey="wellnessTab" active={activeTab === 'Wellness'} onClick={() => setActiveTab('Wellness')} isCollapsed={isSidebarCollapsed} t={t} />
+        <SidebarItem icon={Activity} labelKey="rpeTab" active={activeTab === 'RPE'} onClick={() => setActiveTab('RPE')} isCollapsed={isSidebarCollapsed} t={t} />
+
         <SidebarItem icon={Calendar} labelKey="planning" active={activeTab === 'Planning'} onClick={() => setActiveTab('Planning')} isCollapsed={isSidebarCollapsed} t={t} />
         <SidebarItem icon={Video} labelKey="videos" active={activeTab === 'Videos'} onClick={() => setActiveTab('Videos')} isCollapsed={isSidebarCollapsed} t={t} />
       </nav>

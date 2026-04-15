@@ -452,8 +452,8 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
     const dx = pts[pts.length - 2] - pts[0];
     const dy = pts[pts.length - 1] - pts[1];
     const length = Math.sqrt(dx * dx + dy * dy);
-    const scale = Math.max(0.4, Math.min(1.2, length / 80));
-    return { pointerLength: 16 * scale, pointerWidth: 12 * scale };
+    const scale = Math.max(0.5, Math.min(1.0, length / 120));
+    return { pointerLength: 10 * scale, pointerWidth: 8 * scale };
   };
 
   // Render line/arrow element based on its points

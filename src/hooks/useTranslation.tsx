@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, createElement, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { translations, Language, TranslationKey } from '../translations';
 
 interface LanguageContextType {
@@ -9,7 +9,16 @@ interface LanguageContextType {
   isEnglish: boolean;
 }
 
-const LanguageContext = createContext<LanguageContextType | null>(null);
+// Fallback / Initial value
+const defaultContext: LanguageContextType = {
+  language: 'pt',
+  changeLanguage: () => {},
+  t: (key: TranslationKey) => translations.pt[key] || translations.en[key] || key,
+  isPortuguese: true,
+  isEnglish: false,
+};
+
+const LanguageContext = createContext<LanguageContextType>(defaultContext);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>('pt');
@@ -44,13 +53,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     [language, changeLanguage, t]
   );
 
-  return createElement(LanguageContext.Provider, { value }, children);
+  return (
+    <LanguageContext.Provider value={value}>
+      {children}
+    </LanguageContext.Provider>
+  );
 }
 
 export const useTranslation = (): LanguageContextType => {
-  const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error('useTranslation must be used within a LanguageProvider');
-  }
-  return context;
-};
+  return useContext(LanguageContext);
+}

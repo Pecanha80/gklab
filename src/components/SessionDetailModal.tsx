@@ -1,15 +1,17 @@
 import React from 'react';
-import { X, Clock, Users, Target, Dumbbell, Trophy, Wind, Edit3, Download, Calendar, CheckCircle2, XCircle, AlertCircle, MessageSquare } from 'lucide-react';
+import { X, Clock, Users, Target, Dumbbell, Trophy, Wind, Edit3, Download, Calendar, CheckCircle2, XCircle, AlertCircle, MessageSquare, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAttendance } from '../hooks/useAttendance';
+import { Field } from './ui/Field';
 import type { TrainingSession, AttendanceStatus } from '../types';
 
 interface SessionDetailModalProps {
   session: TrainingSession;
   onClose: () => void;
   onExport: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 const SectionHeading: React.FC<{ title: string; icon?: React.ComponentType<{ className?: string }> }> = ({
@@ -24,28 +26,16 @@ const SectionHeading: React.FC<{ title: string; icon?: React.ComponentType<{ cla
   </div>
 );
 
-const Field: React.FC<{ label: string; value?: string | string[] }> = ({ label, value }) => {
-  if (!value || (Array.isArray(value) && value.length === 0)) return null;
-  const displayValue = Array.isArray(value) ? value.join(', ') : value;
-  return (
-    <div className="space-y-1">
-      <p className="text-[10px] text-on-surface/50 uppercase font-label font-bold tracking-wider">
-        {label}
-      </p>
-      <p className="text-sm text-on-surface leading-relaxed whitespace-pre-wrap">{displayValue}</p>
-    </div>
-  );
-};
 
 function getTypeBadgeClasses(type: string): string {
   switch (type) {
-    case 'Analytical':
+    case 'analytical':
       return 'bg-secondary/10 text-secondary';
-    case 'Decision':
+    case 'decision':
       return 'bg-tertiary/10 text-tertiary';
-    case 'Contextualized':
+    case 'contextualized':
       return 'bg-primary/10 text-primary';
-    case 'Warmup':
+    case 'warmup':
       return 'bg-error/10 text-error';
     default:
       return 'bg-on-surface/10 text-on-surface';
@@ -56,6 +46,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   session,
   onClose,
   onExport,
+  onDelete,
 }) => {
   const { t } = useTranslation();
   const { 
@@ -67,6 +58,14 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   } = useAttendance(session.id);
 
   const [localAttendance, setLocalAttendance] = React.useState<Record<string, { status: AttendanceStatus; notes: string }>>({});
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   React.useEffect(() => {
     fetchAttendanceData(session.category);
@@ -139,6 +138,9 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={session.titles?.map(t_ => t(t_ as any)).join(' & ') || t('sessionDetails' as any)}
         className="bg-surface-container border border-black/5 rounded-2xl w-full max-w-[95vw] max-h-[90vh] overflow-y-auto shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -156,6 +158,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               {t('exportPdf')}
             </button>
             <button
+              aria-label={t('close')}
               onClick={onClose}
               className="p-1.5 rounded-lg hover:bg-black/5 transition-colors text-on-surface/60"
             >
@@ -349,7 +352,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               <div className="grid grid-cols-1 gap-3">
                 {eligibleGoalkeepers.length === 0 && !loading && (
                     <p className="text-xs text-on-surface/50 italic">
-                      Nenhum goleiro encontrado para esta categoria.
+                      {t('noGoalkeepersForCategory' as any)}
                     </p>
                 )}
                 {eligibleGoalkeepers.map((gk) => {
@@ -443,6 +446,38 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
           </div>
         </div>
 
+        {/* Footer */}
+        <div className="sticky bottom-0 bg-surface-container border-t border-black/5 px-6 py-4 flex items-center justify-between rounded-b-2xl">
+          <div className="flex items-center gap-3">
+            {onDelete && (
+              <button
+                onClick={() => {
+                  if (window.confirm(t('deleteThisSession'))) {
+                    onDelete(session.id);
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-error/10 text-error text-xs font-semibold hover:bg-error/20 transition-colors"
+                title={t('deleteSession')}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {t('deleteSession')}
+              </button>
+            )}
+            <button
+              onClick={() => onExport(session.id)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" />
+              {t('exportPdf')}
+            </button>
+          </div>
+          <button
+            onClick={onClose}
+            className="px-4 py-1.5 rounded-lg bg-on-surface/5 text-on-surface text-xs font-semibold hover:bg-on-surface/10 transition-colors"
+          >
+            {t('close')}
+          </button>
+        </div>
       </motion.div>
     </motion.div>
   );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, X, Trash2, Play, Search, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '../../lib/utils';
+import { cn, videoStatusBadgeClass } from '../../lib/utils';
 import { PerformanceVideo } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -18,13 +18,6 @@ const STATUS_OPTIONS: PerformanceVideo['status'][] = ['Analysis Ready', 'Uncut',
 
 const FILTER_OPTIONS = ['All', ...STATUS_OPTIONS] as const;
 
-const statusBadgeClass = (status: PerformanceVideo['status']) =>
-  cn(
-    'text-[9px] px-2 py-0.5 rounded uppercase font-bold',
-    status === 'Analysis Ready' && 'bg-tertiary/10 text-tertiary',
-    status === 'Uncut' && 'bg-surface-container-highest text-on-surface-variant',
-    status === 'Edited' && 'bg-secondary/10 text-secondary',
-  );
 
 export const VideosTab: React.FC<VideosTabProps> = ({ videos, addVideo, deleteVideo }) => {
   const { t } = useTranslation();
@@ -45,6 +38,15 @@ export const VideosTab: React.FC<VideosTabProps> = ({ videos, addVideo, deleteVi
     'Uncut': t('uncut'),
     'Edited': t('edited'),
   };
+
+  React.useEffect(() => {
+    if (!showModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowModal(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showModal]);
 
   const filtered = filter === 'All' ? videos : videos.filter((v) => v.status === filter);
 
@@ -144,9 +146,10 @@ export const VideosTab: React.FC<VideosTabProps> = ({ videos, addVideo, deleteVi
 
                   {/* Delete button on hover */}
                   <button
+                    aria-label={t('delete' as any)}
                     onClick={(e) => {
                       e.stopPropagation();
-                      deleteVideo(video.id);
+                      if (window.confirm(t('confirmDeleteVideo' as any))) deleteVideo(video.id);
                     }}
                     className="absolute top-2 right-2 w-7 h-7 bg-error/90 text-on-primary rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error"
                   >
@@ -161,7 +164,7 @@ export const VideosTab: React.FC<VideosTabProps> = ({ videos, addVideo, deleteVi
                     {video.subtitle}
                   </p>
                   <div className="mt-3 flex gap-2">
-                    <span className={statusBadgeClass(video.status)}>{statusLabels[video.status]}</span>
+                    <span className={videoStatusBadgeClass(video.status)}>{statusLabels[video.status]}</span>
                   </div>
                 </div>
               </motion.div>
@@ -188,13 +191,14 @@ export const VideosTab: React.FC<VideosTabProps> = ({ videos, addVideo, deleteVi
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none"
             >
-              <div className="bg-surface-container rounded-2xl shadow-2xl border border-black/10 w-full max-w-md pointer-events-auto">
+              <div role="dialog" aria-modal="true" aria-label={t('addVideo')} className="bg-surface-container rounded-2xl shadow-2xl border border-black/10 w-full max-w-md pointer-events-auto">
                 {/* Modal header */}
                 <div className="flex items-center justify-between p-5 border-b border-black/5">
                   <h3 className="font-headline text-base text-on-surface font-bold">
                     {t('addVideo')}
                   </h3>
                   <button
+                    aria-label={t('close')}
                     onClick={() => setShowModal(false)}
                     className="w-7 h-7 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
                   >

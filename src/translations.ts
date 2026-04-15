@@ -7,6 +7,9 @@ export const translations = {
     sessions: 'Sessions',
     planning: 'Planning',
     support: 'Support',
+    more: 'More',
+    notifications: 'Notifications',
+    settings: 'Settings',
     logout: 'Logout',
     videos: 'Videos',
 
@@ -537,6 +540,10 @@ export const translations = {
     delete: 'Delete',
     close: 'Close',
     diagram: 'Diagram',
+    confirmDeleteExercise: 'Delete this exercise?',
+    confirmDeleteVideo: 'Delete this video?',
+    confirmDeleteGoalkeeper: 'Delete this goalkeeper?',
+    noGoalkeepersForCategory: 'No goalkeepers found for this category.',
 
     // Tactical Board
     tacticalDesigner: 'Tactical Designer',
@@ -656,6 +663,9 @@ export const translations = {
     sessions: 'Sessões',
     planning: 'Planejamento',
     support: 'Suporte',
+    more: 'Mais',
+    notifications: 'Notificacoes',
+    settings: 'Configuracoes',
     logout: 'Sair',
     videos: 'Vídeos',
 
@@ -873,11 +883,11 @@ export const translations = {
     fullPitchMatch: 'Jogo em Campo Inteiro',
     crossingDuel: 'Duelo de Cruzamentos',
     possession4v4GK: 'Posse de Bola 4v4 + Goleiros',
-    attackVsDefense: 'Ataque vs Defesa',
-    gkPlus4vs4PlusGk: 'Goleiro + 4 vs 4 + Goleiro',
-    gkPlus6vs6PlusGk: 'Goleiro + 6 vs 6 + Goleiro',
-    gkPlus11vs11PlusGk: 'Goleiro + 11 vs 11 + Goleiro',
-    gkPlus3vs3PlusGk: 'Goleiro + 3 vs 3 + Goleiro',
+    attackVsDefense: 'Ataque x Defesa',
+    gkPlus4vs4PlusGk: 'Gr + 4 x 4 + Gr',
+    gkPlus6vs6PlusGk: 'Gr + 6 x 6 + Gr',
+    gkPlus11vs11PlusGk: 'Gr + 11 x 11 + Gr',
+    gkPlus3vs3PlusGk: 'Gr + 3 x 3 + Gr',
     halfFieldSpace: 'Meio Campo',
     fullFieldSpace: 'Campo Inteiro',
     penaltyAreaSpace: 'Área de Pênalti',
@@ -1196,6 +1206,10 @@ export const translations = {
     delete: 'Excluir',
     close: 'Fechar',
     diagram: 'Diagrama',
+    confirmDeleteExercise: 'Excluir este exercício?',
+    confirmDeleteVideo: 'Excluir este vídeo?',
+    confirmDeleteGoalkeeper: 'Excluir este goleiro?',
+    noGoalkeepersForCategory: 'Nenhum goleiro encontrado para esta categoria.',
 
     // Tactical Board
     tacticalDesigner: 'Designer Tático',

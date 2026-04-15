@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Plus, X, Trash2, Edit3, Search, Activity, Upload, Image as ImageIcon, UserCheck } from 'lucide-react';
+import { Plus, X, Trash2, Edit3, Activity, Upload, Image as ImageIcon, UserCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -165,6 +165,15 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
     setEditingGoalkeeper(null);
   };
 
+  React.useEffect(() => {
+    if (!modalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeModal();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [modalOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const data = {
@@ -268,7 +277,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   <Edit3 className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => deleteGoalkeeper(gk.id)}
+                  onClick={() => { if (window.confirm(t('confirmDeleteGoalkeeper' as any))) deleteGoalkeeper(gk.id); }}
                   className="rounded-md bg-surface-container-highest p-1.5 text-on-surface-variant transition-colors hover:text-error"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -372,6 +381,9 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', duration: 0.4, bounce: 0.15 }}
+              role="dialog"
+              aria-modal="true"
+              aria-label={editingGoalkeeper ? t('editGoalkeeper') : t('addGoalkeeperTitle')}
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-lg rounded-xl bg-surface-container-low p-6 shadow-xl"
             >
@@ -380,6 +392,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   {editingGoalkeeper ? t('editGoalkeeper') : t('addGoalkeeperTitle')}
                 </h2>
                 <button
+                  aria-label={t('close')}
                   onClick={closeModal}
                   className="rounded-md p-1 text-on-surface-variant transition-colors hover:bg-surface-container-highest"
                 >

@@ -1,5 +1,5 @@
 import { Play } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { videoStatusBadgeClass } from '../../lib/utils';
 import { PerformanceVideo } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -34,12 +34,7 @@ export const VideoCard = ({ video }: { video: PerformanceVideo }) => {
         <h5 className="font-bold text-sm mb-1 text-on-surface">{video.title}</h5>
         <p className="text-[10px] text-on-surface-variant font-label">{video.subtitle}</p>
         <div className="mt-3 flex gap-2">
-          <span className={cn(
-            "text-[9px] px-2 py-0.5 rounded uppercase font-bold",
-            video.status === 'Analysis Ready' ? "bg-tertiary/10 text-tertiary" :
-            video.status === 'Uncut' ? "bg-surface-container-highest text-on-surface-variant" :
-            "bg-secondary/10 text-secondary"
-          )}>
+          <span className={videoStatusBadgeClass(video.status)}>
             {statusLabels[video.status] || video.status}
           </span>
         </div>

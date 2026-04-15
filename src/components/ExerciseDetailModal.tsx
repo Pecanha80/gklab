@@ -3,6 +3,7 @@ import { X, Clock, Zap, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../hooks/useTranslation';
+import { Field } from './ui/Field';
 import type { Exercise } from '../types';
 
 interface ExerciseDetailModalProps {
@@ -35,18 +36,6 @@ function getIntensityClasses(intensity: Exercise['intensity']): string {
   }
 }
 
-const Field: React.FC<{ label: string; value?: string | string[] }> = ({ label, value }) => {
-  if (!value || (Array.isArray(value) && value.length === 0)) return null;
-  const displayValue = Array.isArray(value) ? value.join(', ') : value;
-  return (
-    <div className="space-y-1.5">
-      <p className="text-[10px] text-on-surface/50 uppercase font-label font-bold tracking-wider">
-        {label}
-      </p>
-      <p className="text-sm text-on-surface leading-relaxed whitespace-pre-wrap">{displayValue}</p>
-    </div>
-  );
-};
 
 export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
   exercise,
@@ -54,6 +43,14 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
   onDelete,
 }) => {
   const { t } = useTranslation();
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   return (
     <motion.div
@@ -68,6 +65,9 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={exercise.title}
         className="bg-surface-container border border-black/5 rounded-2xl w-full max-w-[95vw] max-h-[90vh] overflow-y-auto shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -87,6 +87,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
             </span>
           </div>
           <button
+            aria-label={t('close')}
             onClick={onClose}
             className="p-1.5 rounded-lg hover:bg-black/5 transition-colors text-on-surface/60 shrink-0"
           >
@@ -120,11 +121,11 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
 
           {/* Sections */}
           <div className="space-y-4">
-            <Field label={t('objective')} value={exercise.objective} />
-            <Field label={t('organization')} value={exercise.organization} />
-            <Field label={t('execution')} value={exercise.execution} />
-            <Field label={t('progression')} value={exercise.progression} />
-            <Field label={t('successCriteriaLabel')} value={exercise.successCriteria} />
+            <Field label={t('objective')} value={exercise.objective} className="space-y-1.5" />
+            <Field label={t('organization')} value={exercise.organization} className="space-y-1.5" />
+            <Field label={t('execution')} value={exercise.execution} className="space-y-1.5" />
+            <Field label={t('progression')} value={exercise.progression} className="space-y-1.5" />
+            <Field label={t('successCriteriaLabel')} value={exercise.successCriteria} className="space-y-1.5" />
           </div>
 
           {/* Diagram */}
@@ -145,7 +146,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
         {/* Footer */}
         <div className="sticky bottom-0 bg-surface-container border-t border-black/5 px-6 py-4 flex items-center justify-between rounded-b-2xl">
           <button
-            onClick={() => onDelete(exercise.id)}
+            onClick={() => { if (window.confirm(t('confirmDeleteExercise' as any))) onDelete(exercise.id); }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-error/10 text-error text-xs font-semibold hover:bg-error/20 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />

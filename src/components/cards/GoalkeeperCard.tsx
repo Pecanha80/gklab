@@ -1,22 +1,16 @@
-import { cn } from '../../lib/utils';
+import { cn, CATEGORY_LABEL_KEYS, STATUS_LABEL_KEYS } from '../../lib/utils';
 import { Goalkeeper } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 
 export const GoalkeeperCard = ({ keeper }: { keeper: Goalkeeper }) => {
   const { t } = useTranslation();
 
-  const categoryLabels: Record<string, string> = {
-    'First Team': t('firstTeam'),
-    'U23': t('u23'),
-    'U18': t('u18'),
-  };
-
-  const statusLabels: Record<string, string> = {
-    'Ready': t('ready'),
-    'Minor Strain': t('minorStrain'),
-    'In Training': t('inTraining'),
-    'Injured': t('injured'),
-  };
+  const categoryLabel = CATEGORY_LABEL_KEYS[keeper.category]
+    ? t(CATEGORY_LABEL_KEYS[keeper.category] as any)
+    : keeper.category;
+  const statusLabel = STATUS_LABEL_KEYS[keeper.status]
+    ? t(STATUS_LABEL_KEYS[keeper.status] as any)
+    : keeper.status;
 
   return (
     <div className="bg-surface-container p-4 rounded-xl flex items-center gap-4 group hover:bg-surface-container-high transition-all cursor-pointer border border-transparent hover:border-black/5">
@@ -35,7 +29,7 @@ export const GoalkeeperCard = ({ keeper }: { keeper: Goalkeeper }) => {
       </div>
       <div className="flex-1">
         <h4 className="font-bold text-sm text-on-surface">{keeper.name}</h4>
-        <p className="text-[11px] text-on-surface-variant font-label">{categoryLabels[keeper.category] || keeper.category} • {statusLabels[keeper.status] || keeper.status}</p>
+        <p className="text-[11px] text-on-surface-variant font-label">{categoryLabel} • {statusLabel}</p>
       </div>
       <div className="text-right">
         <p className={cn(

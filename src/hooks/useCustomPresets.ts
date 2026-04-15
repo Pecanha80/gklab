@@ -84,7 +84,7 @@ export function useCustomPresets() {
 
   const getOptions = (key: keyof CustomPresetsState, defaultOptions: readonly string[]) => {
     const custom = Array.isArray(customPresets[key]) ? customPresets[key] : [];
-    const combined = [...defaultOptions, ...custom];
+    const combined = [...(defaultOptions || []), ...custom];
     return Array.from(new Set(combined));
   };
 

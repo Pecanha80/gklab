@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { TrainingSession, Exercise } from './types';
 import { useTranslation } from './hooks/useTranslation';
+import { useAuth } from './hooks/useAuth';
 import { useAppData } from './hooks/useAppData';
+import { AuthPage } from './components/AuthPage';
 import { useSessionForm } from './hooks/useSessionForm';
 import { useMicrocycle } from './hooks/useMicrocycle';
 import { AppLayout } from './components/layout/AppLayout';
@@ -14,6 +16,7 @@ import { GoalkeepersTab } from './components/tabs/GoalkeepersTab';
 import { WellnessTab } from './components/tabs/WellnessTab';
 import { RPETab } from './components/tabs/RPETab';
 import { VideosTab } from './components/tabs/VideosTab';
+import { MethodologyTab } from './components/tabs/MethodologyTab';
 import { SupportTab } from './components/tabs/SupportTab';
 import { TacticalBoard } from './components/TacticalBoard';
 import { SessionDetailModal } from './components/SessionDetailModal';
@@ -22,6 +25,7 @@ import { handleExportSession } from './lib/exportSession';
 
 export default function App() {
   const { t } = useTranslation();
+  const { user, isLoading: authLoading } = useAuth();
 
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -51,6 +55,20 @@ export default function App() {
 
   const sessionForm = useSessionForm(addSession, updateSession, addExerciseToLibrary, exercisesLibrary);
   const microcycle = useMicrocycle();
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage />;
+  }
 
   if (isLoading) {
     return (
@@ -223,6 +241,12 @@ export default function App() {
         {activeTab === 'RPE' && (
           <motion.div key="rpe" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
             <RPETab />
+          </motion.div>
+        )}
+
+        {activeTab === 'Methodology' && (
+          <motion.div key="methodology" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+            <MethodologyTab />
           </motion.div>
         )}
 

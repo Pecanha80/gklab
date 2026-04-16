@@ -11,6 +11,7 @@ import {
   Globe,
   Heart,
   Activity,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -96,7 +97,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             aria-expanded={moreMenuOpen}
             className={cn(
               "flex flex-col items-center gap-1 transition-colors",
-              moreMenuOpen || ['Videos', 'Support'].includes(activeTab) ? "text-primary" : "text-on-surface-variant"
+              moreMenuOpen || ['Videos', 'Methodology', 'Support'].includes(activeTab) ? "text-primary" : "text-on-surface-variant"
             )}
           >
             <MoreHorizontal className="w-5 h-5" />
@@ -133,6 +134,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               >
                 <Activity className="w-4 h-4" />
                 {t('rpeTab' as any)}
+              </button>
+              <button
+                onClick={() => { setActiveTab('Methodology'); setMoreMenuOpen(false); }}
+                className={cn(
+                  "flex items-center gap-3 w-full px-4 py-2.5 text-sm font-label transition-colors",
+                  activeTab === 'Methodology' ? "text-primary bg-primary/5" : "text-on-surface-variant hover:bg-surface-container-highest"
+                )}
+              >
+                <BookOpen className="w-4 h-4" />
+                {t('methodology' as any)}
               </button>
               <button
                 onClick={() => { setActiveTab('Support'); setMoreMenuOpen(false); }}

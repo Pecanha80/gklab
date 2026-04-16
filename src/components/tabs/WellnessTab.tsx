@@ -29,12 +29,12 @@ export const WellnessTab: React.FC = () => {
     if (!goalkeepers.length || !allLogs.length) return null;
     
     // Aggregate data logic - compute from actual logs
-    const avgRecovery = allLogs.reduce((acc, log) => acc + log.overall_score, 0) / allLogs.length;
+    const avgRecovery = allLogs.reduce((acc, log) => acc + log.score, 0) / allLogs.length;
     
     return {
       avgRecovery: avgRecovery.toFixed(1),
       readiness: Math.round(avgRecovery * 20),
-      alertCount: allLogs.filter(l => l.overall_score < 3).length,
+      alertCount: allLogs.filter(l => l.score < 3).length,
     };
   }, [goalkeepers, allLogs]);
 

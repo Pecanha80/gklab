@@ -3,28 +3,9 @@ import { motion } from 'motion/react';
 import { Activity, BarChart3, TrendingUp, Users, Calendar, Clock, ChevronRight, Info, Target, Zap } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
-import { supabase, hasSupabaseConfig } from '../../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { GoalkeeperComparison } from '../charts/GoalkeeperComparison';
 import type { TrainingSession, Attendance, Goalkeeper, WellnessLog } from '../../types';
-
-const STORAGE_KEYS = {
-  attendance: 'gk_attendance',
-  goalkeepers: 'gk_goalkeepers',
-  sessions: 'gk_sessions',
-  wellness: 'gk_wellness',
-} as const;
-
-function loadFromStorage<T>(key: string): T[] {
-  const saved = localStorage.getItem(key);
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch {
-      return [];
-    }
-  }
-  return [];
-}
 
 interface SessionWithLoad {
   session: TrainingSession;
@@ -46,15 +27,6 @@ export const RPETab: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
 
-    if (!hasSupabaseConfig) {
-      setSessions(loadFromStorage<TrainingSession>(STORAGE_KEYS.sessions));
-      setGoalkeepers(loadFromStorage<Goalkeeper>(STORAGE_KEYS.goalkeepers));
-      setAllAttendance(loadFromStorage<Attendance>(STORAGE_KEYS.attendance));
-      setAllWellness(loadFromStorage<WellnessLog>(STORAGE_KEYS.wellness));
-      setLoading(false);
-      return;
-    }
-
     try {
       const [sessRes, gkRes, attRes, wellRes] = await Promise.all([
         supabase.from('sessions').select('*').order('created_at', { ascending: false }),
@@ -63,15 +35,12 @@ export const RPETab: React.FC = () => {
         supabase.from('wellness_logs').select('*'),
       ]);
 
-      setSessions(sessRes.data || loadFromStorage<TrainingSession>(STORAGE_KEYS.sessions));
-      setGoalkeepers(gkRes.data || loadFromStorage<Goalkeeper>(STORAGE_KEYS.goalkeepers));
-      setAllAttendance(attRes.data || loadFromStorage<Attendance>(STORAGE_KEYS.attendance));
-      setAllWellness(wellRes.data || loadFromStorage<WellnessLog>(STORAGE_KEYS.wellness));
-    } catch {
-      setSessions(loadFromStorage<TrainingSession>(STORAGE_KEYS.sessions));
-      setGoalkeepers(loadFromStorage<Goalkeeper>(STORAGE_KEYS.goalkeepers));
-      setAllAttendance(loadFromStorage<Attendance>(STORAGE_KEYS.attendance));
-      setAllWellness(loadFromStorage<WellnessLog>(STORAGE_KEYS.wellness));
+      setSessions(sessRes.data || []);
+      setGoalkeepers(gkRes.data || []);
+      setAllAttendance(attRes.data || []);
+      setAllWellness(wellRes.data || []);
+    } catch (err) {
+      console.error('Error fetching RPE data:', err);
     } finally {
       setLoading(false);
     }

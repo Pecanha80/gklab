@@ -1,39 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TrainingSession, PerformanceVideo, Goalkeeper, Exercise } from '../types';
-import { supabase, hasSupabaseConfig } from '../lib/supabase';
-
-const STORAGE_KEYS = {
-  exercises: 'gk_exercises_library',
-  sessions: 'gk_sessions',
-  goalkeepers: 'gk_goalkeepers',
-  videos: 'gk_videos',
-} as const;
-
-function loadFromStorage<T>(key: string): T[] {
-  const saved = localStorage.getItem(key);
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch {
-      console.error(`Failed to parse ${key} from localStorage`);
-    }
-  }
-  return [];
-}
-
-function saveToStorage<T>(key: string, data: T[]) {
-  localStorage.setItem(key, JSON.stringify(data));
-}
+import { supabase } from '../lib/supabase';
+import { useAuth } from './useAuth';
 
 function normalizeExercise(ex: any): Exercise {
   if (!ex) return ex;
   const arrayFields = ['objective', 'organization', 'execution', 'progression', 'successCriteria'];
   const normalized = { ...ex };
-  
+
   arrayFields.forEach(field => {
     let value = normalized[field];
-    
-    // Recursive parsing to handle multiple levels of stringification
+
     while (typeof value === 'string' && value.trim().startsWith('[')) {
       try {
         const parsed = JSON.parse(value);
@@ -43,7 +20,6 @@ function normalizeExercise(ex: any): Exercise {
           break;
         }
       } catch {
-        // Fallback: if it looks like an array but isn't valid JSON (e.g., ["Item"]), split it
         const trimmed = value.trim();
         if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
           value = trimmed.slice(1, -1).split(',').map((s: string) => s.trim().replace(/^["']|["']$/g, ''));
@@ -51,32 +27,27 @@ function normalizeExercise(ex: any): Exercise {
         break;
       }
     }
-    
-    // Ensure it's an array for consistency
+
     if (!Array.isArray(value)) {
       value = value ? [value] : [];
     }
-    
+
     normalized[field] = value;
   });
-  
+
   return normalized as Exercise;
 }
 
 export function useAppData() {
+  const { user } = useAuth();
   const [goalkeepers, setGoalkeepers] = useState<Goalkeeper[]>([]);
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
   const [videos, setVideos] = useState<PerformanceVideo[]>([]);
   const [exercisesLibrary, setExercisesLibrary] = useState<Exercise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- Load all data ---
   const fetchAll = useCallback(async () => {
-    if (!hasSupabaseConfig) {
-      setGoalkeepers(loadFromStorage<Goalkeeper>(STORAGE_KEYS.goalkeepers));
-      setSessions(loadFromStorage<TrainingSession>(STORAGE_KEYS.sessions));
-      setVideos(loadFromStorage<PerformanceVideo>(STORAGE_KEYS.videos));
-      setExercisesLibrary(loadFromStorage<Exercise>(STORAGE_KEYS.exercises).map(normalizeExercise));
+    if (!user) {
       setIsLoading(false);
       return;
     }
@@ -89,31 +60,11 @@ export function useAppData() {
         supabase.from('exercises').select('*').order('created_at', { ascending: false }),
       ]);
 
-      if (gkRes.data) {
-        // Merge local-only fields (birthDate, height, weight) from localStorage
-        const localGks = loadFromStorage<Goalkeeper>(STORAGE_KEYS.goalkeepers);
-        const merged = gkRes.data.map(gk => {
-          const local = localGks.find(l => l.id === gk.id);
-          return local ? { ...gk, birthDate: local.birthDate, height: local.height, weight: local.weight, membership: local.membership || 'permanent', trialStartDate: local.trialStartDate, trialEndDate: local.trialEndDate, trialNotes: local.trialNotes } : { ...gk, membership: 'permanent' as const };
-        });
-        setGoalkeepers(merged);
-        saveToStorage(STORAGE_KEYS.goalkeepers, merged);
-      }
-      if (sessRes.data) {
-        setSessions(sessRes.data);
-        saveToStorage(STORAGE_KEYS.sessions, sessRes.data);
-      }
-      if (vidRes.data) {
-        setVideos(vidRes.data);
-        saveToStorage(STORAGE_KEYS.videos, vidRes.data);
-      }
-      if (exRes.data) {
-        const normalized = exRes.data.map(normalizeExercise);
-        setExercisesLibrary(normalized);
-        saveToStorage(STORAGE_KEYS.exercises, normalized);
-      }
+      if (gkRes.data) setGoalkeepers(gkRes.data);
+      if (sessRes.data) setSessions(sessRes.data);
+      if (vidRes.data) setVideos(vidRes.data);
+      if (exRes.data) setExercisesLibrary(exRes.data.map(normalizeExercise));
 
-      // Log any errors
       [gkRes, sessRes, vidRes, exRes].forEach((res, i) => {
         if (res.error) {
           const tables = ['goalkeepers', 'sessions', 'videos', 'exercises'];
@@ -121,343 +72,161 @@ export function useAppData() {
         }
       });
     } catch (error) {
-      console.error('Error loading data from Supabase, falling back to cache:', error);
-      setGoalkeepers(loadFromStorage<Goalkeeper>(STORAGE_KEYS.goalkeepers));
-      setSessions(loadFromStorage<TrainingSession>(STORAGE_KEYS.sessions));
-      setVideos(loadFromStorage<PerformanceVideo>(STORAGE_KEYS.videos));
-      setVideos(loadFromStorage<PerformanceVideo>(STORAGE_KEYS.videos));
-      setExercisesLibrary(loadFromStorage<Exercise>(STORAGE_KEYS.exercises).map(normalizeExercise));
+      console.error('Error loading data from Supabase:', error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   // --- Exercises CRUD ---
 
   const addExerciseToLibrary = async (exercise: Omit<Exercise, 'id'>) => {
-    if (!hasSupabaseConfig) {
-      const local = { ...exercise, id: crypto.randomUUID() } as Exercise;
-      setExercisesLibrary(prev => {
-        const updated = [local, ...prev];
-        saveToStorage(STORAGE_KEYS.exercises, updated);
-        return updated;
-      });
-      return;
-    }
-
+    if (!user) return;
     const { data, error } = await supabase
       .from('exercises')
-      .insert([exercise])
+      .insert([{ ...exercise, user_id: user.id }])
       .select();
 
     if (error) {
       console.error('Error adding exercise:', error);
-      alert('Erro ao salvar exercício na biblioteca. Verifique sua conexão ou permissões.');
       return;
     }
     if (data) {
-      setExercisesLibrary(prev => {
-        const updated = [data[0], ...prev];
-        saveToStorage(STORAGE_KEYS.exercises, updated);
-        return updated;
-      });
+      setExercisesLibrary(prev => [normalizeExercise(data[0]), ...prev]);
     }
   };
 
   const updateExercise = async (exercise: Exercise) => {
-    if (!hasSupabaseConfig) {
-      setExercisesLibrary(prev => {
-        const updated = prev.map(e => e.id === exercise.id ? exercise : e);
-        saveToStorage(STORAGE_KEYS.exercises, updated);
-        return updated;
-      });
-      return;
-    }
-
     const { id, ...rest } = exercise;
     const { error } = await supabase.from('exercises').update(rest).eq('id', id);
     if (error) {
       console.error('Error updating exercise:', error);
       return;
     }
-    setExercisesLibrary(prev => {
-      const updated = prev.map(e => e.id === id ? exercise : e);
-      saveToStorage(STORAGE_KEYS.exercises, updated);
-      return updated;
-    });
+    setExercisesLibrary(prev => prev.map(e => e.id === id ? exercise : e));
   };
 
   const deleteExercise = async (exerciseId: string) => {
-    console.log('useAppData: deleteExercise called for', exerciseId);
-    if (!hasSupabaseConfig) {
-      console.log('useAppData: Local delete (no Supabase)');
-      setExercisesLibrary(prev => {
-        const updated = prev.filter(e => e.id !== exerciseId);
-        saveToStorage(STORAGE_KEYS.exercises, updated);
-        return updated;
-      });
+    const { error } = await supabase.from('exercises').delete().eq('id', exerciseId);
+    if (error) {
+      console.error('Error deleting exercise:', error);
       return;
     }
-
-    try {
-      const { error } = await supabase.from('exercises').delete().eq('id', exerciseId);
-      if (error) {
-        console.error('useAppData: Supabase delete error:', error);
-        return;
-      }
-      console.log('useAppData: Supabase delete success');
-      setExercisesLibrary(prev => {
-        const updated = prev.filter(e => e.id !== exerciseId);
-        saveToStorage(STORAGE_KEYS.exercises, updated);
-        return updated;
-      });
-    } catch (err) {
-      console.error('useAppData: Unexpected error in deleteExercise:', err);
-    }
+    setExercisesLibrary(prev => prev.filter(e => e.id !== exerciseId));
   };
 
   // --- Sessions CRUD ---
 
   const addSession = async (newSession: Omit<TrainingSession, 'id'>) => {
-    if (!hasSupabaseConfig) {
-      const local = { ...newSession, id: crypto.randomUUID() } as TrainingSession;
-      setSessions(prev => {
-        const updated = [local, ...prev];
-        saveToStorage(STORAGE_KEYS.sessions, updated);
-        return updated;
-      });
-      return true;
-    }
-
+    if (!user) return false;
     const { data, error } = await supabase
       .from('sessions')
-      .insert([newSession])
+      .insert([{ ...newSession, user_id: user.id }])
       .select();
 
     if (error) {
       console.error('Error adding session:', error);
-      alert('Erro ao salvar sessão de treino.');
       return false;
     }
     if (data) {
-      setSessions(prev => {
-        const updated = [data[0], ...prev];
-        saveToStorage(STORAGE_KEYS.sessions, updated);
-        return updated;
-      });
+      setSessions(prev => [data[0], ...prev]);
     }
     return true;
   };
 
   const updateSession = async (session: TrainingSession) => {
-    if (!hasSupabaseConfig) {
-      setSessions(prev => {
-        const updated = prev.map(s => s.id === session.id ? session : s);
-        saveToStorage(STORAGE_KEYS.sessions, updated);
-        return updated;
-      });
-      return;
-    }
-
     const { id, ...rest } = session;
     const { error } = await supabase.from('sessions').update(rest).eq('id', id);
     if (error) {
       console.error('Error updating session:', error);
       return;
     }
-    setSessions(prev => {
-      const updated = prev.map(s => s.id === id ? session : s);
-      saveToStorage(STORAGE_KEYS.sessions, updated);
-      return updated;
-    });
+    setSessions(prev => prev.map(s => s.id === id ? session : s));
   };
 
   const deleteSession = async (sessionId: string) => {
-    if (!hasSupabaseConfig) {
-      setSessions(prev => {
-        const updated = prev.filter(s => s.id !== sessionId);
-        saveToStorage(STORAGE_KEYS.sessions, updated);
-        return updated;
-      });
-      return;
-    }
-
     const { error } = await supabase.from('sessions').delete().eq('id', sessionId);
     if (error) {
       console.error('Error deleting session:', error);
       return;
     }
-    setSessions(prev => {
-      const updated = prev.filter(s => s.id !== sessionId);
-      saveToStorage(STORAGE_KEYS.sessions, updated);
-      return updated;
-    });
+    setSessions(prev => prev.filter(s => s.id !== sessionId));
   };
 
   // --- Goalkeepers CRUD ---
 
-  // Strip fields that don't exist in the Supabase schema
-  const toSupabaseGk = (gk: Record<string, unknown>) => {
-    const { birthDate, height, weight, membership, trialStartDate, trialEndDate, trialNotes, ...rest } = gk;
-    return rest;
-  };
-
   const addGoalkeeper = async (gk: Omit<Goalkeeper, 'id'>) => {
-    if (!hasSupabaseConfig) {
-      const local = { ...gk, id: crypto.randomUUID() } as Goalkeeper;
-      setGoalkeepers(prev => {
-        const updated = [...prev, local];
-        saveToStorage(STORAGE_KEYS.goalkeepers, updated);
-        return updated;
-      });
-      return;
-    }
-
+    if (!user) return;
     const { data, error } = await supabase
       .from('goalkeepers')
-      .insert([toSupabaseGk(gk)])
+      .insert([{ ...gk, user_id: user.id }])
       .select();
 
     if (error) {
       console.error('Error adding goalkeeper:', error);
-      alert('Erro ao adicionar goleiro.');
       return;
     }
     if (data) {
-      // Merge local-only fields with Supabase data
-      const fullGk = { ...data[0], birthDate: gk.birthDate, height: gk.height, weight: gk.weight, membership: gk.membership || 'permanent', trialStartDate: gk.trialStartDate, trialEndDate: gk.trialEndDate, trialNotes: gk.trialNotes } as Goalkeeper;
-      setGoalkeepers(prev => {
-        const updated = [...prev, fullGk];
-        saveToStorage(STORAGE_KEYS.goalkeepers, updated);
-        return updated;
-      });
+      setGoalkeepers(prev => [...prev, data[0]]);
     }
   };
 
   const updateGoalkeeper = async (gk: Goalkeeper) => {
-    if (!hasSupabaseConfig) {
-      setGoalkeepers(prev => {
-        const updated = prev.map(k => k.id === gk.id ? gk : k);
-        saveToStorage(STORAGE_KEYS.goalkeepers, updated);
-        return updated;
-      });
-      return;
-    }
-
     const { id, ...rest } = gk;
-    const { error } = await supabase.from('goalkeepers').update(toSupabaseGk(rest)).eq('id', id);
+    const { error } = await supabase.from('goalkeepers').update(rest).eq('id', id);
     if (error) {
       console.error('Error updating goalkeeper:', error);
-      alert('Erro ao atualizar goleiro. Tente novamente.');
       return;
     }
-    setGoalkeepers(prev => {
-      const updated = prev.map(k => k.id === id ? gk : k);
-      saveToStorage(STORAGE_KEYS.goalkeepers, updated);
-      return updated;
-    });
+    setGoalkeepers(prev => prev.map(k => k.id === id ? gk : k));
   };
 
   const deleteGoalkeeper = async (gkId: string) => {
-    if (!hasSupabaseConfig) {
-      setGoalkeepers(prev => {
-        const updated = prev.filter(k => k.id !== gkId);
-        saveToStorage(STORAGE_KEYS.goalkeepers, updated);
-        return updated;
-      });
-      return;
-    }
-
     const { error } = await supabase.from('goalkeepers').delete().eq('id', gkId);
     if (error) {
       console.error('Error deleting goalkeeper:', error);
-      alert('Erro ao excluir goleiro. Tente novamente.');
       return;
     }
-    setGoalkeepers(prev => {
-      const updated = prev.filter(k => k.id !== gkId);
-      saveToStorage(STORAGE_KEYS.goalkeepers, updated);
-      return updated;
-    });
+    setGoalkeepers(prev => prev.filter(k => k.id !== gkId));
   };
 
   // --- Videos CRUD ---
 
   const addVideo = async (video: Omit<PerformanceVideo, 'id'>) => {
-    if (!hasSupabaseConfig) {
-      const local = { ...video, id: crypto.randomUUID() } as PerformanceVideo;
-      setVideos(prev => {
-        const updated = [local, ...prev];
-        saveToStorage(STORAGE_KEYS.videos, updated);
-        return updated;
-      });
-      return;
-    }
-
+    if (!user) return;
     const { data, error } = await supabase
       .from('videos')
-      .insert([video])
+      .insert([{ ...video, user_id: user.id }])
       .select();
 
     if (error) {
       console.error('Error adding video:', error);
-      alert('Erro ao adicionar vídeo.');
       return;
     }
     if (data) {
-      setVideos(prev => {
-        const updated = [data[0], ...prev];
-        saveToStorage(STORAGE_KEYS.videos, updated);
-        return updated;
-      });
+      setVideos(prev => [data[0], ...prev]);
     }
   };
 
   const updateVideo = async (video: PerformanceVideo) => {
-    if (!hasSupabaseConfig) {
-      setVideos(prev => {
-        const updated = prev.map(v => v.id === video.id ? video : v);
-        saveToStorage(STORAGE_KEYS.videos, updated);
-        return updated;
-      });
-      return;
-    }
-
     const { id, ...rest } = video;
     const { error } = await supabase.from('videos').update(rest).eq('id', id);
     if (error) {
       console.error('Error updating video:', error);
       return;
     }
-    setVideos(prev => {
-      const updated = prev.map(v => v.id === id ? video : v);
-      saveToStorage(STORAGE_KEYS.videos, updated);
-      return updated;
-    });
+    setVideos(prev => prev.map(v => v.id === id ? video : v));
   };
 
   const deleteVideo = async (videoId: string) => {
-    if (!hasSupabaseConfig) {
-      setVideos(prev => {
-        const updated = prev.filter(v => v.id !== videoId);
-        saveToStorage(STORAGE_KEYS.videos, updated);
-        return updated;
-      });
-      return;
-    }
-
     const { error } = await supabase.from('videos').delete().eq('id', videoId);
     if (error) {
       console.error('Error deleting video:', error);
       return;
     }
-    setVideos(prev => {
-      const updated = prev.filter(v => v.id !== videoId);
-      saveToStorage(STORAGE_KEYS.videos, updated);
-      return updated;
-    });
+    setVideos(prev => prev.filter(v => v.id !== videoId));
   };
 
   return {

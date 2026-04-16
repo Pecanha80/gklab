@@ -106,6 +106,33 @@ export interface TrainingSession {
 }
 
 
+export interface GameModelPrinciple {
+  id: string;
+  moment: 'attacking' | 'defending' | 'attackTransition' | 'defenseTransition';
+  principles: string[];
+}
+
+export interface CompetencyProfile {
+  id: string;
+  category: 'technical' | 'tactical' | 'physical' | 'psychological';
+  competencies: string[];
+}
+
+export interface PeriodizationPhase {
+  id: string;
+  name: string;
+  duration: string;
+  objectives: string[];
+  intensity: string;
+}
+
+export interface Methodology {
+  gameModel: GameModelPrinciple[];
+  competencyProfiles: CompetencyProfile[];
+  periodization: PeriodizationPhase[];
+  notes: string;
+}
+
 export interface PerformanceVideo {
   id: string;
   title: string;

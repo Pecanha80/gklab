@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Plus, X, Trash2, Edit3, Activity, Upload, Image as ImageIcon, UserCheck, Heart, Moon, Brain, Frown, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -6,6 +6,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useWellness } from '../../hooks/useWellness';
 import { WellnessModal } from '../WellnessModal';
 import type { Goalkeeper } from '../../types';
+import { useGoalkeeperMetrics } from '../../hooks/useGoalkeeperMetrics';
 
 interface GoalkeepersTabProps {
   goalkeepers: Goalkeeper[];
@@ -100,6 +101,15 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
 }) => {
   const { t } = useTranslation();
   const { saveWellnessLog, fetchLogs } = useWellness();
+  const { recalculateMetrics, recalculateAll } = useGoalkeeperMetrics(updateGoalkeeper);
+
+  // Recalculate metrics when tab opens to pick up any wellness/RPE changes
+  const [hasRecalculated, setHasRecalculated] = useState(false);
+  useEffect(() => {
+    if (goalkeepers.length > 0 && !hasRecalculated) {
+      recalculateAll(goalkeepers).then(() => setHasRecalculated(true));
+    }
+  }, [goalkeepers.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const [activeCategory, setActiveCategory] = useState<Category>('All');
   const [activeMembership, setActiveMembership] = useState<MembershipFilter>('All');
   const [modalOpen, setModalOpen] = useState(false);
@@ -280,7 +290,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   title={t('logWellness' as any)}
                 >
                   <Heart className="h-4 w-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-tight pr-1">Wellness</span>
+                  <span className="text-[10px] font-bold uppercase tracking-tight pr-1">{t('wellness' as any)}</span>
                 </button>
                 {(gk.membership || 'permanent') === 'trial' && (
                   <button
@@ -416,7 +426,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
               aria-modal="true"
               aria-label={editingGoalkeeper ? t('editGoalkeeper') : t('addGoalkeeperTitle')}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg rounded-xl bg-surface-container-low p-6 shadow-xl"
+              className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-surface-container-low p-6 shadow-xl"
             >
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="font-headline text-lg font-bold text-on-surface">
@@ -553,6 +563,49 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   </div>
                 )}
 
+                {/* Form, Recovery, Load */}
+                <div className="space-y-3 rounded-lg border border-black/5 bg-surface-container p-4">
+                  <p className="font-label text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{t('physicalMetrics' as any)}</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <label className="w-24 font-label text-sm text-on-surface-variant">{t('formLabel')}</label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={formState.form}
+                        onChange={(e) => setFormState((s) => ({ ...s, form: Number(e.target.value) }))}
+                        className="flex-1 accent-tertiary"
+                      />
+                      <span className="w-10 text-right font-label text-sm font-bold text-tertiary">{formState.form}%</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label className="w-24 font-label text-sm text-on-surface-variant">{t('recovery')}</label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={formState.recovery}
+                        onChange={(e) => setFormState((s) => ({ ...s, recovery: Number(e.target.value) }))}
+                        className="flex-1 accent-secondary"
+                      />
+                      <span className="w-10 text-right font-label text-sm font-bold text-secondary">{formState.recovery}%</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label className="w-24 font-label text-sm text-on-surface-variant">{t('loadLabel')}</label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={formState.load}
+                        onChange={(e) => setFormState((s) => ({ ...s, load: Number(e.target.value) }))}
+                        className="flex-1 accent-primary"
+                      />
+                      <span className="w-10 text-right font-label text-sm font-bold text-primary">{formState.load}%</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Birth Date, Height, Weight */}
                 <div className="grid grid-cols-3 gap-4">
                   <div>
@@ -561,6 +614,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                     </label>
                     <input
                       type="date"
+                      max={new Date().toISOString().split('T')[0]}
                       value={formState.birthDate}
                       onChange={(e) => setFormState((s) => ({ ...s, birthDate: e.target.value }))}
                       className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
@@ -620,6 +674,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
+                        aria-label={t('uploadImage' as any)}
                         className="flex items-center gap-2 rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
                       >
                         <Upload className="h-4 w-4" />
@@ -633,11 +688,23 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          const reader = new FileReader();
-                          reader.onload = (ev) => {
-                            setFormState((s) => ({ ...s, imageUrl: ev.target?.result as string }));
+                          // Compress image to max 256x256 to avoid bloating storage
+                          const img = new window.Image();
+                          img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const maxSize = 256;
+                            let w = img.width;
+                            let h = img.height;
+                            if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+                            else { w = Math.round(w * maxSize / h); h = maxSize; }
+                            canvas.width = w;
+                            canvas.height = h;
+                            const ctx = canvas.getContext('2d');
+                            ctx?.drawImage(img, 0, 0, w, h);
+                            const compressed = canvas.toDataURL('image/jpeg', 0.8);
+                            setFormState((s) => ({ ...s, imageUrl: compressed }));
                           };
-                          reader.readAsDataURL(file);
+                          img.src = URL.createObjectURL(file);
                           e.target.value = '';
                         }}
                       />
@@ -679,7 +746,10 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
           <WellnessModal 
             goalkeeper={wellnessGk} 
             onClose={closeWellnessModal} 
-            onSuccess={() => fetchLogs(wellnessGk.id)}
+            onSuccess={() => {
+              fetchLogs(wellnessGk.id);
+              recalculateMetrics(wellnessGk);
+            }}
           />
         )}
       </AnimatePresence>

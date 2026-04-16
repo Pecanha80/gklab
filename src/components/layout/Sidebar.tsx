@@ -13,9 +13,11 @@ import {
   Dumbbell as DumbbellIcon,
   Heart,
   Activity,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useAuth } from '../../hooks/useAuth';
 import { SidebarItem } from '../ui/SidebarItem';
 
 interface SidebarProps {
@@ -32,6 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setIsSidebarCollapsed,
 }) => {
   const { t, changeLanguage, isPortuguese } = useTranslation();
+  const { signOut } = useAuth();
 
   return (
     <aside className={cn(
@@ -65,6 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <SidebarItem icon={Activity} labelKey="rpeTab" active={activeTab === 'RPE'} onClick={() => setActiveTab('RPE')} isCollapsed={isSidebarCollapsed} t={t} />
 
         <SidebarItem icon={Calendar} labelKey="planning" active={activeTab === 'Planning'} onClick={() => setActiveTab('Planning')} isCollapsed={isSidebarCollapsed} t={t} />
+        <SidebarItem icon={BookOpen} labelKey="methodology" active={activeTab === 'Methodology'} onClick={() => setActiveTab('Methodology')} isCollapsed={isSidebarCollapsed} t={t} />
         <SidebarItem icon={Video} labelKey="videos" active={activeTab === 'Videos'} onClick={() => setActiveTab('Videos')} isCollapsed={isSidebarCollapsed} t={t} />
       </nav>
 
@@ -86,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </button>
         <SidebarItem icon={HelpCircle} labelKey="support" active={activeTab === 'Support'} onClick={() => setActiveTab('Support')} isCollapsed={isSidebarCollapsed} t={t} />
-        <SidebarItem icon={LogOut} labelKey="logout" active={false} onClick={() => alert(t('authNotConfigured'))} isCollapsed={isSidebarCollapsed} t={t} />
+        <SidebarItem icon={LogOut} labelKey="logout" active={false} onClick={() => signOut()} isCollapsed={isSidebarCollapsed} t={t} />
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           className={cn(

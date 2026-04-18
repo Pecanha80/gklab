@@ -30,7 +30,12 @@
       "Bash(cd:*)",
       "Bash(npm install:*)",
       "Bash(npx vitest:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(npx supabase:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:www.answeroverflow.com)"
     ]
   }
 }

@@ -12,7 +12,7 @@ interface VideosTabProps {
 }
 
 const DEFAULT_IMAGE =
-  'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=800&auto=format&fit=crop';
+  'https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?q=80&w=800&auto=format&fit=crop'; // Generic field placeholder
 
 const STATUS_OPTIONS: PerformanceVideo['status'][] = ['Analysis Ready', 'Uncut', 'Edited'];
 

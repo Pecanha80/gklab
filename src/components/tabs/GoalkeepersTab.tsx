@@ -19,7 +19,7 @@ type Category = 'All' | 'firstTeam' | 'u23' | 'u21' | 'u18' | 'u16' | 'academy';
 type MembershipFilter = 'All' | 'permanent' | 'trial';
 
 const DEFAULT_IMAGE_URL =
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=256&h=256&auto=format&fit=crop';
+  'https://images.unsplash.com/photo-1518331647614-7a1f04cd34cf?q=80&w=256&h=256&auto=format&fit=crop'; // Generic silhouette/sporty placeholder
 
 const categories: Category[] = ['All', 'firstTeam', 'u23', 'u21', 'u18', 'u16', 'academy'];
 const gkCategories: Goalkeeper['category'][] = ['firstTeam', 'u23', 'u21', 'u18', 'u16', 'academy'];

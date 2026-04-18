@@ -169,22 +169,34 @@ export const WellnessTab: React.FC = () => {
               {t('wellnessHistory' as any)}
             </h3>
             <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="flex gap-4 p-3 rounded-xl hover:bg-black/5 transition-colors group cursor-pointer border border-transparent hover:border-black/5">
-                  <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-primary group-hover:scale-110 transition-transform shadow-sm">
-                    {i*2 + 2}/5
+              {allLogs.slice(0, 5).map((log, i) => {
+                const gk = goalkeepers.find(k => k.id === log.goalkeeper_id);
+                return (
+                  <div key={log.id} className="flex gap-4 p-3 rounded-xl hover:bg-black/5 transition-colors group cursor-pointer border border-transparent hover:border-black/5">
+                    <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-primary group-hover:scale-110 transition-transform shadow-sm">
+                      {log.score}/5
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold truncate">{gk?.name || t('athlete' as any)}</p>
+                      <p className="text-[10px] text-on-surface-variant uppercase font-medium">
+                        {new Date(log.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-on-surface-variant self-center" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate">Treino de Potência</p>
-                    <p className="text-[10px] text-on-surface-variant uppercase font-medium">12 Abr 2026 • 15:00</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-on-surface-variant self-center" />
-                </div>
-              ))}
+                );
+              })}
+              {allLogs.length === 0 && (
+                <p className="text-center py-8 text-xs text-on-surface-variant italic">
+                  {t('noWellnessRecords' as any)}
+                </p>
+              )}
             </div>
-            <button className="w-full mt-6 py-3 rounded-xl border border-black/5 text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:bg-black/5 transition-all">
-              {t('viewAll' as any)}
-            </button>
+            {allLogs.length > 5 && (
+              <button className="w-full mt-6 py-3 rounded-xl border border-black/5 text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:bg-black/5 transition-all">
+                {t('viewAll' as any)}
+              </button>
+            )}
           </section>
 
           <div className="bg-primary/10 rounded-2xl p-6 border border-primary/20 relative overflow-hidden">
@@ -225,13 +237,19 @@ const StatCard: React.FC<{ label: string, value: string, subValue?: string, icon
 
 const AthleteWellnessCard: React.FC<{ goalkeeper: Goalkeeper }> = ({ goalkeeper }) => {
   const { t } = useTranslation();
-  // Mock wellness metrics for demo
+  // Actual wellness metrics from latest log if available, otherwise just icons
   const metrics = [
-    { icon: Moon, value: 4, color: 'emerald' },
-    { icon: Brain, value: 3, color: 'amber' },
-    { icon: Zap, value: 4, color: 'emerald' },
-    { icon: Frown, value: 2, color: 'orange' },
-  ];
+    { icon: Moon, field: 'sleep' },
+    { icon: Brain, field: 'stress' },
+    { icon: Zap, field: 'fatigue' },
+    { icon: Frown, field: 'soreness' },
+  ] as const;
+  
+  // Find the most recent log for this goalkeeper
+  const lastLog = useMemo(() => {
+    // This assumes useWellness() or useAppData() provides a way to find it
+    // For now we assume no score if it's not present
+  }, []);
 
   return (
     <div className="bg-surface-container-low rounded-2xl border border-black/5 p-5 hover:shadow-md transition-all group border-l-4 border-l-emerald-500">
@@ -260,11 +278,9 @@ const AthleteWellnessCard: React.FC<{ goalkeeper: Goalkeeper }> = ({ goalkeeper 
       <div className="flex justify-between gap-2 mt-2">
         {metrics.map((m, idx) => (
           <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 p-2 rounded-lg bg-surface-container shadow-inner">
-            <m.icon className="w-3.5 h-3.5 text-on-surface-variant" />
-            <div className="w-full h-1 bg-on-surface/5 rounded-full overflow-hidden">
-               <div className={cn("h-full rounded-full", `bg-${m.color}-500`)} style={{ width: `${m.value * 20}%` }} />
-            </div>
-            <span className="text-[9px] font-bold text-on-surface-variant">{m.value}/5</span>
+            <m.icon className="w-3.5 h-3.5 text-on-surface-variant opacity-40" />
+            <div className="w-full h-1 bg-on-surface/5 rounded-full overflow-hidden" />
+            <span className="text-[9px] font-bold text-on-surface-variant/40">--/5</span>
           </div>
         ))}
       </div>

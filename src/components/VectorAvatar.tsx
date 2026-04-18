@@ -1,11 +1,19 @@
 import React from 'react';
-import { Group, Path, Circle, Ellipse, Rect, Text } from 'react-konva';
+import { Group, Path, Circle, Ellipse, Text } from 'react-konva';
 
 export interface KitColors {
   shirt: string;
   shorts: string;
   socks: string;
 }
+
+// Skin tone palette – index 0 is the default (medium/light)
+const SKIN_TONES = [
+  { base: '#FF9D5C' }, // Reference skin tone
+  { base: '#FFCBA4' }, // medium-light
+  { base: '#D4956A' }, // medium-dark
+  { base: '#F5D5B2' }, // light
+];
 
 interface VectorAvatarProps {
   x: number;
@@ -25,6 +33,7 @@ interface VectorAvatarProps {
   scaleX?: number;
   scaleY?: number;
   rotation?: number;
+  skinToneIndex?: 0 | 1 | 2;
 }
 
 export const VectorAvatar: React.FC<VectorAvatarProps> = ({
@@ -45,23 +54,24 @@ export const VectorAvatar: React.FC<VectorAvatarProps> = ({
   scaleX = 1,
   scaleY = 1,
   rotation = 0,
+  skinToneIndex = 0,
 }) => {
-  // Default colors if not provided
   const defaultColors =
     type === 'gk'
-      ? { shirt: '#eab308', shorts: '#111111', socks: '#eab308' } // yellow/black/yellow
-      : { shirt: '#3b82f6', shorts: '#ffffff', socks: '#3b82f6' }; // blue/white/blue
+      ? { shirt: '#0000FF', shorts: '#0000FF', socks: '#0000FF' }
+      : { shirt: '#3b82f6', shorts: '#ffffff', socks: '#3b82f6' };
 
   const c = colors || defaultColors;
 
-  const skinColor = '#FFCDB2'; // More realistic skin tone
+  const skin = SKIN_TONES[skinToneIndex] ?? SKIN_TONES[0];
+  const skinColor = skin.base;
   const shoeColor = '#222222';
+  const hairColor = '#5D4037';
   const gloveColor = '#ffffff';
-  const hairColor = '#5D4037'; // Brownish hair like the reference
 
-  // The base paths draw a character around 90px tall (y from -38 to +50).
-  // AVATAR_SIZE is assumed to be roughly 36-40.
-  // We use scale 0.5 to make it ~45px, matching the UI size well.
+  const isFront = facing === 'front';
+
+  // baseScale = 0.5 * scaleXY keeps the rendered size ~45px high
   const baseScale = 0.5 * scaleXY;
 
   return (
@@ -79,7 +89,8 @@ export const VectorAvatar: React.FC<VectorAvatarProps> = ({
       onTransformEnd={onTransformEnd}
     >
       <Group scaleX={baseScale} scaleY={baseScale}>
-        {/* Selection outline/shadow */}
+
+        {/* Selection ring */}
         {isSelected && (
           <Circle
             x={0}
@@ -93,142 +104,169 @@ export const VectorAvatar: React.FC<VectorAvatarProps> = ({
           />
         )}
 
-      {/* Main Avatar Group */}
-      <Group y={-6}>
-        {/* Back layer: Neck */}
-        <Rect x={-3} y={-20} width={6} height={10} fill={skinColor} />
+        {/* ── Main avatar group, centred around 0,0 ── */}
+        <Group y={-6}>
 
-        {/* Head */}
-        {facing === 'back' ? (
-          <Ellipse x={0} y={-28} radiusX={8} radiusY={10} fill={hairColor} stroke="rgba(0,0,0,0.05)" strokeWidth={1} />
-        ) : (
-          <>
-            <Ellipse x={0} y={-28} radiusX={8} radiusY={10} fill={skinColor} stroke="rgba(0,0,0,0.05)" strokeWidth={1} />
+          {/* ── NECK ── smooth trapezoid connecting head to shoulders */}
+          <Path
+            data="M -4 -22 Q -3.5 -17 -5 -14 L 5 -14 Q 3.5 -17 4 -22 Z"
+            fill={skinColor}
+          />
+
+          {/* ── HEAD ── slightly oval, natural shape */}
+          <Ellipse
+            x={0}
+            y={-30}
+            radiusX={9}
+            radiusY={10.5}
+            fill={skinColor}
+            stroke="rgba(0,0,0,0.08)"
+            strokeWidth={0.8}
+          />
+
+          {/* ── HAIR ── Style matching reference image */}
+          {isFront ? (
             <Path
-              data="M -8.5 -30 C -8.5 -40 8.5 -40 8.5 -30 C 5 -34 0 -36 -4 -34 C -6 -33 -8.5 -30 -8.5 -30 Z"
+              data="M -9 -33 C -10 -40 -7 -46 -1 -46 C 4 -46.5 8 -43 9 -33 Q 6 -36 0 -36 Q -6 -36 -9 -33 Z"
               fill={hairColor}
             />
-          </>
-        )}
+          ) : (
+             <Path
+              /* Back: larger hair coverage for full head coverage */
+              data="M -9.5 -22 C -11 -30 -10 -45 -1 -45 C 8 -45 11 -30 9.5 -22 C 8 -24 5 -26 0 -26 C -5 -26 -8 -24 -9.5 -22 Z"
+              fill={hairColor}
+            />
+          )}
 
-        {type === 'gk' ? (
-          <>
-            {/* Long sleeves for GK */}
+          {/* ── BACK VIEW: collar/neckline detail ── */}
+          {!isFront && (
             <Path
-              data="
-                M -6 -14 L 6 -14 
-                Q 15 -14 19 -8 L 25 6 
-                L 17 9 L 13 0 
-                L 12 12 L -12 12 
-                L -13 0 L -17 9 
-                L -25 6 Q -15 -14 -6 -14 Z
-              "
-              fill={c.shirt}
-              stroke="rgba(0,0,0,0.08)"
+              data="M -6 -16 Q -3 -18 0 -18.5 Q 3 -18 6 -16"
+              fill="transparent"
+              stroke="rgba(0,0,0,0.1)"
               strokeWidth={1}
-              lineJoin="round"
             />
-            {/* V-Neck detail only if front */}
-            {facing === 'front' && <Path data="M -4 -14 L 4 -14 L 0 -11 Z" fill="rgba(0,0,0,0.15)" />}
-            
-            {/* Gloves */}
-            <Path 
-              data="M -25 6 L -17 9 L -18 16 Q -22 17 -27 13 Z" 
-              fill={gloveColor} 
-              stroke="rgba(0,0,0,0.15)" 
-              strokeWidth={1.5} 
-              lineJoin="round" 
-            />
-            <Path 
-              data="M 25 6 L 17 9 L 18 16 Q 22 17 27 13 Z" 
-              fill={gloveColor} 
-              stroke="rgba(0,0,0,0.15)" 
-              strokeWidth={1.5} 
-              lineJoin="round" 
-            />
-          </>
-        ) : (
-          <>
-            {/* Short sleeves for Player */}
-            <Path
-              data="
-                M -6 -14 L 6 -14 
-                Q 14 -14 17 -8 L 21 -1 
-                L 14 2 L 12 -2 
-                L 12 12 L -12 12 
-                L -12 -2 L -14 2 
-                L -21 -1 Q -14 -14 -6 -14 Z
-              "
-              fill={c.shirt}
-              stroke="rgba(0,0,0,0.08)"
-              strokeWidth={1}
-              lineJoin="round"
-            />
-            {/* V-Neck detail only if front */}
-            {facing === 'front' && <Path data="M -4 -14 L 4 -14 L 0 -11 Z" fill="rgba(0,0,0,0.15)" />}
+          )}
 
-            {/* Bare arms for Player */}
-            <Path 
-              data="M -21 -1 L -14 2 L -17 14 L -24 10 Z" 
-              fill={skinColor} 
-              stroke="rgba(0,0,0,0.05)" 
-              strokeWidth={1} 
-              lineJoin="round" 
+          {type === 'gk' ? (
+            <>
+              {/* ══════════ GK — READY STANCE (MATCHING IMAGE) ══════════ */}
+
+              {/* ── GK TORSO ── */}
+              <Path
+                data="M -8 -16 L -16 -10 L -16 14 L 16 14 L 16 -10 L 8 -16 Z"
+                fill={c.shirt}
+              />
+              {/* Crew neck detail */}
+              <Path
+                data="M -4 -16 Q 0 -13 4 -16 Z"
+                fill={skinColor}
+              />
+
+              {/* ── GK LEFT ARM ── */}
+              {/* Sleeve */}
+              <Path data="M -16 -10 L -22 -6 L -19 -1 Z" fill={c.shirt} />
+              {/* Forearm (Skin) */}
+              <Path data="M -22 -6 L -26 4 L -21 7 L -19 -1 Z" fill={skinColor} />
+              {/* Glove */}
+              <Path
+                data="M -26 4 C -30 4 -32 8 -30 14 Q -28 18 -24 16 L -21 7 Z"
+                fill={gloveColor}
+                stroke="rgba(0,0,0,0.1)"
+                strokeWidth={0.5}
+              />
+
+              {/* ── GK RIGHT ARM ── */}
+              {/* Sleeve */}
+              <Path data="M 16 -10 L 22 -6 L 19 -1 Z" fill={c.shirt} />
+              {/* Forearm (Skin) */}
+              <Path data="M 22 -6 L 26 4 L 21 7 L 19 -1 Z" fill={skinColor} />
+              {/* Glove */}
+              <Path
+                data="M 26 4 C 30 4 32 8 30 14 Q 28 18 24 16 L 21 7 Z"
+                fill={gloveColor}
+                stroke="rgba(0,0,0,0.1)"
+                strokeWidth={0.5}
+              />
+
+              {/* ── GK SHORTS ── */}
+              <Path
+                data="M -16 14 L -18 28 L -6 28 L 0 20 L 6 28 L 18 28 L 16 14 Z"
+                fill={c.shorts}
+              />
+
+              {/* ── GK LEGS ── */}
+              {/* Thighs (Skin) */}
+              <Path data="M -18 28 L -22 36 L -12 36 L -10 28 Z" fill={skinColor} />
+              <Path data="M 18 28 L 22 36 L 12 36 L 10 28 Z" fill={skinColor} />
+
+              {/* Socks */}
+              <Path data="M -22 36 L -22 48 L -14 48 L -12 36 Z" fill={c.socks} />
+              <Path data="M 22 36 L 22 48 L 14 48 L 12 36 Z" fill={c.socks} />
+
+              {/* Boots */}
+              <Path data="M -23 48 C -26 48 -26 54 -18 54 L -13 54 L -13 48 Z" fill={shoeColor} />
+              <Path data="M 23 48 C 26 48 26 54 18 54 L 13 54 L 13 48 Z" fill={shoeColor} />
+            </>
+          ) : (
+            <>
+              {/* ══════════ PLAYER — UPDATED HUMANOID ══════════ */}
+
+              {/* ── PLAYER TORSO ── */}
+              <Path
+                data="M -7 -16 L -13 -12 L -13 14 L 13 14 L 13 -12 L 7 -16 Z"
+                fill={c.shirt}
+              />
+              <Path
+                data="M -3.5 -16 Q 0 -13 3.5 -16 Z"
+                fill={skinColor}
+              />
+
+              {/* ── PLAYER LEFT ARM ── */}
+              <Path data="M -13 -12 L -18 -8 L -16 -4 Z" fill={c.shirt} />
+              <Path data="M -18 -8 L -20 10 L -15 10 L -16 -4 Z" fill={skinColor} />
+
+              {/* ── PLAYER RIGHT ARM ── */}
+              <Path data="M 13 -12 L 18 -8 L 16 -4 Z" fill={c.shirt} />
+              <Path data="M 18 -8 L 20 10 L 15 10 L 16 -4 Z" fill={skinColor} />
+
+              {/* ── PLAYER SHORTS ── */}
+              <Path
+                data="M -13 14 L -14 28 L -2 28 L 0 20 L 2 28 L 14 28 L 13 14 Z"
+                fill={c.shorts}
+              />
+
+              {/* ── PLAYER LEGS ── */}
+              <Path data="M -14 28 L -14 36 L -6 36 L -6 28 Z" fill={skinColor} />
+              <Path data="M 14 28 L 14 36 L 6 36 L 6 28 Z" fill={skinColor} />
+
+              <Path data="M -14 36 L -14 48 L -8 48 L -6 36 Z" fill={c.socks} />
+              <Path data="M 14 36 L 14 48 L 8 48 L 6 36 Z" fill={c.socks} />
+
+              <Path data="M -14 48 C -17 48 -17 54 -10 54 L -7 54 L -7 48 Z" fill={shoeColor} />
+              <Path data="M 14 48 C 17 48 17 54 10 54 L 7 54 L 7 48 Z" fill={shoeColor} />
+            </>
+          )}
+
+          {/* ── LABEL ── */}
+          {label && (
+            <Text
+              text={label}
+              x={-20}
+              y={58}
+              width={40}
+              align="center"
+              fontSize={9}
+              fill="#ffffff"
+              fontStyle="bold"
+              shadowColor="rgba(0,0,0,0.8)"
+              shadowBlur={3}
+              shadowOffsetY={1}
             />
-            <Path 
-              data="M 21 -1 L 14 2 L 17 14 L 24 10 Z" 
-              fill={skinColor} 
-              stroke="rgba(0,0,0,0.05)" 
-              strokeWidth={1} 
-              lineJoin="round" 
-            />
-          </>
-        )}
+          )}
 
-        {/* Shorts */}
-        <Path
-          data="
-            M -12 12 L 12 12 
-            L 14 26 L 3 26 
-            L 0 18 L -3 26 
-            L -14 26 Z
-          "
-          fill={c.shorts}
-          stroke="rgba(0,0,0,0.08)"
-          strokeWidth={1}
-          lineJoin="round"
-        />
+        </Group>
 
-        {/* Knees (Skin gap between shorts and socks) */}
-        <Path data="M -13 26 L -3.5 26 L -4 32 L -12.5 32 Z" fill={skinColor} />
-        <Path data="M 13 26 L 3.5 26 L 4 32 L 12.5 32 Z" fill={skinColor} />
-
-        {/* Socks */}
-        <Path 
-          data="M -12.5 32 L -4 32 L -5 45 L -12 45 Z" 
-          fill={c.socks} 
-          stroke="rgba(0,0,0,0.08)" 
-          strokeWidth={1} 
-        />
-        <Path 
-          data="M 12.5 32 L 4 32 L 5 45 L 12 45 Z" 
-          fill={c.socks} 
-          stroke="rgba(0,0,0,0.08)" 
-          strokeWidth={1} 
-        />
-
-        {/* Shoes */}
-        <Path 
-          data="M -12 45 L -5 45 C -3 48 -4 52 -6 52 L -15 52 C -16 49 -14 45 -12 45 Z" 
-          fill={shoeColor} 
-          lineJoin="round" 
-        />
-        <Path 
-          data="M 12 45 L 5 45 C 3 48 4 52 6 52 L 15 52 C 16 49 14 45 12 45 Z" 
-          fill={shoeColor} 
-          lineJoin="round" 
-        />
-      </Group>
       </Group>
     </Group>
   );

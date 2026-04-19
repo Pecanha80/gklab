@@ -1,20 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from './useTranslation';
 import { toDateString } from '../lib/utils';
+import { SavedMicrocycle } from '../types';
 
 export const ALL_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
-export type DayKey = typeof ALL_DAYS[number];
 
-export interface SavedMicrocycle {
-  id: string;
-  name: string;
-  startDate: string;
-  startDay: DayKey;
-  endDay: DayKey;
-  matchDay: DayKey | '';
-}
-
-export function useMicrocycle() {
+export function useMicrocycle(
+  externalSavedMicrocycles: SavedMicrocycle[],
+  onSave: (mc: Omit<SavedMicrocycle, 'id'>) => Promise<void>,
+  onDelete: (id: string) => Promise<void>
+) {
   const { t, isPortuguese } = useTranslation();
 
   const [microcycleName, setMicrocycleName] = useState('');
@@ -26,83 +21,130 @@ export function useMicrocycle() {
     monday.setDate(today.getDate() + diff);
     return toDateString(monday);
   });
-  const [microcycleStartDay, setMicrocycleStartDay] = useState<DayKey>('monday');
-  const [microcycleEndDay, setMicrocycleEndDay] = useState<DayKey>('sunday');
-  const [matchDay, setMatchDay] = useState<DayKey | ''>('');
-  const [savedMicrocycles, setSavedMicrocycles] = useState<SavedMicrocycle[]>(() => {
-    try { return JSON.parse(localStorage.getItem('gk_microcycles') || '[]'); } catch { return []; }
+  
+  const [microcycleEndDate, setMicrocycleEndDate] = useState(() => {
+    const start = new Date();
+    const dayOfWeek = start.getDay();
+    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const end = new Date(start);
+    end.setDate(start.getDate() + (diff + 6)); // Default 7 days
+    return toDateString(end);
   });
+
+  const [matchDay, setMatchDay] = useState<string | null>(null);
+  const [matchOpponent, setMatchOpponent] = useState('');
+  const [matchLocation, setMatchLocation] = useState('');
+  const [matchTime, setMatchTime] = useState('');
+  const [matchCompetition, setMatchCompetition] = useState('');
+  const [restDays, setRestDays] = useState<string[]>([]);
+  const [mesocycle, setMesocycle] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  
   const [showMicrocycleHistory, setShowMicrocycleHistory] = useState(false);
 
   const getMicrocycleDays = () => {
-    const startIdx = ALL_DAYS.indexOf(microcycleStartDay);
-    const endIdx = ALL_DAYS.indexOf(microcycleEndDay);
-    if (endIdx >= startIdx) {
-      return ALL_DAYS.slice(startIdx, endIdx + 1);
+    const start = new Date(microcycleStartDate + 'T00:00:00');
+    const end = new Date(microcycleEndDate + 'T00:00:00');
+    const days: string[] = [];
+    
+    let current = new Date(start);
+    // Limit to 31 days to avoid infinite loops or memory issues
+    let count = 0;
+    while (current <= end && count < 31) {
+      days.push(toDateString(current));
+      current.setDate(current.getDate() + 1);
+      count++;
     }
-    return [...ALL_DAYS.slice(startIdx), ...ALL_DAYS.slice(0, endIdx + 1)];
+    return days;
   };
 
-  const getDayDate = (dayKey: DayKey) => {
-    const startDayIdx = ALL_DAYS.indexOf(microcycleStartDay);
-    const dayIdx = ALL_DAYS.indexOf(dayKey);
-    let offset = dayIdx - startDayIdx;
-    if (offset < 0) offset += 7;
-    const date = new Date(microcycleStartDate);
-    date.setDate(date.getDate() + offset);
-    return date;
+  const getDayDate = (dateStr: string) => {
+    return new Date(dateStr + 'T00:00:00');
   };
 
-  const formatDayDate = (dayKey: DayKey) => {
-    const date = getDayDate(dayKey);
+  const getDayKey = (date: Date): DayKey => {
+    const jsDay = date.getDay();
+    return ALL_DAYS[(jsDay + 6) % 7];
+  };
+
+  const formatDayDate = (dateStr: string) => {
+    const date = getDayDate(dateStr);
     return date.getDate().toString();
   };
 
-  const formatMonthLabel = (dayKey: DayKey) => {
-    const date = getDayDate(dayKey);
+  const formatMonthLabel = (dateStr: string) => {
+    const date = getDayDate(dateStr);
     return date.toLocaleDateString(isPortuguese ? 'pt-BR' : 'en-US', { month: 'short' }).toUpperCase();
   };
 
-  const getMatchDayLabel = (dayKey: string) => {
+  const getMatchDayLabel = (dateStr: string) => {
     if (!matchDay) return null;
     const days = getMicrocycleDays();
-    const matchIdx = days.indexOf(matchDay as DayKey);
-    const dayIdx = days.indexOf(dayKey as DayKey);
+    const matchIdx = days.indexOf(matchDay);
+    const dayIdx = days.indexOf(dateStr);
     if (matchIdx === -1 || dayIdx === -1) return null;
     const diff = dayIdx - matchIdx;
     if (diff === 0) return t('matchDayLabel');
     if (diff > 0) return `${t('md')}+${diff}`;
     return `${t('md')}${diff}`;
   };
+  
+  const toggleRestDay = (dateStr: string) => {
+    setRestDays(prev => 
+      prev.includes(dateStr) 
+        ? prev.filter(d => d !== dateStr) 
+        : [...prev, dateStr]
+    );
+  };
 
-  const saveMicrocycle = () => {
+  const saveMicrocycle = async () => {
     if (!microcycleName.trim()) return;
-    const mc: SavedMicrocycle = {
-      id: crypto.randomUUID(),
-      name: microcycleName,
-      startDate: microcycleStartDate,
-      startDay: microcycleStartDay,
-      endDay: microcycleEndDay,
-      matchDay,
-    };
-    const updated = [mc, ...savedMicrocycles];
-    setSavedMicrocycles(updated);
-    localStorage.setItem('gk_microcycles', JSON.stringify(updated));
+    setIsSaving(true);
+    try {
+      await onSave({
+        name: microcycleName,
+        startDate: microcycleStartDate,
+        endDate: microcycleEndDate,
+        matchDay,
+        matchOpponent,
+        matchLocation,
+        matchTime,
+        matchCompetition,
+        restDays,
+        mesocycle,
+      });
+      alert(isPortuguese ? 'Microciclo salvo com sucesso!' : 'Microcycle saved successfully!');
+    } catch (err: any) {
+      console.error('Save failed:', err);
+      alert((isPortuguese ? 'Erro ao salvar: ' : 'Error saving: ') + (err.message || 'Unknown error'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const loadMicrocycle = (mc: SavedMicrocycle) => {
     setMicrocycleName(mc.name);
     setMicrocycleStartDate(mc.startDate);
-    setMicrocycleStartDay(mc.startDay);
-    setMicrocycleEndDay(mc.endDay);
+    setMicrocycleEndDate(mc.endDate);
     setMatchDay(mc.matchDay);
+    setMatchOpponent(mc.matchOpponent || '');
+    setMatchLocation(mc.matchLocation || '');
+    setMatchTime(mc.matchTime || '');
+    setMatchCompetition(mc.matchCompetition || '');
+    setRestDays(mc.restDays || []);
+    setMesocycle(mc.mesocycle || '');
     setShowMicrocycleHistory(false);
   };
 
-  const deleteMicrocycle = (id: string) => {
-    const updated = savedMicrocycles.filter(m => m.id !== id);
-    setSavedMicrocycles(updated);
-    localStorage.setItem('gk_microcycles', JSON.stringify(updated));
+  // Auto-load the most recent microcycle when data is fetched from Supabase
+  useEffect(() => {
+    if (externalSavedMicrocycles.length > 0 && !microcycleName) {
+      loadMicrocycle(externalSavedMicrocycles[0]);
+    }
+  }, [externalSavedMicrocycles, microcycleName]);
+
+  const deleteMicrocycle = async (id: string) => {
+    await onDelete(id);
   };
 
   return {
@@ -110,17 +152,30 @@ export function useMicrocycle() {
     setMicrocycleName,
     microcycleStartDate,
     setMicrocycleStartDate,
-    microcycleStartDay,
-    setMicrocycleStartDay,
-    microcycleEndDay,
-    setMicrocycleEndDay,
+    microcycleEndDate,
+    setMicrocycleEndDate,
     matchDay,
     setMatchDay,
-    savedMicrocycles,
+    matchOpponent,
+    setMatchOpponent,
+    matchLocation,
+    setMatchLocation,
+    matchTime,
+    setMatchTime,
+    matchCompetition,
+    setMatchCompetition,
+    restDays,
+    setRestDays,
+    toggleRestDay,
+    mesocycle,
+    setMesocycle,
+    isSaving,
+    savedMicrocycles: externalSavedMicrocycles,
     showMicrocycleHistory,
     setShowMicrocycleHistory,
     getMicrocycleDays,
     getDayDate,
+    getDayKey,
     formatDayDate,
     formatMonthLabel,
     getMatchDayLabel,

@@ -103,6 +103,8 @@ export interface TrainingSession {
   time?: string;
   attending?: string[];
   attendance?: Attendance[];
+  mesocycle?: string;
+  microcycleId?: string;
 }
 
 
@@ -140,4 +142,19 @@ export interface PerformanceVideo {
   duration: string;
   imageUrl: string;
   status: 'Analysis Ready' | 'Uncut' | 'Edited';
+  imageUrl: string;
+}
+
+export interface SavedMicrocycle {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  matchDay: string | null;
+  matchOpponent?: string;
+  matchLocation?: string;
+  matchTime?: string;
+  matchCompetition?: string;
+  restDays?: string[];
+  mesocycle?: string;
 }

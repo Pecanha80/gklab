@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, X, Trash2, Edit3, Activity, Upload, Image as ImageIcon, UserCheck, Heart, Moon, Brain, Frown, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '../../lib/utils';
+import { cn, getTodayDateString } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useWellness } from '../../hooks/useWellness';
 import { WellnessModal } from '../WellnessModal';
@@ -614,7 +614,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                     </label>
                     <input
                       type="date"
-                      max={new Date().toISOString().split('T')[0]}
+                      max={getTodayDateString()}
                       value={formState.birthDate}
                       onChange={(e) => setFormState((s) => ({ ...s, birthDate: e.target.value }))}
                       className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"

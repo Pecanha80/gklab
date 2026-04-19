@@ -5,6 +5,7 @@ import {
   FileText,
   Clock,
   Trophy,
+  Moon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, getTodayDateString, toDateString } from '../../lib/utils';
@@ -18,22 +19,34 @@ interface PlanningTabProps {
   // Microcycle state
   microcycleName: string;
   setMicrocycleName: (v: string) => void;
+  mesocycle: string;
+  setMesocycle: (v: string) => void;
   microcycleStartDate: string;
   setMicrocycleStartDate: (v: string) => void;
-  microcycleStartDay: DayKey;
-  setMicrocycleStartDay: (v: DayKey) => void;
-  microcycleEndDay: DayKey;
-  setMicrocycleEndDay: (v: DayKey) => void;
-  matchDay: DayKey | '';
-  setMatchDay: (v: DayKey | '') => void;
+  microcycleEndDate: string;
+  setMicrocycleEndDate: (v: string) => void;
+  matchDay: string | null;
+  setMatchDay: (v: string | null) => void;
+  matchOpponent: string;
+  setMatchOpponent: (v: string) => void;
+  matchLocation: string;
+  setMatchLocation: (v: string) => void;
+  matchTime: string;
+  setMatchTime: (v: string) => void;
+  matchCompetition: string;
+  setMatchCompetition: (v: string) => void;
+  restDays: string[];
+  toggleRestDay: (date: string) => void;
+  isSaving: boolean;
   savedMicrocycles: SavedMicrocycle[];
   showMicrocycleHistory: boolean;
   setShowMicrocycleHistory: (v: boolean) => void;
-  getMicrocycleDays: () => readonly DayKey[];
-  getDayDate: (dayKey: DayKey) => Date;
-  formatDayDate: (dayKey: DayKey) => string;
-  formatMonthLabel: (dayKey: DayKey) => string;
-  getMatchDayLabel: (dayKey: string) => string | null;
+  getMicrocycleDays: () => string[];
+  getDayDate: (dateStr: string) => Date;
+  getDayKey: (date: Date) => DayKey;
+  formatDayDate: (dateStr: string) => string;
+  formatMonthLabel: (dateStr: string) => string;
+  getMatchDayLabel: (dateStr: string) => string | null;
   saveMicrocycle: () => void;
   loadMicrocycle: (mc: SavedMicrocycle) => void;
   deleteMicrocycle: (id: string) => void;
@@ -48,18 +61,31 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
   sessions,
   microcycleName,
   setMicrocycleName,
+  mesocycle,
+  setMesocycle,
   microcycleStartDate,
   setMicrocycleStartDate,
-  setMicrocycleStartDay,
-  microcycleEndDay,
-  setMicrocycleEndDay,
+  microcycleEndDate,
+  setMicrocycleEndDate,
   matchDay,
   setMatchDay,
+  matchOpponent,
+  setMatchOpponent,
+  matchLocation,
+  setMatchLocation,
+  matchTime,
+  setMatchTime,
+  matchCompetition,
+  setMatchCompetition,
+  restDays,
+  toggleRestDay,
+  isSaving,
   savedMicrocycles,
   showMicrocycleHistory,
   setShowMicrocycleHistory,
   getMicrocycleDays,
   getDayDate,
+  getDayKey,
   formatDayDate,
   formatMonthLabel,
   getMatchDayLabel,
@@ -151,101 +177,157 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
             />
           </div>
           <div className="space-y-1">
+            <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('mesocycle' as any)}</label>
+            <input
+              type="text"
+              value={mesocycle}
+              onChange={e => setMesocycle(e.target.value)}
+              placeholder="ex. Pré-Temporada"
+              className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
+            />
+          </div>
+          <div className="space-y-1">
             <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('startDate' as any)}</label>
             <input
               type="date"
               value={microcycleStartDate}
               onChange={e => {
                 setMicrocycleStartDate(e.target.value);
-                const d = new Date(e.target.value);
-                const jsDay = d.getDay();
-                setMicrocycleStartDay(ALL_DAYS[(jsDay + 6) % 7]);
               }}
               className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('endDay')}</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={microcycleEndDay}
-                onChange={e => setMicrocycleEndDay(e.target.value as DayKey)}
-                className="flex-1 bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
-              />
-              <QuickSelect
-                label="Presets"
-                options={ALL_DAYS.map(d => ({ value: d, label: t(d as any) }))}
-                onSelect={(val) => setMicrocycleEndDay(val as any)}
-                onDelete={() => {}}
-                isDeletable={() => false}
-              />
-            </div>
+            <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('endDate')}</label>
+            <input
+              type="date"
+              value={microcycleEndDate}
+              onChange={e => setMicrocycleEndDate(e.target.value)}
+              className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
+            />
           </div>
           <div className="space-y-1">
             <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('matchDay')}</label>
             <div className="flex gap-2">
-              <input
-                type="text"
-                value={matchDay}
-                onChange={e => setMatchDay(e.target.value as DayKey)}
+              <select
+                value={matchDay || ''}
+                onChange={e => setMatchDay(e.target.value || null)}
                 className="flex-1 bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
-              />
-              <QuickSelect
-                label="Presets"
-                options={[
-                  { value: '', label: t('noMatch') },
-                  ...getMicrocycleDays().map(d => ({ value: d, label: t(d as any) }))
-                ]}
-                onSelect={(val) => setMatchDay(val as any)}
-                onDelete={() => {}}
-                isDeletable={() => false}
-              />
+              >
+                <option value="">{t('noMatch')}</option>
+                {getMicrocycleDays().map(dateStr => (
+                  <option key={dateStr} value={dateStr}>
+                    {getDayDate(dateStr).toLocaleDateString(isPortuguese ? 'pt-BR' : 'en-US', { day: '2-digit', month: '2-digit' })} ({t(getDayKey(getDayDate(dateStr)))})
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="space-y-1 flex flex-col justify-end">
             <button
               onClick={saveMicrocycle}
-              disabled={!microcycleName.trim()}
+              disabled={!microcycleName.trim() || isSaving}
               className={cn(
                 "w-full px-3 py-2 rounded font-label text-xs font-bold transition-all flex items-center justify-center gap-2",
-                microcycleName.trim()
+                microcycleName.trim() && !isSaving
                   ? "bg-primary hover:bg-primary-dim text-on-primary active:scale-95"
                   : "bg-black/5 text-on-surface-variant cursor-not-allowed"
               )}
             >
-              <FileText className="w-3.5 h-3.5" />
-              {t('save' as any)}
+              {isSaving ? (
+                <div className="w-3.5 h-3.5 border-2 border-on-surface-variant/30 border-t-on-surface-variant rounded-full animate-spin" />
+              ) : (
+                <FileText className="w-3.5 h-3.5" />
+              )}
+              {isSaving ? t('saving' as any) : t('save' as any)}
             </button>
           </div>
         </div>
+
+        {/* Match Details Row (Conditional) */}
+        {matchDay && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 pt-4 border-t border-black/5 grid grid-cols-1 sm:grid-cols-4 gap-4"
+          >
+            <div className="space-y-1">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('opponent')}</label>
+              <input
+                type="text"
+                value={matchOpponent}
+                onChange={e => setMatchOpponent(e.target.value)}
+                placeholder="ex. Flamengo"
+                className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('location')}</label>
+              <input
+                type="text"
+                value={matchLocation}
+                onChange={e => setMatchLocation(e.target.value)}
+                placeholder="ex. Maracanã"
+                className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('matchTime')}</label>
+              <input
+                type="time"
+                value={matchTime}
+                onChange={e => setMatchTime(e.target.value)}
+                className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('competition')}</label>
+              <input
+                type="text"
+                value={matchCompetition}
+                onChange={e => setMatchCompetition(e.target.value)}
+                placeholder="ex. Brasileirão"
+                className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs"
+              />
+            </div>
+          </motion.div>
+        )}
       </div>
 
       <div className="overflow-x-auto -mx-2 px-2 pb-4">
       <div className="grid grid-cols-1 gap-4" style={{ gridTemplateColumns: `repeat(${getMicrocycleDays().length}, minmax(200px, 1fr))` }}>
-        {getMicrocycleDays().map((dayKey) => {
-          const isMatch = dayKey === matchDay;
-          const mdLabel = getMatchDayLabel(dayKey);
-          const dayDate = getDayDate(dayKey);
-          const dateStr = toDateString(dayDate);
+        {getMicrocycleDays().map((dateStr) => {
+          const isMatch = dateStr === matchDay;
+          const mdLabel = getMatchDayLabel(dateStr);
+          const dayDate = getDayDate(dateStr);
+          const dayKey = getDayKey(dayDate);
           const isToday = dateStr === getTodayDateString();
+          const isRestDay = restDays.includes(dateStr);
+          const daySessions = sessions.filter(s => s.date === dateStr);
+          
           return (
-            <div key={dayKey} className="space-y-0">
+            <div key={dateStr} className="space-y-0">
               <div className={cn(
-                "p-3 rounded-t-xl border-b-2 text-center",
-                isMatch ? "bg-yellow-500/10 border-yellow-500" : isToday ? "bg-primary/10 border-primary" : "bg-surface-container-highest border-primary/50"
+                "p-3 rounded-t-xl border-b-2 text-center transition-colors",
+                isMatch 
+                  ? "bg-yellow-500/10 border-yellow-500" 
+                  : isRestDay 
+                    ? "bg-blue-500/10 border-blue-400" 
+                    : isToday 
+                      ? "bg-primary/10 border-primary" 
+                      : "bg-surface-container-highest border-primary/50"
               )}>
                 <span className={cn(
                   "text-[10px] font-black uppercase tracking-widest",
-                  isMatch ? "text-yellow-600" : "text-primary"
+                  isMatch ? "text-yellow-600" : isRestDay ? "text-blue-600" : "text-primary"
                 )}>{t(dayKey)}</span>
                 <div className={cn(
                   "text-lg font-bold mt-0.5",
                   isMatch ? "text-yellow-600" : isToday ? "text-primary" : "text-on-surface"
                 )}>
-                  {formatDayDate(dayKey)}
+                  {formatDayDate(dateStr)}
                 </div>
-                <span className="text-[8px] text-on-surface-variant uppercase tracking-widest">{formatMonthLabel(dayKey)}</span>
+                <span className="text-[8px] text-on-surface-variant uppercase tracking-widest">{formatMonthLabel(dateStr)}</span>
                 {mdLabel && (
                   <div className={cn(
                     "text-[8px] font-bold uppercase tracking-widest mt-1 rounded-full px-2 py-0.5 inline-block",
@@ -256,10 +338,10 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
                 )}
               </div>
               <div className={cn(
-                "rounded-b-xl border border-black/5 min-h-[300px] p-3 space-y-3",
-                isMatch ? "bg-yellow-500/5" : "bg-surface-container"
+                "rounded-b-xl border border-black/5 min-h-[300px] p-3 space-y-3 transition-colors",
+                isMatch ? "bg-yellow-500/5" : isRestDay ? "bg-blue-500/5" : "bg-surface-container"
               )}>
-                {sessions.filter(s => s.date === dateStr).map(session => (
+                {daySessions.map(session => (
                   <div key={session.id} onClick={() => setViewingSession(session)} className="bg-surface-container-highest p-3 rounded-lg border border-black/10 group cursor-pointer hover:border-primary transition-all">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[8px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">{t(session.category as any)}</span>
@@ -277,14 +359,59 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
                   </div>
                 ))}
                 {isMatch ? (
-                  <div className="flex flex-col items-center justify-center py-6 text-center">
-                    <Trophy className="w-8 h-8 text-yellow-500 mb-2" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-600">{t('matchDayLabel')}</span>
+                  <div className="flex flex-col items-center justify-center py-6 text-center space-y-1">
+                    <Trophy className="w-8 h-8 text-yellow-500 mb-1" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-600 px-2 py-0.5 bg-yellow-500/10 rounded-full">{t('matchDayLabel')}</span>
+                    
+                    {matchOpponent && (
+                      <div className="mt-2">
+                        <p className="text-[10px] font-black text-on-surface uppercase leading-tight">{matchOpponent}</p>
+                        {matchCompetition && <p className="text-[8px] text-on-surface-variant uppercase font-bold">{matchCompetition}</p>}
+                      </div>
+                    )}
+                    
+                    {(matchLocation || matchTime) && (
+                      <div className="flex flex-col items-center pt-1">
+                        {matchLocation && <p className="text-[8px] text-on-surface-variant flex items-center gap-1 uppercase"><span className="opacity-50">📍</span> {matchLocation}</p>}
+                        {matchTime && <p className="text-[9px] font-bold text-primary mt-1">{matchTime}</p>}
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <button aria-label={t('newSession')} onClick={() => { setActiveTab('Training'); setIsAddingSession(true); }} className="w-full py-3 border border-dashed border-black/10 rounded-lg text-on-surface-variant hover:border-primary hover:text-primary transition-all flex items-center justify-center">
-                    <Plus className="w-4 h-4" />
-                  </button>
+                  <div className="space-y-2">
+                    {isRestDay ? (
+                      <div className="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in duration-300">
+                        <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mb-2">
+                          <Moon className="w-6 h-6 text-blue-500" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">{t('rest')}</span>
+                      </div>
+                    ) : (
+                      <button 
+                        aria-label={t('newSession')} 
+                        onClick={() => { 
+                          setActiveTab('Training'); 
+                          setIsAddingSession(true); 
+                        }} 
+                        className="w-full py-4 border border-dashed border-black/10 rounded-xl text-on-surface-variant hover:border-primary hover:text-primary transition-all flex flex-col items-center justify-center gap-1 group bg-black/5"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span className="text-[8px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">{t('newSession')}</span>
+                      </button>
+                    )}
+                    
+                    <button 
+                      onClick={() => toggleRestDay(dateStr)}
+                      className={cn(
+                        "w-full py-2 rounded-lg text-[8px] font-bold uppercase tracking-widest transition-all border",
+                        isRestDay 
+                          ? "bg-blue-500 text-white border-blue-500 hover:bg-blue-600" 
+                          : "bg-surface-container-highest text-on-surface-variant border-black/5 hover:bg-blue-500/10 hover:text-blue-600 hover:border-blue-500/20"
+                      )}
+                    >
+                      {isRestDay ? 'Remover Folga' : 'Marcar Folga'}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

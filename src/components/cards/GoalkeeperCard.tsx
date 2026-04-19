@@ -13,7 +13,7 @@ export const GoalkeeperCard = ({ keeper }: { keeper: Goalkeeper }) => {
     : keeper.status;
 
   return (
-    <div className="bg-surface-container p-4 rounded-xl flex items-center gap-4 group hover:bg-surface-container-high transition-all cursor-pointer border border-transparent hover:border-black/5">
+    <div className="bg-surface-container p-4 rounded-xl flex items-center gap-8 group hover:bg-surface-container-high transition-all cursor-pointer border border-transparent hover:border-black/5 w-fit min-w-[280px] ml-auto">
       <div className="relative">
         <img
           src={keeper.imageUrl}
@@ -27,7 +27,7 @@ export const GoalkeeperCard = ({ keeper }: { keeper: Goalkeeper }) => {
           keeper.status === 'Minor Strain' ? "bg-error" : "bg-primary"
         )} />
       </div>
-      <div className="flex-1">
+      <div className="">
         <h4 className="font-bold text-sm text-on-surface">{keeper.name}</h4>
         <p className="text-[11px] text-on-surface-variant font-label">{categoryLabel} • {statusLabel}</p>
       </div>

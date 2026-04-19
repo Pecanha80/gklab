@@ -35,6 +35,7 @@ import { handleExportSession } from '../../lib/exportSession';
 interface TrainingTabProps {
   sessions: TrainingSession[];
   exercisesLibrary: Exercise[];
+  savedMicrocycles: import('../../types').SavedMicrocycle[];
   deleteSession: (id: string) => Promise<void>;
   // Session form state
   isAddingSession: boolean;
@@ -76,6 +77,7 @@ interface TrainingTabProps {
 export const TrainingTab: React.FC<TrainingTabProps> = ({
   sessions,
   exercisesLibrary,
+  savedMicrocycles,
   deleteSession,
   isAddingSession,
   setIsAddingSession,
@@ -127,7 +129,29 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
     focus: [] as string[],
     time: '',
     attending: [] as string[],
+    mesocycle: '',
+    microcycleId: '',
   };
+
+  // Auto-detect Mesocycle/Microcycle based on date
+  React.useEffect(() => {
+    const sessionDate = new Date(newSession.date + 'T00:00:00');
+    const matchedMc = savedMicrocycles.find(mc => {
+      const start = new Date(mc.startDate + 'T00:00:00');
+      const end = new Date(mc.endDate + 'T00:00:00');
+      return sessionDate >= start && sessionDate <= end;
+    });
+
+    if (matchedMc) {
+      if (newSession.mesocycle !== matchedMc.mesocycle || newSession.microcycleId !== matchedMc.id) {
+        setNewSession(prev => ({
+          ...prev,
+          mesocycle: matchedMc.mesocycle || '',
+          microcycleId: matchedMc.id
+        }));
+      }
+    }
+  }, [newSession.date, savedMicrocycles]);
 
   return (
     <div className="space-y-8">
@@ -246,6 +270,18 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                   <div className="space-y-1">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('date')}</label>
                     <input type="date" value={newSession.date} onChange={e => setNewSession({ ...newSession, date: e.target.value })} className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-sm" />
+                    {newSession.mesocycle && (
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        <span className="text-[8px] bg-secondary/10 text-secondary px-1.5 py-0.5 rounded font-black uppercase tracking-widest">
+                          {newSession.mesocycle}
+                        </span>
+                        {newSession.microcycleId && (
+                           <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-black uppercase tracking-widest">
+                             {savedMicrocycles.find(m => m.id === newSession.microcycleId)?.name}
+                           </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('category')}</label>

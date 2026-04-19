@@ -46,15 +46,25 @@ export default function App() {
     addSession, 
     updateSession, 
     deleteSession, 
-    addGoalkeeper, 
-    updateGoalkeeper, 
+    addGoalkeeper,
+    updateGoalkeeper,
     deleteGoalkeeper, 
     addVideo, 
-    deleteVideo 
+    updateVideo,
+    deleteVideo,
+    reorderGoalkeepers,
+    savedMicrocycles,
+    addMicrocycle,
+    updateMicrocycle,
+    deleteMicrocycle
   } = useAppData();
 
   const sessionForm = useSessionForm(addSession, updateSession, addExerciseToLibrary, exercisesLibrary);
-  const microcycle = useMicrocycle();
+  const microcycle = useMicrocycle(
+    savedMicrocycles,
+    addMicrocycle,
+    deleteMicrocycle
+  );
 
   if (authLoading) {
     return (
@@ -105,10 +115,17 @@ export default function App() {
               videos={videos}
               microcycleName={microcycle.microcycleName}
               matchDay={microcycle.matchDay}
+              matchOpponent={microcycle.matchOpponent}
+              matchLocation={microcycle.matchLocation}
+              matchTime={microcycle.matchTime}
+              matchCompetition={microcycle.matchCompetition}
+              restDays={microcycle.restDays}
               getMicrocycleDays={microcycle.getMicrocycleDays}
               getDayDate={microcycle.getDayDate}
+              getDayKey={microcycle.getDayKey}
               setActiveTab={setActiveTab}
               setViewingSession={setViewingSession}
+              onReorderGoalkeepers={reorderGoalkeepers}
             />
           </motion.div>
         )}
@@ -125,6 +142,7 @@ export default function App() {
             <TrainingTab
               sessions={sessions}
               exercisesLibrary={exercisesLibrary}
+              savedMicrocycles={microcycle.savedMicrocycles}
               deleteSession={deleteSession}
               isAddingSession={sessionForm.isAddingSession}
               setIsAddingSession={sessionForm.setIsAddingSession}
@@ -199,19 +217,31 @@ export default function App() {
               sessions={sessions}
               microcycleName={microcycle.microcycleName}
               setMicrocycleName={microcycle.setMicrocycleName}
+              mesocycle={microcycle.mesocycle}
+              setMesocycle={microcycle.setMesocycle}
               microcycleStartDate={microcycle.microcycleStartDate}
               setMicrocycleStartDate={microcycle.setMicrocycleStartDate}
-              microcycleStartDay={microcycle.microcycleStartDay}
-              setMicrocycleStartDay={microcycle.setMicrocycleStartDay}
-              microcycleEndDay={microcycle.microcycleEndDay}
-              setMicrocycleEndDay={microcycle.setMicrocycleEndDay}
+              microcycleEndDate={microcycle.microcycleEndDate}
+              setMicrocycleEndDate={microcycle.setMicrocycleEndDate}
               matchDay={microcycle.matchDay}
               setMatchDay={microcycle.setMatchDay}
+              matchOpponent={microcycle.matchOpponent}
+              setMatchOpponent={microcycle.setMatchOpponent}
+              matchLocation={microcycle.matchLocation}
+              setMatchLocation={microcycle.setMatchLocation}
+              matchTime={microcycle.matchTime}
+              setMatchTime={microcycle.setMatchTime}
+              matchCompetition={microcycle.matchCompetition}
+              setMatchCompetition={microcycle.setMatchCompetition}
+              restDays={microcycle.restDays}
+              toggleRestDay={microcycle.toggleRestDay}
+              isSaving={microcycle.isSaving}
               savedMicrocycles={microcycle.savedMicrocycles}
               showMicrocycleHistory={microcycle.showMicrocycleHistory}
               setShowMicrocycleHistory={microcycle.setShowMicrocycleHistory}
               getMicrocycleDays={microcycle.getMicrocycleDays}
               getDayDate={microcycle.getDayDate}
+              getDayKey={microcycle.getDayKey}
               formatDayDate={microcycle.formatDayDate}
               formatMonthLabel={microcycle.formatMonthLabel}
               getMatchDayLabel={microcycle.getMatchDayLabel}

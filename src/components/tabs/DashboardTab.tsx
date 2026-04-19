@@ -7,6 +7,7 @@ import {
   Video,
   Users,
 } from 'lucide-react';
+import { motion, Reorder } from 'motion/react';
 import { cn, getTodayDateString, toDateString } from '../../lib/utils';
 import { TrainingSession, PerformanceVideo, Goalkeeper } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -19,11 +20,18 @@ interface DashboardTabProps {
   goalkeepers: Goalkeeper[];
   videos: PerformanceVideo[];
   microcycleName: string;
-  matchDay: DayKey | '';
-  getMicrocycleDays: () => readonly DayKey[];
-  getDayDate: (dayKey: DayKey) => Date;
+  matchDay: string | null;
+  matchOpponent?: string;
+  matchLocation?: string;
+  matchTime?: string;
+  matchCompetition?: string;
+  restDays?: string[];
+  getMicrocycleDays: () => string[];
+  getDayDate: (dateStr: string) => Date;
+  getDayKey: (date: Date) => string;
   setActiveTab: (tab: string) => void;
   setViewingSession: (session: TrainingSession | null) => void;
+  onReorderGoalkeepers: (orderedGks: Goalkeeper[]) => void;
 }
 
 export const DashboardTab: React.FC<DashboardTabProps> = ({
@@ -32,10 +40,16 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
   videos,
   microcycleName,
   matchDay,
+  matchOpponent,
+  matchLocation,
+  matchTime,
+  matchCompetition,
+  restDays = [],
   getMicrocycleDays,
   getDayDate,
   setActiveTab,
   setViewingSession,
+  onReorderGoalkeepers,
 }) => {
   const { t } = useTranslation();
 
@@ -114,7 +128,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
   return (
     <div className="space-y-8">
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-9 space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-bold font-headline tracking-tight">
               {t('trainingSchedule')}
@@ -129,29 +143,57 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           {getMicrocycleDays().length > 0 ? (
             <div className="overflow-x-auto -mx-2 px-2 pb-2">
             <div className="grid grid-cols-2 md:grid-cols-7 gap-2" style={{ gridTemplateColumns: `repeat(${getMicrocycleDays().length}, minmax(120px, 1fr))` }}>
-              {getMicrocycleDays().map((dayKey) => {
-                const dayDate = getDayDate(dayKey);
-                const dateStr = toDateString(dayDate);
+              {getMicrocycleDays().map((day) => {
+                const dateStr = day;
+                const dayDate = getDayDate(day);
                 const todayStr = getTodayDateString();
                 const isDayToday = dateStr === todayStr;
-                const isMatch = dayKey === matchDay;
+                const isMatch = dateStr === matchDay;
+                const isRestDay = restDays.includes(dateStr);
                 const daySessions = sessions.filter(s => s.date === dateStr);
                 return (
                   <div
-                    key={dayKey}
+                    key={day}
                     className={cn(
-                      "p-3 rounded-lg border-t-2 transition-all",
-                      isMatch ? "bg-yellow-500/10 border-yellow-500" : isDayToday ? "bg-surface-container-high border-primary ring-1 ring-primary/20" : "bg-surface-container border-black/5"
+                      "p-3 rounded-lg border-t-2 transition-all min-h-[140px] flex flex-col",
+                      isMatch 
+                        ? "bg-yellow-500/10 border-yellow-500" 
+                        : isRestDay 
+                          ? "bg-blue-500/5 border-blue-400/30" 
+                          : isDayToday 
+                            ? "bg-surface-container-high border-primary ring-1 ring-primary/20" 
+                            : "bg-surface-container border-black/5"
                     )}
                   >
-                    <p className={cn("text-[10px] font-label uppercase mb-1", isMatch ? "text-yellow-600" : isDayToday ? "text-primary" : "text-on-surface-variant")}>
-                      {t(dayKey)} {isDayToday && `(${t('today')})`}
-                    </p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className={cn("text-[10px] font-label uppercase", isMatch ? "text-yellow-600" : isDayToday ? "text-primary" : "text-on-surface-variant")}>
+                        {new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(dayDate)} {isDayToday && `(${t('today')})`}
+                      </p>
+                      {isRestDay && <div className="text-blue-500"><Clock className="w-2.5 h-2.5" /></div>}
+                    </div>
                     <p className={cn("text-lg font-bold", isMatch ? "text-yellow-600" : isDayToday ? "text-primary" : "text-on-surface")}>
                       {dayDate.getDate()}
                     </p>
                     {isMatch && (
-                      <span className="text-[8px] font-bold uppercase text-yellow-600">{t('matchDayLabel')}</span>
+                      <div className="mt-2 space-y-1">
+                        <span className="text-[9px] font-black uppercase text-yellow-700 bg-yellow-500/20 px-1 rounded">{t('matchDayLabel')}</span>
+                        {matchOpponent && (
+                          <p className="text-[10px] font-bold text-on-surface leading-tight">Vs. {matchOpponent}</p>
+                        )}
+                        {(matchLocation || matchTime) && (
+                          <p className="text-[9px] text-on-surface-variant leading-tight">
+                            {matchLocation} {matchTime && `• ${matchTime}`}
+                          </p>
+                        )}
+                        {matchCompetition && (
+                          <p className="text-[8px] italic text-on-surface-variant uppercase">{matchCompetition}</p>
+                        )}
+                      </div>
+                    )}
+                    {isRestDay && (
+                      <div className="mt-auto">
+                        <span className="text-[8px] font-bold uppercase text-blue-500">{t('restDayLabel' as any)}</span>
+                      </div>
                     )}
                     {daySessions.map(s => (
                       <p key={s.id} className="text-[10px] font-bold text-on-surface mt-1 truncate">{s.titles?.map(t_ => t(t_ as any)).join(' & ')}</p>
@@ -257,14 +299,25 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           )}
         </div>
 
-        <div className="lg:col-span-4 space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-2xl font-bold font-headline tracking-tight">{t('goalkeepersStatus')}</h3>
+        <div className="lg:col-span-3 space-y-6 flex flex-col items-end">
+          <div className="flex items-center justify-between w-full max-w-[320px]">
+            <h3 className="text-xl font-bold font-headline tracking-tight">{t('goalkeepersStatus')}</h3>
             <button onClick={() => setActiveTab('Goalkeepers')} className="text-primary text-xs font-label hover:underline">{t('viewAll')}</button>
           </div>
-          <div className="space-y-4">
+          <Reorder.Group
+            axis="y"
+            values={goalkeepers}
+            onReorder={onReorderGoalkeepers}
+            className="space-y-4 w-full flex flex-col items-end"
+          >
             {goalkeepers.map(keeper => (
-              <GoalkeeperCard key={keeper.id} keeper={keeper} />
+              <Reorder.Item
+                key={keeper.id}
+                value={keeper}
+                className="select-none cursor-grab active:cursor-grabbing"
+              >
+                <GoalkeeperCard keeper={keeper} />
+              </Reorder.Item>
             ))}
             {goalkeepers.length === 0 && (
               <div className="bg-surface-container rounded-xl border border-dashed border-black/10 p-6 text-center">
@@ -272,9 +325,9 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                 <p className="text-xs text-on-surface-variant">{t('noGoalkeepers' as any)}</p>
               </div>
             )}
-          </div>
+          </Reorder.Group>
 
-          <div className="glass-card p-6 rounded-xl border border-black/10 relative overflow-hidden">
+          <div className="glass-card p-6 rounded-xl border border-black/10 relative overflow-hidden w-full max-w-[320px] ml-auto">
             <div className="absolute -top-4 -right-4 opacity-5">
               <Edit3 className="w-24 h-24" />
             </div>

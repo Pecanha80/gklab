@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from './useAuth';
 
 export interface CustomPresetsState {
   sessionTitles: string[];
@@ -56,31 +58,84 @@ const defaultStructure: CustomPresetsState = {
   obsEvaluations: [],
 };
 
-function loadPresets(): CustomPresetsState {
+// Internal migration helper
+function loadLocalPresets(): CustomPresetsState | null {
   const saved = localStorage.getItem('gk_custom_presets');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      const merged = { ...defaultStructure };
-      Object.keys(defaultStructure).forEach((key) => {
-        if (Array.isArray(parsed[key])) {
-          merged[key as keyof CustomPresetsState] = parsed[key];
-        }
-      });
-      return merged;
-    } catch {
-      return defaultStructure;
-    }
+  if (!saved) return null;
+  try {
+    const parsed = JSON.parse(saved);
+    const merged = { ...defaultStructure };
+    Object.keys(defaultStructure).forEach((key) => {
+      if (Array.isArray(parsed[key])) {
+        merged[key as keyof CustomPresetsState] = parsed[key];
+      }
+    });
+    return merged;
+  } catch {
+    return null;
   }
-  return defaultStructure;
 }
 
 export function useCustomPresets() {
-  const [customPresets, setCustomPresets] = useState<CustomPresetsState>(loadPresets);
+  const { user } = useAuth();
+  const [customPresets, setCustomPresets] = useState<CustomPresetsState>(defaultStructure);
+  const [isLoading, setIsLoading] = useState(true);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const persistToSupabase = useCallback(async (data: CustomPresetsState) => {
+    if (!user) return;
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const { error } = await supabase
+        .from('user_presets')
+        .upsert({
+          user_id: user.id,
+          presets: data,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+      if (error) console.error('Error saving presets:', error);
+    }, 1000);
+  }, [user]);
 
   useEffect(() => {
-    localStorage.setItem('gk_custom_presets', JSON.stringify(customPresets));
-  }, [customPresets]);
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_presets')
+          .select('presets')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error loading presets:', error);
+        } else if (data && data.presets) {
+          setCustomPresets(data.presets);
+          // Once successfully loaded from DB, we can consider migrating finished
+          localStorage.removeItem('gk_custom_presets');
+        } else {
+          // No data in DB, check if we should migrate from localStorage
+          const local = loadLocalPresets();
+          if (local) {
+            setCustomPresets(local);
+            persistToSupabase(local);
+          }
+        }
+      } catch (err) {
+        console.error('Error in useCustomPresets load:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    load();
+  }, [user]);
 
   const getOptions = (key: keyof CustomPresetsState, defaultOptions: readonly string[]) => {
     const custom = Array.isArray(customPresets[key]) ? customPresets[key] : [];
@@ -94,18 +149,22 @@ export function useCustomPresets() {
     
     if (valuesToAdd.length === 0) return;
     
-    setCustomPresets(prev => ({
-      ...prev,
-      [key]: [...prev[key], ...valuesToAdd]
-    }));
+    const updated = {
+      ...customPresets,
+      [key]: [...customPresets[key], ...valuesToAdd]
+    };
+    setCustomPresets(updated);
+    persistToSupabase(updated);
   };
 
   const removeCustomPreset = (key: keyof CustomPresetsState, value: string) => {
-    setCustomPresets(prev => ({
-      ...prev,
-      [key]: prev[key].filter(v => v !== value)
-    }));
+    const updated = {
+      ...customPresets,
+      [key]: customPresets[key].filter(v => v !== value)
+    };
+    setCustomPresets(updated);
+    persistToSupabase(updated);
   };
 
-  return { customPresets, getOptions, addCustomPreset, removeCustomPreset };
+  return { customPresets, isLoading, getOptions, addCustomPreset, removeCustomPreset };
 }

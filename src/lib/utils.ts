@@ -7,12 +7,16 @@ export function cn(...inputs: ClassValue[]) {
 
 /** Returns today's date as a YYYY-MM-DD string. */
 export function getTodayDateString(): string {
-  return new Date().toISOString().split('T')[0];
+  const now = new Date();
+  return toDateString(now);
 }
 
 /** Returns a Date as a YYYY-MM-DD string. */
 export function toDateString(date: Date): string {
-  return date.toISOString().split('T')[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /** Video status badge CSS classes. */

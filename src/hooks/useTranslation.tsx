@@ -37,7 +37,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: TranslationKey): string => {
-      return translations[language][key] || translations.en[key] || key;
+      const result = translations[language][key] || translations.en[key];
+      if (result) return result;
+      
+      // Handle categorized custom presets (e.g. [sessionCategory...]My Logic)
+      const keyStr = String(key);
+      if (keyStr.startsWith('[')) {
+        return keyStr.replace(/^\[.*?\]/, '');
+      }
+      
+      return keyStr;
     },
     [language]
   );

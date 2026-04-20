@@ -47,6 +47,7 @@ export interface Exercise {
   id: string;
   type: 'analytical' | 'decision' | 'contextualized' | 'warmup';
   title: string;
+  category?: string; // e.g. 'Strength', 'Agility', etc.
   objective: string | string[];
   organization: string | string[]; // space, materials, players
   execution: string | string[];

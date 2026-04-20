@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dumbbell,
   Target,
@@ -111,7 +111,8 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
   setExerciseSearchTerm,
 }) => {
   const { t } = useTranslation();
-  const { customPresets, getOptions, addCustomPreset, removeCustomPreset } = useCustomPresets();
+  const { customPresets, getOptions, addCustomPreset, removeCustomPreset, moveCustomPreset } = useCustomPresets();
+  const [pendingObjective, setPendingObjective] = useState<{ value: string; field: keyof CustomPresetsState; mode: 'move' | 'add' } | null>(null);
 
   const emptySessionTemplate = {
     date: getTodayDateString(),
@@ -153,8 +154,65 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
     }
   }, [newSession.date, savedMicrocycles]);
 
+  const filteredGeneralObjectives = useMemo(() => {
+    const allGeneral = getOptions('generalObjectives', PRESETS.objectives.general);
+    if (!newSession.titles || newSession.titles.length === 0) return allGeneral;
+
+    const filtered: string[] = [];
+    let isCurrentGroupSelected = false;
+
+    allGeneral.forEach(item => {
+      if (item.startsWith('# ')) {
+        const groupKey = item.replace('# ', '');
+        isCurrentGroupSelected = newSession.titles.includes(groupKey);
+        if (isCurrentGroupSelected) {
+          filtered.push(item);
+        }
+      } else if (isCurrentGroupSelected) {
+        filtered.push(item);
+      }
+    });
+
+    // Handle custom presets
+    const customGeneral = customPresets.generalObjectives;
+    
+    customGeneral.forEach(cg => {
+      if (cg.startsWith('[')) {
+        const match = cg.match(/^\[(.*?)\]/);
+        const itemCategory = match ? match[1] : null;
+        
+        if (itemCategory && newSession.titles.includes(itemCategory)) {
+          // Find where this category header is in the filtered list
+          const headerIdx = filtered.findIndex(f => f === `# ${itemCategory}`);
+          if (headerIdx !== -1) {
+            // Insert after header (but after existing items in that group?)
+            // For simplicity, find the end of that group
+            let insertPos = headerIdx + 1;
+            while (insertPos < filtered.length && !filtered[insertPos].startsWith('# ')) {
+              insertPos++;
+            }
+            if (!filtered.includes(cg)) {
+              filtered.splice(insertPos, 0, cg);
+            }
+          }
+        }
+      } else {
+        // Flat custom presets (no category) go to 'Other'
+        if (filtered.length > 0) {
+          if (!filtered.includes('# sessionCategoryOther')) {
+            filtered.push('# sessionCategoryOther');
+          }
+          if (!filtered.includes(cg)) filtered.push(cg);
+        }
+      }
+    });
+
+    return filtered.length > 0 ? filtered : allGeneral;
+  }, [newSession.titles, customPresets.generalObjectives, getOptions]);
+
   return (
-    <div className="space-y-8">
+    <>
+      <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-black font-headline tracking-tight text-on-surface">{t('trainingSessions')}</h2>
         {!isAddingSession && (
@@ -238,8 +296,9 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                          options={getOptions('sessionTitles', PRESETS.sessionTitles)}
                          onSelect={(val) => applySessionTemplates(val as string[])}
                          onDelete={(val) => removeCustomPreset('sessionTitles', val)}
-                         isDeletable={(val) => customPresets.sessionTitles.includes(val)}
-                         onAdd={(val) => addCustomPreset('sessionTitles', val, PRESETS.sessionTitles)}
+                         isDeletable={(val) => !val.startsWith('#')}
+                         onAdd={(val) => setPendingObjective({ value: val, field: 'sessionTitles', mode: 'add' })}
+                         onMove={(val) => setPendingObjective({ value: val, field: 'sessionTitles', mode: 'move' })}
                        />
                      </div>
                      <div className="flex flex-wrap gap-1.5 min-h-[40px] bg-surface-container-highest border border-black/10 rounded px-2 py-2">
@@ -325,8 +384,9 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                         onSelect={(vals) => setNewSession({ ...newSession, duration: vals.map(v => t(v as any)).join(' + ') })}
                         selectedValues={typeof newSession.duration === 'string' ? newSession.duration.split(' + ') : newSession.duration}
                         onDelete={(val) => removeCustomPreset('durations', val)}
-                        isDeletable={(val) => customPresets.durations.includes(val)}
-                        onAdd={(val) => addCustomPreset('durations', val, PRESETS.durations)}
+                        isDeletable={(val) => !val.startsWith('#')}
+                        onAdd={(val) => setPendingObjective({ value: val, field: 'durations', mode: 'add' })}
+                        onMove={(val) => setPendingObjective({ value: val, field: 'durations', mode: 'move' })}
                       />
                     </div>
                   </div>
@@ -337,16 +397,17 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                         label="Presets"
                         multiSelect
                         selectedValues={newSession.generalObjectives}
-                        options={getOptions('generalObjectives', PRESETS.objectives.general)}
+                        options={filteredGeneralObjectives}
                         onSelect={(val) => handleGeneralObjectivesChange(val as string[])}
                         onDelete={(val) => removeCustomPreset('generalObjectives', val)}
-                        isDeletable={(val) => customPresets.generalObjectives.includes(val)}
-                        onAdd={(val) => addCustomPreset('generalObjectives', val, PRESETS.objectives.general)}
+                        isDeletable={(val) => !val.startsWith('#')}
+                        onAdd={(val) => setPendingObjective({ value: val, field: 'generalObjectives', mode: 'add' })}
+                        onMove={(val) => setPendingObjective({ value: val, field: 'generalObjectives', mode: 'move' })}
                       />
                     </div>
                      <textarea
-                       value={newSession.generalObjectives.map(o => t(o as any)).join(', ')}
-                       onChange={e => setNewSession({ ...newSession, generalObjectives: e.target.value.split(',').map(s => s.trim()) })}
+                       value={newSession.generalObjectives.filter(Boolean).map(o => t(o as any)).join(', ')}
+                       onChange={e => handleGeneralObjectivesChange(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
                        className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-sm min-h-[60px]"
                        placeholder={t('objectivePlaceholder')}
                      />
@@ -371,15 +432,16 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                           multiSelect={true}
                           selectedValues={Array.isArray(newSession.objectives[objKey]) ? newSession.objectives[objKey] as string[] : [newSession.objectives[objKey] as string]}
                           onDelete={(val) => removeCustomPreset(objKey, val)}
-                          isDeletable={(val) => customPresets[objKey].includes(val)}
-                          onAdd={(val) => addCustomPreset(objKey, val, PRESETS.objectives[objKey])}
+                          isDeletable={(val) => !val.startsWith('#')}
+                          onAdd={(val) => setPendingObjective({ value: val, field: objKey, mode: 'add' })}
+                          onMove={(val) => setPendingObjective({ value: val, field: objKey, mode: 'move' })}
                         />
                       </div>
                       <textarea
                         value={translateContent(newSession.objectives[objKey])}
                         onChange={e => setNewSession({
                           ...newSession,
-                          objectives: { ...newSession.objectives, [objKey]: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) }
+                          objectives: { ...newSession.objectives, [objKey]: e.target.value.split('\n') }
                         })}
                         className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[60px]"
                         placeholder={t(`${objKey}Placeholder` as any)}
@@ -430,6 +492,8 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                       onSave={handleAddDrill}
                       onCancel={handleCancelDrill}
                       onOpenTacticalBoard={() => setIsTacticalBoardOpen(true)}
+                      onOpenLibrary={() => setIsSelectingFromLibrary(true)}
+                      setPendingObjective={setPendingObjective}
                     />
                   ) : (
                     <div className="flex gap-4">
@@ -503,6 +567,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                       onCancel={handleCancelDrill}
                       onOpenTacticalBoard={() => setIsTacticalBoardOpen(true)}
                       onOpenLibrary={() => setIsSelectingFromLibrary(true)}
+                      setPendingObjective={setPendingObjective}
                     />
                   ) : (
                     <div className="flex gap-4">
@@ -556,8 +621,9 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                                 onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, format: vals.map(v => t(v as any)).join(', ') } : i) }))}
                                 selectedValues={integrated.format ? (typeof integrated.format === 'string' ? integrated.format.split(', ') : integrated.format) : []}
                                 onDelete={(val) => removeCustomPreset('integratedFormats', val)}
-                                isDeletable={(val) => customPresets.integratedFormats.includes(val)}
-                                onAdd={(val) => addCustomPreset('integratedFormats', val, PRESETS.integrated.formats)}
+                                isDeletable={(val) => !val.startsWith('#')}
+                                onAdd={(val) => setPendingObjective({ value: val, field: 'integratedFormats', mode: 'add' })}
+                                onMove={(val) => setPendingObjective({ value: val, field: 'integratedFormats', mode: 'move' })}
                               />
                             </div>
                             <input
@@ -576,8 +642,9 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                               onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, number: vals.map(v => t(v as any)).join(', ') } : i) }))}
                               selectedValues={integrated.number ? (typeof integrated.number === 'string' ? integrated.number.split(', ') : integrated.number) : []}
                               onDelete={(val) => removeCustomPreset('integratedNumbers', val)}
-                              isDeletable={(val) => customPresets.integratedNumbers.includes(val)}
-                              onAdd={(val) => addCustomPreset('integratedNumbers', val, PRESETS.integrated.numbers)}
+                              isDeletable={(val) => !val.startsWith('#')}
+                              onAdd={(val) => setPendingObjective({ value: val, field: 'integratedNumbers', mode: 'add' })}
+                              onMove={(val) => setPendingObjective({ value: val, field: 'integratedNumbers', mode: 'move' })}
                             />
                           </div>
                           <input
@@ -596,8 +663,9 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                               onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, space: vals.map(v => t(v as any)).join(', ') } : i) }))}
                               selectedValues={integrated.space ? (typeof integrated.space === 'string' ? integrated.space.split(', ') : integrated.space) : []}
                               onDelete={(val) => removeCustomPreset('integratedSpaces', val)}
-                              isDeletable={(val) => customPresets.integratedSpaces.includes(val)}
-                              onAdd={(val) => addCustomPreset('integratedSpaces', val, PRESETS.integrated.spaces)}
+                              isDeletable={(val) => !val.startsWith('#')}
+                              onAdd={(val) => setPendingObjective({ value: val, field: 'integratedSpaces', mode: 'add' })}
+                              onMove={(val) => setPendingObjective({ value: val, field: 'integratedSpaces', mode: 'move' })}
                             />
                           </div>
                           <input
@@ -617,8 +685,9 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                               onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, time: vals.map(v => t(v as any)).join(', ') } : i) }))}
                               selectedValues={integrated.time ? (typeof integrated.time === 'string' ? integrated.time.split(', ') : integrated.time) : []}
                               onDelete={(val) => removeCustomPreset('integratedTimes', val)}
-                              isDeletable={(val) => customPresets.integratedTimes.includes(val)}
-                              onAdd={(val) => addCustomPreset('integratedTimes', val, PRESETS.integrated.times)}
+                              isDeletable={(val) => !val.startsWith('#')}
+                              onAdd={(val) => setPendingObjective({ value: val, field: 'integratedTimes', mode: 'add' })}
+                              onMove={(val) => setPendingObjective({ value: val, field: 'integratedTimes', mode: 'move' })}
                             />
                           </div>
                           <input
@@ -653,13 +722,14 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                       onSelect={(vals) => setNewSession({ ...newSession, coolDown: vals.map(v => t(v as any)).join('\n') })}
                       selectedValues={typeof newSession.coolDown === 'string' ? newSession.coolDown.split('\n') : newSession.coolDown}
                       onDelete={(val) => removeCustomPreset('coolDowns', val)}
-                      isDeletable={(val) => customPresets.coolDowns.includes(val)}
-                      onAdd={(val) => addCustomPreset('coolDowns', val, PRESETS.coolDowns)}
+                      isDeletable={(val) => !val.startsWith('#')}
+                      onAdd={(val) => setPendingObjective({ value: val, field: 'coolDowns', mode: 'add' })}
+                      onMove={(val) => setPendingObjective({ value: val, field: 'coolDowns', mode: 'move' })}
                     />
                   </div>
                   <textarea
                     value={translateContent(newSession.coolDown)}
-                    onChange={e => setNewSession({ ...newSession, coolDown: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
+                    onChange={e => setNewSession({ ...newSession, coolDown: e.target.value.split('\n') })}
                     className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[60px]"
                   />
                 </div>
@@ -678,13 +748,14 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                         selectedValues={typeof newSession.observations.positives === 'string' ? newSession.observations.positives.split('\n') : newSession.observations.positives}
                         multiSelect={true}
                         onDelete={(val) => removeCustomPreset('obsPositives', val)}
-                        isDeletable={(val) => customPresets.obsPositives.includes(val)}
-                        onAdd={(val) => addCustomPreset('obsPositives', val, PRESETS.observations.positives)}
+                        isDeletable={(val) => !val.startsWith('#')}
+                        onAdd={(val) => setPendingObjective({ value: val, field: 'obsPositives', mode: 'add' })}
+                        onMove={(val) => setPendingObjective({ value: val, field: 'obsPositives', mode: 'move' })}
                       />
                     </div>
                     <textarea
                       value={translateContent(newSession.observations.positives)}
-                      onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, positives: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) } })}
+                      onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, positives: e.target.value.split('\n') } })}
                       className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[80px]"
                     />
                   </div>
@@ -698,13 +769,14 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                         selectedValues={typeof newSession.observations.adjustments === 'string' ? newSession.observations.adjustments.split('\n') : newSession.observations.adjustments}
                         multiSelect={true}
                         onDelete={(val) => removeCustomPreset('obsAdjustments', val)}
-                        isDeletable={(val) => customPresets.obsAdjustments.includes(val)}
-                        onAdd={(val) => addCustomPreset('obsAdjustments', val, PRESETS.observations.adjustments)}
+                        isDeletable={(val) => !val.startsWith('#')}
+                        onAdd={(val) => setPendingObjective({ value: val, field: 'obsAdjustments', mode: 'add' })}
+                        onMove={(val) => setPendingObjective({ value: val, field: 'obsAdjustments', mode: 'move' })}
                       />
                     </div>
                     <textarea
                       value={translateContent(newSession.observations.adjustments)}
-                      onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, adjustments: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) } })}
+                      onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, adjustments: e.target.value.split('\n') } })}
                       className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[80px]"
                     />
                   </div>
@@ -718,13 +790,14 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                         selectedValues={typeof newSession.observations.individualEval === 'string' ? newSession.observations.individualEval.split('\n') : newSession.observations.individualEval}
                         multiSelect={true}
                         onDelete={(val) => removeCustomPreset('obsEvaluations', val)}
-                        isDeletable={(val) => customPresets.obsEvaluations.includes(val)}
-                        onAdd={(val) => addCustomPreset('obsEvaluations', val, PRESETS.observations.evaluations)}
+                        isDeletable={(val) => !val.startsWith('#')}
+                        onAdd={(val) => setPendingObjective({ value: val, field: 'obsEvaluations', mode: 'add' })}
+                        onMove={(val) => setPendingObjective({ value: val, field: 'obsEvaluations', mode: 'move' })}
                       />
                     </div>
                     <textarea
                       value={translateContent(newSession.observations.individualEval)}
-                      onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, individualEval: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) } })}
+                      onChange={e => setNewSession({ ...newSession, observations: { ...newSession.observations, individualEval: e.target.value.split('\n') } })}
                       className="w-full bg-surface-container-highest border border-black/10 rounded px-3 py-2 text-xs min-h-[80px]"
                     />
                   </div>
@@ -851,5 +924,187 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
         </div>
       )}
     </div>
+
+      {/* ===== REPOSITION / CATEGORIZE MODAL ===== */}
+      <AnimatePresence>
+        {pendingObjective && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setPendingObjective(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-surface-container rounded-2xl shadow-2xl overflow-hidden border border-white/10"
+            >
+              <div className="p-6 border-b border-black/5 bg-surface-container-high">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] uppercase font-black tracking-widest text-primary">
+                    {pendingObjective.mode === 'add' ? t('sessionCategorySelect' as any) || 'Selecionar Categoria' : t('moveTo' as any)}
+                  </span>
+                  <button onClick={() => setPendingObjective(null)} className="p-2 hover:bg-black/5 rounded-full"><X className="w-5 h-5 text-on-surface-variant" /></button>
+                </div>
+                <h3 className="text-xl font-bold text-on-surface truncate pr-8">
+                      {pendingObjective.value.replace(/^\[.*?\]/, '')}
+                </h3>
+              </div>
+              
+              <div className="p-6">
+                {(() => {
+                  const field = pendingObjective.field;
+                  let categories = PRESETS.sessionTitles;
+                  
+                  if (field === 'technical' || field === 'drillTitles' || field === 'drillObjectives') {
+                     categories = ['techCategoryHandling', 'techCategoryDiving', 'techCategoryAerial', 'techCategory1v1', 'techCategoryDistribution', 'techCategoryReactions'];
+                  } else if (field === 'tactical') {
+                     categories = ['tactCategoryOrganization', 'tactCategorySetPieces', 'tactCategoryPositioning', 'tactCategoryProtection', 'tactCategorySupport', 'tactCategoryTransition'];
+                  } else if (field === 'physical') {
+                     categories = ['physCategoryPower', 'physCategoryAgility', 'physCategoryReactions', 'physCategoryConditioning'];
+                  } else if (field === 'drillOrganizations') {
+                     categories = ['orgCategoryGoals', 'orgCategoryZones', 'orgCategoryEquipment'];
+                  } else if (field === 'drillProgressions') {
+                     categories = ['progCategoryLoad', 'progCategoryPressure', 'progCategoryConstraints'];
+                  }
+
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                      {categories.map((titleKey) => (
+                        <button
+                          key={titleKey}
+                          onClick={() => {
+                            const { value, field, mode } = pendingObjective;
+                            const actualValue = value.replace(/^\[.*?\]/, '');
+                            const newFullValue = titleKey ? `[${titleKey}]${actualValue}` : actualValue;
+                            
+                            let defaultOptions: readonly string[] = [];
+                            if (field === 'generalObjectives') defaultOptions = PRESETS.objectives.general;
+                            else if (field === 'sessionTitles') defaultOptions = PRESETS.sessionTitles;
+                            else if (field === 'durations') defaultOptions = PRESETS.durations;
+                            else if (['technical', 'tactical', 'physical', 'cognitive'].includes(field)) defaultOptions = PRESETS.objectives[field as keyof typeof PRESETS.objectives] as any;
+                            else {
+                               const p = PRESETS as any;
+                               defaultOptions = p[field] || p.drills?.[field.replace('drill', '').toLowerCase()] || [];
+                            }
+
+                            if (mode === 'add') {
+                              addCustomPreset(field, value, defaultOptions, titleKey);
+                              if (field === 'generalObjectives') {
+                                handleGeneralObjectivesChange([...newSession.generalObjectives.filter(Boolean), newFullValue]);
+                              } else if (field === 'sessionTitles') {
+                                setNewSession(prev => ({ ...prev, titles: [...prev.titles, newFullValue] }));
+                              } else if (field === 'durations') {
+                                setNewSession(prev => ({ ...prev, duration: newFullValue }));
+                              } else if (['technical', 'tactical', 'physical', 'cognitive'].includes(field)) {
+                                setNewSession(prev => ({
+                                  ...prev,
+                                  objectives: { ...prev.objectives, [field]: [...((prev.objectives as any)[field] || []), newFullValue] }
+                                }));
+                              }
+                            } else {
+                              moveCustomPreset(field, value, titleKey);
+                              
+                              if (field === 'generalObjectives' && newSession.generalObjectives.includes(value)) {
+                                handleGeneralObjectivesChange(
+                                  newSession.generalObjectives.filter(Boolean).map(o => o === value ? newFullValue : o)
+                                );
+                              } else if (field === 'sessionTitles' && newSession.titles.includes(value)) {
+                                setNewSession(prev => ({ ...prev, titles: prev.titles.map(o => o === value ? newFullValue : o) }));
+                              } else if (field === 'durations' && newSession.duration === value) {
+                                setNewSession(prev => ({ ...prev, duration: newFullValue }));
+                              } else if (['technical', 'tactical', 'physical', 'cognitive'].includes(field)) {
+                                 setNewSession(prev => ({
+                                   ...prev,
+                                   objectives: { 
+                                     ...prev.objectives, 
+                                     [field]: ((prev.objectives as any)[field] || []).map((o: string) => o.trim() === value.trim() ? newFullValue : o)
+                                   }
+                                 }));
+                              }
+                            }
+                            setPendingObjective(null);
+                          }}
+                          className="group flex items-center gap-3 p-4 bg-surface-container-highest hover:bg-primary/10 border border-black/5 rounded-xl transition-all text-left"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shrinking-0">
+                            <Plus className="w-4 h-4 text-primary" />
+                          </div>
+                          <span className="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
+                            {t(titleKey as any)}
+                          </span>
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => {
+                          const { value, field, mode } = pendingObjective;
+                          const actualValue = value.replace(/^\[.*?\]/, '');
+                          let defaultOptions: readonly string[] = [];
+                          if (field === 'generalObjectives') defaultOptions = PRESETS.objectives.general;
+                          else if (field === 'sessionTitles') defaultOptions = PRESETS.sessionTitles;
+                          else if (field === 'durations') defaultOptions = PRESETS.durations;
+                          else if (['technical', 'tactical', 'physical', 'cognitive'].includes(field)) defaultOptions = PRESETS.objectives[field as keyof typeof PRESETS.objectives] as any;
+                          else {
+                             const p = PRESETS as any;
+                             defaultOptions = p[field] || p.drills?.[field.replace('drill', '').toLowerCase()] || [];
+                          }
+                          
+                          if (mode === 'add') {
+                            addCustomPreset(field, value, defaultOptions, '');
+                            if (field === 'generalObjectives') {
+                               handleGeneralObjectivesChange([...newSession.generalObjectives.filter(Boolean), actualValue]);
+                            } else if (field === 'sessionTitles') {
+                               setNewSession(prev => ({ ...prev, titles: [...prev.titles, actualValue] }));
+                            } else if (field === 'durations') {
+                               setNewSession(prev => ({ ...prev, duration: actualValue }));
+                            } else if (['technical', 'tactical', 'physical', 'cognitive'].includes(field)) {
+                              setNewSession(prev => ({
+                                ...prev,
+                                objectives: { ...prev.objectives, [field]: [...((prev.objectives as any)[field] || []), actualValue] }
+                              }));
+                            }
+                          } else {
+                            moveCustomPreset(field, value, '');
+                            if (field === 'generalObjectives' && newSession.generalObjectives.includes(value)) {
+                               handleGeneralObjectivesChange(
+                                 newSession.generalObjectives.filter(Boolean).map(o => o === value ? actualValue : o)
+                               );
+                            } else if (field === 'sessionTitles' && newSession.titles.includes(value)) {
+                               setNewSession(prev => ({ ...prev, titles: prev.titles.map(o => o === value ? actualValue : o) }));
+                            } else if (field === 'durations' && newSession.duration === value) {
+                               setNewSession(prev => ({ ...prev, duration: actualValue }));
+                            } else if (['technical', 'tactical', 'physical', 'cognitive'].includes(field)) {
+                               setNewSession(prev => ({
+                                 ...prev,
+                                 objectives: { 
+                                   ...prev.objectives, 
+                                   [field]: ((prev.objectives as any)[field] || []).map((o: string) => o === value ? actualValue : o)
+                                 }
+                               }));
+                            }
+                          }
+                          setPendingObjective(null);
+                        }}
+                        className="group flex items-center gap-3 p-4 bg-on-surface/5 hover:bg-on-surface/10 border border-dashed border-black/10 rounded-xl transition-all text-left col-span-full mt-2"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-on-surface/10 flex items-center justify-center">
+                          <X className="w-4 h-4 text-on-surface-variant" />
+                        </div>
+                        <span className="text-sm font-bold text-on-surface opacity-70 italic">
+                          {t('sessionCategoryNone' as any) || 'Sem Categoria / Geral'}
+                        </span>
+                      </button>
+                    </div>
+                  );
+                })()}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };

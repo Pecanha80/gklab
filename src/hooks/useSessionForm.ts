@@ -37,6 +37,7 @@ export const emptySession: Omit<TrainingSession, 'id'> = {
 export const emptyDrill: Omit<Exercise, 'id'> = {
   type: 'analytical',
   title: '',
+  category: '',
   objective: [],
   organization: [],
   execution: [],
@@ -197,7 +198,7 @@ export function useSessionForm(
     setIsAddingSession(true);
   };
 
-  const handleAddDrill = () => {
+  const handleAddDrill = async () => {
     if (!currentDrill.title) return;
 
     const savePresets = (field: keyof CustomPresetsState, values: string | string[], defaultOpts: readonly string[]) => {
@@ -216,7 +217,7 @@ export function useSessionForm(
     savePresets('durations', currentDrill.duration, PRESETS.durations);
 
     if (currentDrill.title) {
-       addExerciseToLibrary(currentDrill);
+       await addExerciseToLibrary(currentDrill);
     }
 
     if (editingDrillId) {

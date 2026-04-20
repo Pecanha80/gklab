@@ -21,7 +21,7 @@ import { VectorElement, EquipmentType } from './VectorElement';
 
 type ElementType =
   | 'player' | 'gk'
-  | 'ball' | 'cone' | 'disc' | 'goal' | 'ladder' | 'miniGoal' | 'ring' | 'mannequin'
+  | 'ball' | 'cone' | 'disc' | 'goal' | 'ladder' | 'miniGoal' | 'ring' | 'mannequin' | 'box' | 'stake'
   | 'text'
   | 'arrow' | 'curvedArrow' | 'zigzag'
   | 'dashedArrow' | 'dashedCurvedArrow' | 'dashedZigzag'
@@ -85,7 +85,7 @@ const SPRITE_IMAGES: Record<string, string> = {
   gk: '/avatar.png',
 };
 
-const ELEMENT_TYPES: ElementType[] = ['ball', 'cone', 'disc', 'goal', 'ladder', 'miniGoal', 'ring', 'mannequin'];
+const ELEMENT_TYPES: ElementType[] = ['ball', 'cone', 'disc', 'goal', 'ladder', 'miniGoal', 'ring', 'mannequin', 'box', 'stake'];
 
 
 const CollapsibleSection: React.FC<{ title: string; rightAction?: React.ReactNode; defaultOpen?: boolean; children: React.ReactNode }> = ({ title, rightAction, defaultOpen = true, children }) => {
@@ -691,9 +691,9 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
             >
               <div className="grid grid-cols-3 gap-2">
                 {ELEMENT_TYPES.map(elType => {
-                  const cw = elType === 'goal' ? 40 : elType === 'miniGoal' ? 30 : 26;
-                  const ch = elType === 'ladder' ? 40 : elType === 'mannequin' ? 44 : 26;
-                  const displayScale = elType === 'goal' ? 0.5 : elType === 'ladder' ? 0.6 : elType === 'mannequin' ? 0.6 : 1;
+                  const cw = elType === 'goal' ? 40 : elType === 'miniGoal' ? 30 : elType === 'box' ? 30 : 26;
+                  const ch = elType === 'ladder' ? 40 : elType === 'mannequin' ? 44 : elType === 'stake' ? 44 : 26;
+                  const displayScale = elType === 'goal' ? 0.5 : elType === 'miniGoal' ? 0.7 : elType === 'ladder' ? 0.6 : elType === 'mannequin' ? 0.6 : elType === 'box' ? 0.5 : elType === 'stake' ? 0.5 : 1;
                   return (
                     <button
                       key={elType}
@@ -809,7 +809,6 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                           isSelected={isSelected}
                           colors={el.kitColors}
                           facing={el.facing}
-                          label={el.label}
                           scaleX={el.scaleX}
                           scaleY={el.scaleY}
                           rotation={el.rotation}

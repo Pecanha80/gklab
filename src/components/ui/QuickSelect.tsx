@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Trash2, Check, Plus } from 'lucide-react';
+import { ChevronDown, Trash2, Check, Plus, FolderInput } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -14,8 +14,9 @@ export const QuickSelect = ({
   onDelete,
   isDeletable,
   onAdd,
-  multiSelect = true,
-  selectedValues = []
+  selectedValues = [],
+  onMove,
+  multiSelect = true
 }: {
   options: QuickSelectOption[],
   onSelect: (val: string[]) => void,
@@ -23,6 +24,7 @@ export const QuickSelect = ({
   onDelete?: (val: string) => void,
   isDeletable?: (val: string) => boolean,
   onAdd?: (val: string) => void,
+  onMove?: (val: string, newCategory: string) => void,
   multiSelect?: boolean,
   selectedValues?: string[]
 }) => {
@@ -32,6 +34,11 @@ export const QuickSelect = ({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [hoveredItem, setHoveredItem] = useState<{ label: string; top: number; right: boolean } | null>(null);
+
+  const headers = options.filter(opt => {
+    const value = typeof opt === 'string' ? opt : opt.value;
+    return value.startsWith('# ');
+  }) as string[];
 
   useEffect(() => {
     const updatePosition = () => {
@@ -79,7 +86,13 @@ export const QuickSelect = ({
 
   const filteredOptions = options.filter(opt => {
     const value = typeof opt === 'string' ? opt : opt.value;
-    const label = typeof opt === 'string' ? t(opt as any) : opt.label;
+    const isHeader = typeof opt === 'string' ? value.startsWith('#') : !!(opt as any).isHeader;
+    if (isHeader) return true; 
+    let label = typeof opt === 'string' ? (isHeader ? t(value.replace('# ', '') as any) : t(opt as any)) : opt.label;
+    // Strip [category] prefix if present
+    if (typeof opt === 'string' && label.startsWith('[')) {
+      label = label.replace(/^\[.*?\]/, '');
+    }
     return label.toLowerCase().includes(searchTerm.toLowerCase()) ||
            value.toLowerCase().includes(searchTerm.toLowerCase());
   });
@@ -189,67 +202,105 @@ export const QuickSelect = ({
                   )}
                   
                   <div className="divide-y divide-black/5">
-                    {filteredOptions.map(opt => {
-                      const value = typeof opt === 'string' ? opt : opt.value;
-                      const label = typeof opt === 'string' ? t(opt as any) : opt.label;
-                      // Check both value and label to handle cases where parent stores translated text
-                      const isSelected = selectedValues.includes(value) || selectedValues.includes(label);
-
-                      return (
-                        <div
-                          key={value}
-                          className="group flex items-center justify-between hover:bg-primary/5 transition-colors"
-                          onMouseEnter={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const wouldOverflowRight = rect.right + 300 > window.innerWidth;
-                            setHoveredItem({ label, top: rect.top, right: !wouldOverflowRight });
-                          }}
-                          onMouseLeave={() => setHoveredItem(null)}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (multiSelect) {
-                              const newValue = isSelected
-                                ? selectedValues.filter(v => v !== value && v !== label)
-                                : [...selectedValues, value];
-                              onSelect(newValue);
-                            } else {
-                              onSelect([value]);
-                              setIsOpen(false);
-                            }
-                            }}
-                            className={cn(
-                              "flex-1 text-left px-3 py-2.5 text-[10px] transition-all flex items-center gap-2 min-w-0",
-                              isSelected ? "text-primary font-bold bg-primary/5" : "text-on-surface hover:text-primary"
-                            )}
-                          >
-                            {multiSelect && (
-                              <div className={cn(
-                                "w-3.5 h-3.5 rounded border transition-all flex items-center justify-center shrink-0",
-                                isSelected ? "bg-primary border-primary" : "border-black/20 group-hover:border-primary/50"
-                              )}>
-                                {isSelected && <Check className="w-2.5 h-2.5 text-on-primary" />}
-                              </div>
-                            )}
-                            <span className="truncate flex-1">{label}</span>
-                          </button>
-                          {onDelete && isDeletable?.(value) && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete(value);
-                              }}
-                              className="px-3 py-2.5 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                              title="Delete preset"
+                      {filteredOptions.map((opt, idx) => {
+                        const value = typeof opt === 'string' ? opt : opt.value;
+                        const isHeader = typeof opt === 'string' ? value.startsWith('# ') : !!(opt as any).isHeader;
+                        let label = typeof opt === 'string' ? (isHeader ? t(value.replace('# ', '') as any) : t(opt as any)) : opt.label;
+                        
+                        // Strip [category] prefix if present for display
+                        if (typeof opt === 'string' && !isHeader && label.startsWith('[')) {
+                          label = label.replace(/^\[.*?\]/, '');
+                        }
+                        
+                        if (isHeader) {
+                          return (
+                            <div 
+                              key={`header-${idx}`} 
+                              className="px-3 py-2 bg-black/10 text-[9px] font-black text-on-surface-variant uppercase tracking-widest flex items-center gap-2"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                              {label}
+                            </div>
+                          );
+                        }
+
+                        const isSelected = selectedValues.includes(value) || selectedValues.includes(label);
+
+                        return (
+                          <div
+                            key={value}
+                            className="group relative transition-colors hover:bg-primary/5"
+                            onMouseEnter={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const wouldOverflowRight = rect.right + 300 > window.innerWidth;
+                              setHoveredItem({ label, top: rect.top, right: !wouldOverflowRight });
+                            }}
+                            onMouseLeave={() => setHoveredItem(null)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (multiSelect) {
+                                    const newValue = isSelected
+                                      ? selectedValues.filter(v => v !== value && v !== label)
+                                      : [...selectedValues, value];
+                                    onSelect(newValue);
+                                  } else {
+                                    onSelect([value]);
+                                    setIsOpen(false);
+                                  }
+                                }}
+                                className={cn(
+                                  "flex-1 text-left px-3 py-2.5 text-[10px] transition-all flex items-center gap-2 min-w-0",
+                                  isSelected ? "text-primary font-bold bg-primary/5" : "text-on-surface hover:text-primary"
+                                )}
+                              >
+                                {multiSelect && (
+                                  <div className={cn(
+                                    "w-3.5 h-3.5 rounded border transition-all flex items-center justify-center shrink-0",
+                                    isSelected ? "bg-primary border-primary" : "border-black/20 group-hover:border-primary/50"
+                                  )}>
+                                    {isSelected && <Check className="w-2.5 h-2.5 text-on-primary" />}
+                                  </div>
+                                )}
+                                <span className="truncate flex-1">{label}</span>
+                              </button>
+                              
+                              <div className="flex items-center gap-0.5 pr-1 shrink-0 bg-transparent">
+                                {onMove && !isHeader && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      onMove(value, '');
+                                    }}
+                                    className="p-2 -m-1 text-primary/50 hover:text-primary hover:bg-primary/10 rounded-full transition-all"
+                                    title={t('moveTo' as any)}
+                                  >
+                                    <FolderInput className="w-4 h-4" />
+                                  </button>
+                                )}
+                                {onDelete && isDeletable?.(value) && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      onDelete(value);
+                                    }}
+                                    className="p-2 -m-1 text-on-surface/30 hover:text-error hover:bg-error/10 rounded-full transition-all"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               </motion.div>

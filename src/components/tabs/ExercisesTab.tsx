@@ -6,6 +6,8 @@ import {
   Clock,
   Search,
   Edit3,
+  Folder,
+  ChevronRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -71,16 +73,18 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
 
   const validateDrill = (drill: Omit<Exercise, 'id'>): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
-    const checkEmpty = (val: string | string[]) => {
-      if (Array.isArray(val)) return val.length === 0;
-      return !val.trim();
-    };
-    if (!drill.title.trim()) errors.push(t('drillTitleRequiredMsg'));
-    if (checkEmpty(drill.objective)) errors.push(t('objectiveRequiredMsg'));
-    if (checkEmpty(drill.organization)) errors.push(t('organizationRequiredMsg'));
-    if (checkEmpty(drill.execution)) errors.push(t('executionRequiredMsg'));
-    if (checkEmpty(drill.progression)) errors.push(t('progressionRequiredMsg'));
-    if (checkEmpty(drill.successCriteria)) errors.push(t('successCriteriaRequiredMsg'));
+    
+    if (!drill.title?.trim()) {
+      errors.push(t('drillTitleRequiredMsg' as any));
+    }
+    
+    if (!drill.category) {
+      errors.push(t('physicalCapacityRequiredMsg' as any));
+    }
+
+    // Objective is recommended but not strictly required to block saving
+    // unless we really want it. Let's keep it optional for speed.
+
     return { isValid: errors.length === 0, errors };
   };
 
@@ -94,22 +98,23 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
       // If the field is a string that looks like a JSON array, it's already corrupted
       // We need to strip brackets/quotes if it's being treated as a single string item
       if (Array.isArray(value)) {
-        cleaned[field] = value.map(item => {
-          if (typeof item === 'string') {
-            // Remove redundant brackets and quotes at the start/end if they exist
-            let s = item.trim();
-            if (s.startsWith('[') && s.endsWith(']')) {
-              try {
-                const parsed = JSON.parse(s);
-                return Array.isArray(parsed) ? parsed[0] : parsed;
-              } catch {
-                return s.slice(1, -1).replace(/^["']|["']$/g, '');
+        cleaned[field] = value
+          .map(item => {
+            if (typeof item === 'string') {
+              let s = item.trim();
+              if (s.startsWith('[') && s.endsWith(']')) {
+                try {
+                  const parsed = JSON.parse(s);
+                  return Array.isArray(parsed) ? parsed[0] : parsed;
+                } catch {
+                  return s.slice(1, -1).replace(/^["']|["']$/g, '');
+                }
               }
+              return s;
             }
-            return s;
-          }
-          return item;
-        });
+            return item;
+          })
+          .filter(Boolean);
       }
     });
 
@@ -130,6 +135,31 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
       await addExerciseToLibrary(cleanedExercise);
     }
     return true;
+  };
+
+  const groupedExercises = React.useMemo(() => {
+    const filtered = exercisesLibrary.filter(ex => {
+      const objectiveStr = Array.isArray(ex.objective) ? ex.objective.join(' ') : (ex.objective || '');
+      const searchTerm = exerciseSearchTerm.toLowerCase();
+      return ex.title.toLowerCase().includes(searchTerm) ||
+        objectiveStr.toLowerCase().includes(searchTerm) ||
+        (ex.category && t(ex.category as any).toLowerCase().includes(searchTerm));
+    });
+
+    const groups: Record<string, Exercise[]> = {};
+    filtered.forEach(ex => {
+      const cat = ex.category || 'uncategorized';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(ex);
+    });
+
+    return groups;
+  }, [exercisesLibrary, exerciseSearchTerm, t]);
+
+  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+
+  const toggleFolder = (folder: string) => {
+    setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }));
   };
 
   return (
@@ -216,7 +246,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                 <div className="space-y-1">
                   <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('type')}</label>
                   <div className="flex gap-1">
-                    {PRESETS.drillTypes.map(dtype => (
+                    {PRESETS.drillTypes.filter(t => t !== 'warmup').map(dtype => (
                       <button
                         key={dtype}
                         type="button"
@@ -232,6 +262,26 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                   </div>
                 </div>
               </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('physicalCapacity')}</label>
+                <div className="flex flex-wrap gap-1">
+                  {PRESETS.physicalCapacities.map(cap => (
+                    <button
+                      key={cap}
+                      type="button"
+                      onClick={() => setCurrentDrill({ ...currentDrill, category: cap })}
+                      className={cn(
+                        "px-3 py-1.5 rounded text-[8px] font-bold border transition-all",
+                        currentDrill.category === cap ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface-container border-black/5 text-on-surface-variant"
+                      )}
+                    >
+                      {t(cap as any)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
@@ -249,7 +299,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                   </div>
                   <textarea
                     value={translateContent(currentDrill.objective)}
-                    onChange={e => setCurrentDrill({ ...currentDrill, objective: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
+                    onChange={e => setCurrentDrill({ ...currentDrill, objective: e.target.value.split('\n') })}
                     className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]"
                     placeholder={t('objectivePlaceholder')}
                   />
@@ -270,7 +320,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                   </div>
                   <textarea
                     value={translateContent(currentDrill.organization)}
-                    onChange={e => setCurrentDrill({ ...currentDrill, organization: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
+                    onChange={e => setCurrentDrill({ ...currentDrill, organization: e.target.value.split('\n') })}
                     className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]"
                     placeholder={t('organizationPlaceholder')}
                   />
@@ -292,7 +342,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                 </div>
                 <textarea
                   value={translateContent(currentDrill.execution)}
-                  onChange={e => setCurrentDrill({ ...currentDrill, execution: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
+                  onChange={e => setCurrentDrill({ ...currentDrill, execution: e.target.value.split('\n') })}
                   className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]"
                   placeholder={t('executionPlaceholder')}
                 />
@@ -315,7 +365,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                   <input
                     type="text"
                     value={translateContent(currentDrill.progression)}
-                    onChange={e => setCurrentDrill({ ...currentDrill, progression: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                    onChange={e => setCurrentDrill({ ...currentDrill, progression: e.target.value.split(',') })}
                     className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs"
                     placeholder={t('progressionPlaceholder')}
                   />
@@ -337,7 +387,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                   <input
                     type="text"
                     value={translateContent(currentDrill.successCriteria)}
-                    onChange={e => setCurrentDrill({ ...currentDrill, successCriteria: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                    onChange={e => setCurrentDrill({ ...currentDrill, successCriteria: e.target.value.split(',') })}
                     className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs"
                     placeholder={t('successCriteriaPlaceholder')}
                   />
@@ -474,79 +524,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {exercisesLibrary
-              .filter(ex => {
-                const objectiveStr = Array.isArray(ex.objective) ? ex.objective.join(' ') : (ex.objective || '');
-                return ex.title.toLowerCase().includes(exerciseSearchTerm.toLowerCase()) ||
-                  objectiveStr.toLowerCase().includes(exerciseSearchTerm.toLowerCase());
-              })
-              .map(ex => (
-                <motion.div
-                  key={ex.id}
-                  whileHover={{ y: -4 }}
-                  onClick={() => setSelectedExercise(ex)}
-                  className="bg-surface-container rounded-xl border border-black/10 overflow-hidden group cursor-pointer"
-                >
-                  {ex.diagram && (
-                    <div className="h-40 bg-black/5 relative overflow-hidden border-b border-black/5">
-                      <img src={ex.diagram} alt={ex.title as string} className="w-full h-full object-contain p-4" referrerPolicy="no-referrer" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent opacity-60" />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingExercise(ex);
-                        }}
-                        className="absolute top-2 right-2 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all z-10"
-                        title={t('edit' as any)}
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                  <div className="p-5 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="bg-primary/20 text-primary text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">{t(ex.type as any)}</span>
-                      <div className="flex items-center text-[10px] text-on-surface-variant">
-                        <Clock className="w-3 h-3 mr-1" /> {Array.isArray(ex.duration) ? ex.duration.map(d => t(d as any)).join(', ') : t(ex.duration as any)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">{t(ex.title as any)}</h3>
-                        {!ex.diagram && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingExercise(ex);
-                            }}
-                            className="p-1.5 text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                      <p className="text-xs text-on-surface-variant line-clamp-2">{Array.isArray(ex.objective) ? ex.objective.map(o => t(o as any)).join(', ') : t(ex.objective as any)}</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-black/5">
-                      <div className="space-y-1">
-                        <span className="text-[8px] text-on-surface-variant uppercase font-bold">{t('intensity')}</span>
-                        <div className="text-[10px] text-on-surface font-medium">{t(ex.intensity as any)}</div>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[8px] text-on-surface-variant uppercase font-bold">{t('organization')}</span>
-                        <div className="text-[10px] text-on-surface font-medium line-clamp-1">{t(ex.organization as any)}</div>
-                      </div>
-                    </div>
-                    <button onClick={(e) => { e.stopPropagation(); setSelectedExercise(ex); }} className="w-full py-2 bg-black/5 hover:bg-black/10 rounded text-[10px] font-bold uppercase tracking-widest transition-all">
-                      {t('viewDetails')}
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-
-            {exercisesLibrary.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-black/10 rounded-xl">
+          <div className="space-y-4">
+            {Object.entries(groupedExercises).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-black/10 rounded-xl">
                 <Target className="w-12 h-12 text-on-surface-variant mb-4" />
                 <h3 className="text-xl font-bold text-on-surface mb-2">{t('libraryIsEmpty')}</h3>
                 <p className="text-on-surface-variant max-w-md mb-6">{t('libraryIsEmptyDescription')}</p>
@@ -557,6 +537,111 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                   {t('createFirstExercise')}
                 </button>
               </div>
+            ) : (
+              Object.entries(groupedExercises)
+                .sort(([a], [b]) => {
+                  if (a === 'uncategorized') return 1;
+                  if (b === 'uncategorized') return -1;
+                  return a.localeCompare(b);
+                })
+                .map(([category, exercises]) => (
+                  <div key={category} className="space-y-3">
+                    <button
+                      onClick={() => toggleFolder(category)}
+                      className="w-full flex items-center justify-between p-4 bg-surface-container-highest rounded-xl border border-black/5 hover:border-primary/30 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                          <Folder className={cn("w-5 h-5 text-primary", expandedFolders[category] ? "fill-primary/20" : "")} />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-bold text-on-surface uppercase tracking-tight text-sm">
+                            {category === 'uncategorized' ? t('uncategorized' as any) : t(category as any)}
+                          </h3>
+                          <p className="text-[10px] text-on-surface-variant font-label">{exercises.length} {t('exercisesLabel' as any)}</p>
+                        </div>
+                      </div>
+                      <ChevronRight className={cn("w-5 h-5 text-on-surface-variant transition-transform", expandedFolders[category] ? "rotate-90" : "")} />
+                    </button>
+
+                    <AnimatePresence>
+                      {expandedFolders[category] && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-1">
+                            {exercises.map(ex => (
+                              <motion.div
+                                key={ex.id}
+                                whileHover={{ y: -4 }}
+                                onClick={() => setSelectedExercise(ex)}
+                                className="bg-surface-container rounded-xl border border-black/10 overflow-hidden group cursor-pointer"
+                              >
+                                {ex.diagram && (
+                                  <div className="h-40 bg-black/5 relative overflow-hidden border-b border-black/5">
+                                    <img src={ex.diagram} alt={ex.title as string} className="w-full h-full object-contain p-4" referrerPolicy="no-referrer" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent opacity-60" />
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingExercise(ex);
+                                      }}
+                                      className="absolute top-2 right-2 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all z-10"
+                                      title={t('edit' as any)}
+                                    >
+                                      <Edit3 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                )}
+                                <div className="p-5 space-y-4">
+                                  <div className="flex items-center justify-between">
+                                    <span className="bg-primary/20 text-primary text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">{t(ex.type as any)}</span>
+                                    <div className="flex items-center text-[10px] text-on-surface-variant">
+                                      <Clock className="w-3 h-3 mr-1" /> {Array.isArray(ex.duration) ? ex.duration.map(d => t(d as any)).join(', ') : t(ex.duration as any)}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <h3 className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">{t(ex.title as any)}</h3>
+                                      {!ex.diagram && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingExercise(ex);
+                                          }}
+                                          className="p-1.5 text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                                        >
+                                          <Edit3 className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-on-surface-variant line-clamp-2">{Array.isArray(ex.objective) ? ex.objective.map(o => t(o as any)).join(', ') : t(ex.objective as any)}</p>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-black/5">
+                                    <div className="space-y-1">
+                                      <span className="text-[8px] text-on-surface-variant uppercase font-bold">{t('intensity')}</span>
+                                      <div className="text-[10px] text-on-surface font-medium">{t(ex.intensity as any)}</div>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <span className="text-[8px] text-on-surface-variant uppercase font-bold">{t('organization')}</span>
+                                      <div className="text-[10px] text-on-surface font-medium line-clamp-1">{t(ex.organization as any)}</div>
+                                    </div>
+                                  </div>
+                                  <button onClick={(e) => { e.stopPropagation(); setSelectedExercise(ex); }} className="w-full py-2 bg-black/5 hover:bg-black/10 rounded text-[10px] font-bold uppercase tracking-widest transition-all">
+                                    {t('viewDetails')}
+                                  </button>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))
             )}
           </div>
         </div>

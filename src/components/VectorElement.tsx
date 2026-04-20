@@ -1,7 +1,7 @@
 import React from 'react';
 import { Group, Path, Circle, Rect, Ellipse, Line } from 'react-konva';
 
-export type EquipmentType = 'ball' | 'cone' | 'disc' | 'goal' | 'ladder' | 'miniGoal' | 'ring' | 'mannequin';
+export type EquipmentType = 'ball' | 'cone' | 'disc' | 'goal' | 'ladder' | 'miniGoal' | 'ring' | 'mannequin' | 'box' | 'stake';
 
 interface VectorElementProps {
   x: number;
@@ -48,12 +48,52 @@ export const VectorElement: React.FC<VectorElementProps> = ({
     miniGoal: { w: 36, h: 18 },
     ring: { w: 24, h: 24 },
     mannequin: { w: 24, h: 48 },
+    box: { w: 40, h: 32 },
+    stake: { w: 8, h: 48 },
   };
 
   const size = sizes[type] || { w: 24, h: 24 };
 
   const renderShape = () => {
     switch (type) {
+      case 'box':
+        // GK Training Box with artificial grass on one side
+        return (
+          <Group>
+            {/* Main Body (Isometic-ish 3D view) */}
+            <Rect x={-20} y={-8} width={40} height={24} fill="#8B4513" stroke="#5D2E0C" strokeWidth={1} cornerRadius={2} />
+            {/* Top Side (White/Wood) */}
+            <Rect x={-20} y={-16} width={40} height={12} fill="#D2B48C" stroke="#8B4513" strokeWidth={1} cornerRadius={1} />
+            {/* Artificial Grass Side (The user requested this specific side) */}
+            <Group x={-20} y={-8}>
+              <Rect width={40} height={24} fill="#2d6a1e" stroke="#1b3f12" strokeWidth={1} />
+              {/* Grass details - tiny lines */}
+              <Line points={[5, 4, 7, 10, 9, 4]} stroke="#4a8b34" strokeWidth={1} />
+              <Line points={[15, 6, 17, 14, 19, 6]} stroke="#4a8b34" strokeWidth={1} />
+              <Line points={[25, 3, 27, 11, 29, 3]} stroke="#4a8b34" strokeWidth={1} />
+              <Line points={[33, 7, 35, 15, 37, 7]} stroke="#4a8b34" strokeWidth={1} />
+              <Line points={[10, 16, 12, 22, 14, 16]} stroke="#4a8b34" strokeWidth={1} />
+              <Line points={[20, 14, 22, 21, 24, 14]} stroke="#4a8b34" strokeWidth={1} />
+              <Line points={[30, 17, 32, 23, 34, 17]} stroke="#4a8b34" strokeWidth={1} />
+            </Group>
+          </Group>
+        );
+
+      case 'stake':
+        // Training stake/pole (estaca)
+        return (
+          <Group>
+            {/* Main Pole */}
+            <Rect x={-2} y={-24} width={4} height={48} fill={c} cornerRadius={1} />
+            {/* Pointy Bottom */}
+            <Path data="M -2 24 L 2 24 L 0 32 Z" fill={c} />
+            {/* Top Cap */}
+            <Circle x={0} y={-24} radius={3} fill={c} />
+            {/* Bright Color detail */}
+            <Rect x={-2} y={-10} width={4} height={6} fill="#FFFF00" opacity={0.8} />
+          </Group>
+        );
+
       case 'cone':
         // Orange/colored cone: wide base, pointy top
         return (

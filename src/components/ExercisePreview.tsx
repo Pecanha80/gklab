@@ -30,6 +30,11 @@ export const ExercisePreview = ({ drill }: { drill: Omit<Exercise, 'id'> }) => {
           )}>
             {t(drill.type as any)}
           </span>
+          {drill.category && (
+            <span className="inline-block mt-1 ml-1 px-2 py-1 rounded text-[8px] font-bold bg-secondary/10 text-secondary">
+              {t(drill.category as any)}
+            </span>
+          )}
         </div>
 
         <div>

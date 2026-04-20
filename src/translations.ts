@@ -12,6 +12,31 @@ export const translations = {
     settings: 'Settings',
     logout: 'Logout',
     videos: 'Videos',
+    tacticalDesigner: 'Tactical Designer',
+    digitalWhiteboard: 'Digital Whiteboard',
+    goalkeeperTool: 'Goalkeeper',
+    elements: 'Elements',
+    drawingTools: 'Drawing Tools',
+    straightArrow: 'Straight Arrow',
+    dashedArrow: 'Dashed Arrow',
+    curvedArrow: 'Curved Arrow',
+    dashedCurvedArrow: 'Dashed Curved Arrow',
+    zigzag: 'Zigzag',
+    dashedZigzag: 'Dashed Zigzag',
+    textTool: 'Text',
+    fieldType: 'Field Type',
+    saveDiagram: 'Save Diagram',
+    diagram: 'Diagram',
+    designExercise: 'DESIGN EXERCISE',
+    editExercise: 'Edit Exercise',
+    newExercise: 'New Exercise',
+    editWarmup: 'Edit Warm-up',
+    newWarmup: 'New Warm-up',
+    saveChanges: 'SAVE CHANGES',
+    drillTitleRequiredMsg: 'Exercise title is required',
+    physicalCapacityRequiredMsg: 'Physical capacity is required',
+    diagramAttached: 'Diagram attached',
+    sectionWarmUp: '3. Warm-up',
     wellnessTab: 'Wellness',
     rpeTab: 'PSE (RPE)',
     monitoring: 'Monitoring',
@@ -62,6 +87,9 @@ export const translations = {
     successCriteria: 'Success Criteria',
     duration: 'Duration',
     intensity: 'Intensity',
+    physicalCapacity: 'Physical Capacity',
+    uncategorized: 'Uncategorized',
+    exercisesLabel: 'exercises',
 
     // Placeholders
     drillTitlePlaceholder: 'e.g. 1v1 Block Save',
@@ -108,6 +136,48 @@ export const translations = {
     u18: 'U18',
     u16: 'U16',
     academy: 'Academy',
+
+    // Session Categories (Headers)
+    sessionCategoryGoalDefense: 'Shot Stopping / Goal Defense',
+    sessionCategoryCrosses: 'Crosses & Aerial Play',
+    sessionCategory1v1: '1v1 & Proactive Defense',
+    sessionCategoryFootwork: 'Footwork & Support Play',
+    sessionCategoryDistribution: 'Distribution (Hands & Feet)',
+    sessionCategorySetPieces: 'Set Pieces',
+    sessionCategoryOther: 'Other / Specialized',
+    sessionCategoryNone: 'General / No Category',
+    
+    // Technical Categories
+    techCategoryHandling: 'Handling & Catching',
+    techCategoryDiving: 'Diving Techniques',
+    techCategoryAerial: 'Aerial Dominance',
+    techCategory1v1: '1v1 & Block Techniques',
+    techCategoryDistribution: 'Distribution & Build-up',
+    techCategoryReactions: 'Reactions & Reflexes',
+    
+    // Physical Categories
+    physCategoryPower: 'Strength & Power',
+    physCategoryAgility: 'Speed (Agility & Coordination)',
+    physCategoryReactions: 'Reaction Speed',
+    physCategoryConditioning: 'Specific Conditioning',
+    
+    // Tactical Categories
+    tactCategoryPositioning: 'Positioning',
+    tactCategoryProtection: 'Protection',
+    tactCategorySupport: 'Support',
+    tactCategoryTransition: 'Transition',
+    tactCategoryOrganization: 'Organization',
+    tactCategorySetPieces: 'Set Pieces',
+    
+    // Org & Progression Categories
+    orgCategoryGoals: 'Goal & Area Structures',
+    orgCategoryZones: 'Zones & Pitch Layouts',
+    orgCategoryEquipment: 'Equipment & Props',
+    
+    progCategoryLoad: 'Load & Intensity',
+    progCategoryPressure: 'Opposition & Pressure',
+    progCategoryConstraints: 'Rules & Constraints',
+    moveTo: 'Move to...',
 
     // Session Templates
     shotStoppingCentralAngled: 'Shot Stopping (Central & Angled)',
@@ -172,6 +242,17 @@ export const translations = {
     anticipation: 'Anticipation',
     communication: 'Communication',
     focus: 'Focus',
+    coordination: 'Coordination',
+    flexibility: 'Flexibility',
+    velocity: 'Velocity',
+    endurance: 'Endurance',
+    physicalCapacity: 'Physical Capacity',
+    technicalPlaceholder: 'Technical goals (e.g. W-catch, footwork)...',
+    tacticalPlaceholder: 'Tactical goals (e.g. depth coverage)...',
+    physicalPlaceholder: 'Physical goals (e.g. reaction speed, power)...',
+    cognitivePlaceholder: 'Cognitive goals (e.g. reading trajectory)...',
+    spacePlaceholder: 'e.g. Penalty Area, Full Pitch...',
+    durationPlaceholder: 'e.g. 15 min, 2x10 min...',
 
     // Drill Preset Keys
     staticHandlingWScoopCup: 'Static Handling (W, Scoop, Cup)',
@@ -220,6 +301,8 @@ export const translations = {
     penaltyAreaSpace: 'Penalty Area',
     grid40x40m: 'Grid 40x40m',
     mannequin: 'Mannequin',
+    box: 'Training Box',
+    stake: 'Training Stake',
 
     // Cooldown & Obs
     staticStretchingIndividualFeedback: 'Static Stretching & Individual Feedback',
@@ -593,6 +676,8 @@ export const translations = {
     goal: 'Goal',
     ladder: 'Ladder',
     miniGoal: 'Mini Goal',
+    box: 'Coaching Box',
+    stake: 'Pole / Stake',
     ring: 'Ring',
     drawingTools: 'Drawing Tools',
     clickAndDrag: 'Click and drag on the field',
@@ -611,6 +696,8 @@ export const translations = {
 
     // Validation (use t() calls)
     drillTitleRequiredMsg: 'Drill title is required',
+    physicalCapacityRequiredMsg: 'Physical capacity (category) is required',
+    saveToLibrary: 'Save to Library',
     objectiveRequiredMsg: 'Objective is required',
     organizationRequiredMsg: 'Organization is required',
     executionRequiredMsg: 'Execution is required',
@@ -843,6 +930,31 @@ export const translations = {
     settings: 'Configuracoes',
     logout: 'Sair',
     videos: 'Vídeos',
+    tacticalDesigner: 'Designer Tático',
+    digitalWhiteboard: 'Quadro Branco Digital',
+    goalkeeperTool: 'Goleiro',
+    elements: 'Elementos',
+    drawingTools: 'Ferramentas de Desenho',
+    straightArrow: 'Seta Reta',
+    dashedArrow: 'Seta Tracejada',
+    curvedArrow: 'Seta Curva',
+    dashedCurvedArrow: 'Seta Curva Tracejada',
+    zigzag: 'Ziguezague',
+    dashedZigzag: 'Ziguezague Tracejado',
+    textTool: 'Texto',
+    fieldType: 'Tipo de Campo',
+    saveDiagram: 'Salvar Diagrama',
+    diagram: 'Diagrama',
+    designExercise: 'DESENHAR EXERCÍCIO',
+    editExercise: 'Editar Exercício',
+    newExercise: 'Novo Exercício',
+    editWarmup: 'Editar Aquecimento',
+    newWarmup: 'Novo Aquecimento',
+    saveChanges: 'SALVAR ALTERAÇÕES',
+    drillTitleRequiredMsg: 'Título do exercício é obrigatório',
+    physicalCapacityRequiredMsg: 'Capacidade física é obrigatória',
+    diagramAttached: 'Diagrama anexado',
+    sectionWarmUp: '3. Aquecimento',
     wellnessTab: 'Bem-estar',
     rpeTab: 'PSE (RPE)',
     monitoring: 'Monitoramento',
@@ -912,6 +1024,9 @@ export const translations = {
     successCriteria: 'CRITÉRIOS DE SUCESSO',
     duration: 'DURAÇÃO',
     intensity: 'INTENSIDADE',
+    physicalCapacity: 'CAPACIDADE FÍSICA',
+    uncategorized: 'SEM CATEGORIA',
+    exercisesLabel: 'exercícios',
 
     // Placeholders
     drillTitlePlaceholder: 'ex. Defesa 1v1',
@@ -959,13 +1074,63 @@ export const translations = {
     u16: 'Sub-16',
     academy: 'Academia',
 
+    // Session Categories (Headers)
+    sessionCategoryGoalDefense: 'Defesa de Baliza',
+    sessionCategoryCrosses: 'Cruzamentos',
+    sessionCategory1v1: '1v1',
+    sessionCategoryFootwork: 'Jogo com os Pés',
+    sessionCategoryDistribution: 'Distribuição',
+    sessionCategorySetPieces: 'Bolas Paradas',
+    sessionCategoryOther: 'Outros / Especializados',
+    sessionCategoryNone: 'Geral / Sem Categoria',
+
+    // Technical Categories
+    techCategoryHandling: 'Pegada & Manuseio',
+    techCategoryDiving: 'Técnicas de Quedas',
+    techCategoryAerial: 'Domínio Aéreo',
+    techCategory1v1: '1v1 & Técnicas de Bloqueio',
+    techCategoryDistribution: 'Distribuição & Construção',
+    techCategoryReactions: 'Reações & Reflexos',
+    
+    // Physical Categories
+    physCategoryPower: 'Força & Potência',
+    physCategoryAgility: 'Velocidade (Agilidade e Coordenação)',
+    physCategoryReactions: 'Velocidade de Reação',
+    physCategoryConditioning: 'Resistência Específica',
+    
+    // Tactical Categories
+    tactCategoryPositioning: 'Posicionamento',
+    tactCategoryProtection: 'Proteção',
+    tactCategorySupport: 'Suporte',
+    tactCategoryTransition: 'Transição',
+    tactCategoryOrganization: 'Organização',
+    tactCategorySetPieces: 'Bolas Paradas',
+
+    // Org & Progression Categories
+    orgCategoryGoals: 'Estruturas de Baliza & Área',
+    orgCategoryZones: 'Zonas & Layout do Campo',
+    orgCategoryEquipment: 'Equipamentos & Adereços',
+    
+    progCategoryLoad: 'Carga & Intensidade',
+    progCategoryPressure: 'Oposição & Pressão',
+    progCategoryConstraints: 'Regras & Restrições',
+    moveTo: 'Mover para...',
+
     // Session Templates
     shotStoppingCentralAngled: 'Defesas (Centrais & Anguladas)',
     handlingCatchingFundamentals: 'Fundamentos de Pegada & Manuseio',
-    divingTechniques: 'Técnicas de Mergulho (Baixo, Médio, Alto)',
+    divingTechniques: 'Técnicas de Quedas (Baixo, Médio, Alto)',
     oneVOneSituations: 'Situações 1v1 & Técnicas de Bloqueio',
     crossesAerialDominance: 'Cruzamentos & Domínio Aéreo',
     distributionBuildupPlay: 'Distribuição e Jogo de Construção (Mãos e Pés)',
+    reactionSpeedReflexes: 'Velocidade de Reação e Reflexos',
+    sweeperKeeperSpaceDefense: 'Goleiro Líbero: Defesa do Espaço',
+    doubleSavesQuickRecovery: 'Defesas Duplas & Recuperação Rápida',
+    setPiecesDefense: 'Defesa de Bolas Paradas (Cantos & Livres)',
+    cognitiveSkillsDecisionMaking: 'Habilidades Cognitivas & Tomada de Decisão',
+    physicalConditioningPlyometrics: 'Condicionamento Físico & Pliometria',
+    matchSimulationContextualScenarios: 'Simulação de Jogo & Cenários Contextuais',
+    preMatchWarmupActivation: 'Aquecimento Pré-Jogo & Ativação',
 
     // Preset Keys - General
     technicalTactical: 'Sessão Técnico-Tática',
@@ -1012,8 +1177,8 @@ export const translations = {
     setPieceOrganization: 'Organização de Bolas Paradas',
     agility: 'Agilidade',
     explosivePower: 'Potência Explosiva',
-    reactionSpeed: 'Velocidade de Reação',
-    coreStability: 'Estabilidade do Core',
+    reactionSpeed: 'Vel. de reação',
+    coreStability: 'Estabilidade de Core',
     aerobicCapacity: 'Capacidade Aeróbica',
     strength: 'Força',
     decisionMaking: 'Tomada de Decisão',
@@ -1022,6 +1187,16 @@ export const translations = {
     anticipation: 'Antecipação',
     communication: 'Comunicação',
     focus: 'Foco',
+    coordination: 'Coordenação',
+    flexibility: 'Flexibilidade',
+    velocity: 'Velocidade',
+    endurance: 'Resistência',
+    technicalPlaceholder: 'Objetivos técnicos (ex: pega em W, deslocamento)...',
+    tacticalPlaceholder: 'Objetivos táticos (ex: cobertura da profundidade)...',
+    physicalPlaceholder: 'Objetivos físicos (ex: velocidade de reação, força explosiva)...',
+    cognitivePlaceholder: 'Objetivos cognitivos (ex: leitura de trajetória, decisão)...',
+    spacePlaceholder: 'ex. Grande Área, Campo Inteiro...',
+    durationPlaceholder: 'ex. 15 min, 2x10 min...',
 
     // Drill Preset Keys
     warmupMobilityActivation: 'Aquecimento: Mobilidade e Ativação',
@@ -1082,6 +1257,8 @@ export const translations = {
     penaltyAreaSpace: 'Área de Pênalti',
     grid40x40m: 'Quadrado 40x40m',
     mannequin: 'Manequim',
+    box: 'Caixote',
+    stake: 'Estaca',
 
     // Durations
     dur_5min: '5 min',
@@ -1436,6 +1613,8 @@ export const translations = {
     goal: 'Baliza',
     ladder: 'Escada',
     miniGoal: 'Mini Baliza',
+    box: 'Caixote',
+    stake: 'Estaca',
     ring: 'Aro',
     drawingTools: 'Ferramentas de Desenho',
     clickAndDrag: 'Clique e arraste no campo',
@@ -1454,6 +1633,8 @@ export const translations = {
 
     // Validation (use t() calls)
     drillTitleRequiredMsg: 'O título do exercício é obrigatório',
+    physicalCapacityRequiredMsg: 'A capacidade física (categoria) é obrigatória',
+    saveToLibrary: 'Salvar na Biblioteca',
     objectiveRequiredMsg: 'O objetivo é obrigatório',
     organizationRequiredMsg: 'A organização é obrigatória',
     executionRequiredMsg: 'A execução é obrigatória',

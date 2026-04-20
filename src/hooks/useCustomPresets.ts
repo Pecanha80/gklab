@@ -28,6 +28,7 @@ export interface CustomPresetsState {
   obsPositives: string[];
   obsAdjustments: string[];
   obsEvaluations: string[];
+  deletedDefaults: string[];
 }
 
 const defaultStructure: CustomPresetsState = {
@@ -56,6 +57,7 @@ const defaultStructure: CustomPresetsState = {
   obsPositives: [],
   obsAdjustments: [],
   obsEvaluations: [],
+  deletedDefaults: [],
 };
 
 // Internal migration helper
@@ -138,13 +140,15 @@ export function useCustomPresets() {
   }, [user]);
 
   const getOptions = (key: keyof CustomPresetsState, defaultOptions: readonly string[]) => {
-    const custom = Array.isArray(customPresets[key]) ? customPresets[key] : [];
-    const combined = [...(defaultOptions || []), ...custom];
-    return Array.from(new Set(combined));
+    const custom = customPresets[key] || [];
+    const deleted = customPresets.deletedDefaults || [];
+    return [...defaultOptions.filter(opt => !deleted.includes(opt)), ...custom];
   };
 
-  const addCustomPreset = (key: keyof CustomPresetsState, value: string | string[], defaultOptions: readonly string[]) => {
-    const valuesToAdd = (Array.isArray(value) ? value : [value])
+  const addCustomPreset = (key: keyof CustomPresetsState, value: string | string[], defaultOptions: readonly string[], category?: string) => {
+    const rawValues = (Array.isArray(value) ? value : [value]);
+    const valuesToAdd = rawValues
+      .map(v => (category ? `[${category}]${v}` : v))
       .filter(v => v && v.trim() !== '' && !defaultOptions.includes(v) && !customPresets[key].includes(v));
     
     if (valuesToAdd.length === 0) return;
@@ -158,13 +162,39 @@ export function useCustomPresets() {
   };
 
   const removeCustomPreset = (key: keyof CustomPresetsState, value: string) => {
+    const isCustom = customPresets[key].includes(value);
+    
     const updated = {
       ...customPresets,
-      [key]: customPresets[key].filter(v => v !== value)
+      [key]: customPresets[key].filter(v => v !== value),
+      deletedDefaults: !isCustom ? [...(customPresets.deletedDefaults || []), value] : (customPresets.deletedDefaults || [])
     };
     setCustomPresets(updated);
     persistToSupabase(updated);
   };
 
-  return { customPresets, isLoading, getOptions, addCustomPreset, removeCustomPreset };
+  const moveCustomPreset = (key: keyof CustomPresetsState, value: string, newCategory: string) => {
+    if (!value) return;
+    
+    // Extract the base objective text (removing any [prefix])
+    const actualText = value.replace(/^\[.*?\]/, '');
+    
+    // Construct the new storage string (e.g., [category]Objective Text)
+    const newValue = newCategory ? `[${newCategory}]${actualText}` : actualText;
+    
+    console.log(`Moving preset: ${value} -> ${newValue}`);
+    
+    const updated = {
+      ...customPresets,
+      [key]: customPresets[key].map(v => {
+        const vText = v.replace(/^\[.*?\]/, '').trim();
+        return (v.trim() === value.trim() || vText === actualText.trim()) ? newValue : v;
+      })
+    };
+    
+    setCustomPresets(updated);
+    persistToSupabase(updated);
+  };
+
+  return { customPresets, isLoading, getOptions, addCustomPreset, removeCustomPreset, moveCustomPreset };
 }

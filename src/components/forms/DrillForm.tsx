@@ -18,6 +18,7 @@ interface DrillFormProps {
   onCancel: () => void;
   onOpenTacticalBoard: () => void;
   onOpenLibrary?: () => void;
+  setPendingObjective: (obj: { value: string; field: keyof CustomPresetsState; mode: 'move' | 'add' } | null) => void;
 }
 
 export const DrillForm: React.FC<DrillFormProps> = ({
@@ -31,6 +32,7 @@ export const DrillForm: React.FC<DrillFormProps> = ({
   onCancel,
   onOpenTacticalBoard,
   onOpenLibrary,
+  setPendingObjective,
 }) => {
   const { t } = useTranslation();
   const { customPresets, getOptions, addCustomPreset, removeCustomPreset } = useCustomPresets();
@@ -60,8 +62,9 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                     onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
                     selectedValues={currentDrill.title ? [currentDrill.title] : []}
                     onDelete={(val) => removeCustomPreset('drillTitles', val)}
-                    isDeletable={(val) => customPresets.drillTitles.includes(val)}
-                    onAdd={(val) => addCustomPreset('drillTitles', val, PRESETS.drills.titles)}
+                    isDeletable={(val) => !val.startsWith('#')}
+                    onAdd={(val) => setPendingObjective({ value: val, field: 'drillTitles', mode: 'add' })}
+                    onMove={(val) => setPendingObjective({ value: val, field: 'drillTitles', mode: 'move' })}
                   />
                 </div>
                 <input type="text" value={translateContent(currentDrill.title)} onChange={e => setCurrentDrill({ ...currentDrill, title: e.target.value })} className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs" />
@@ -71,7 +74,7 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                   <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('type')}</label>
                 </div>
                 <select value={currentDrill.type} onChange={e => setCurrentDrill({ ...currentDrill, type: e.target.value as any })} className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs">
-                  {PRESETS.drillTypes.map(type => (
+                  {PRESETS.drillTypes.filter((t: any) => t !== 'warmup').map(type => (
                     <option key={type} value={type}>{t(type as any)}</option>
                   ))}
                 </select>
@@ -85,7 +88,7 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                   <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('type')}</label>
                 </div>
                 <select value={currentDrill.type} onChange={e => setCurrentDrill({ ...currentDrill, type: e.target.value as any })} className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs">
-                  {PRESETS.drillTypes.map(type => (
+                  {PRESETS.drillTypes.filter((t: any) => t !== 'warmup').map(type => (
                     <option key={type} value={type}>{t(type as any)}</option>
                   ))}
                 </select>
@@ -99,8 +102,9 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                     onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
                     selectedValues={currentDrill.title ? [currentDrill.title] : []}
                     onDelete={(val) => removeCustomPreset('drillTitles', val)}
-                    isDeletable={(val) => customPresets.drillTitles.includes(val)}
-                    onAdd={(val) => addCustomPreset('drillTitles', val, PRESETS.drills.titles)}
+                    isDeletable={(val) => !val.startsWith('#')}
+                    onAdd={(val) => setPendingObjective({ value: val, field: 'drillTitles', mode: 'add' })}
+                    onMove={(val) => setPendingObjective({ value: val, field: 'drillTitles', mode: 'move' })}
                   />
                 </div>
                 <input
@@ -113,6 +117,26 @@ export const DrillForm: React.FC<DrillFormProps> = ({
               </div>
             </>
           )}
+          
+          <div className="space-y-1">
+            <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('physicalCapacity')}</label>
+            <div className="flex flex-wrap gap-1">
+              {PRESETS.physicalCapacities.map(cap => (
+                <button
+                  key={cap}
+                  type="button"
+                  onClick={() => setCurrentDrill({ ...currentDrill, category: cap })}
+                  className={cn(
+                    "px-3 py-1.5 rounded text-[8px] font-bold border transition-all",
+                    currentDrill.category === cap ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface-container border-black/5 text-on-surface-variant"
+                  )}
+                >
+                  {t(cap as any)}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-1">
             <div className="flex justify-between items-center">
               <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('objective')}</label>
@@ -122,8 +146,9 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                 onSelect={(vals) => setCurrentDrill({ ...currentDrill, objective: vals.map(v => t(v as any)).join('\n') })}
                 selectedValues={typeof currentDrill.objective === 'string' ? currentDrill.objective.split('\n') : currentDrill.objective}
                 onDelete={(val) => removeCustomPreset('drillObjectives', val)}
-                isDeletable={(val) => customPresets.drillObjectives.includes(val)}
-                onAdd={(val) => addCustomPreset('drillObjectives', val, PRESETS.drills.objectives)}
+                isDeletable={(val) => !val.startsWith('#')}
+                onAdd={(val) => setPendingObjective({ value: val, field: 'drillObjectives', mode: 'add' })}
+                onMove={(val) => setPendingObjective({ value: val, field: 'drillObjectives', mode: 'move' })}
               />
             </div>
             <textarea
@@ -147,8 +172,9 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, duration: vals.map(v => t(v as any)).join(' + ') })}
                   selectedValues={typeof currentDrill.duration === 'string' ? currentDrill.duration.split(' + ') : currentDrill.duration}
                   onDelete={(val) => removeCustomPreset('durations', val)}
-                  isDeletable={(val) => customPresets.durations.includes(val)}
-                  onAdd={(val) => addCustomPreset('durations', val, PRESETS.durations)}
+                  isDeletable={(val) => !val.startsWith('#')}
+                  onAdd={(val) => setPendingObjective({ value: val, field: 'durations', mode: 'add' })}
+                  onMove={(val) => setPendingObjective({ value: val, field: 'durations', mode: 'move' })}
                 />
               </div>
             </div>
@@ -228,8 +254,9 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                 onSelect={(vals) => setCurrentDrill({ ...currentDrill, organization: vals.map(v => t(v as any)).join('\n') })}
                 selectedValues={typeof currentDrill.organization === 'string' ? currentDrill.organization.split('\n') : currentDrill.organization}
                 onDelete={(val) => removeCustomPreset('drillOrganizations', val)}
-                isDeletable={(val) => customPresets.drillOrganizations.includes(val)}
-                onAdd={(val) => addCustomPreset('drillOrganizations', val, PRESETS.drills.organizations)}
+                isDeletable={(val) => !val.startsWith('#')}
+                onAdd={(val) => setPendingObjective({ value: val, field: 'drillOrganizations', mode: 'add' })}
+                onMove={(val) => setPendingObjective({ value: val, field: 'drillOrganizations', mode: 'move' })}
               />
             </div>
             <textarea
@@ -249,8 +276,9 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                 multiSelect={true}
                 selectedValues={typeof currentDrill.execution === 'string' ? currentDrill.execution.split('\n') : currentDrill.execution}
                 onDelete={(val) => removeCustomPreset('drillExecutions', val)}
-                isDeletable={(val) => customPresets.drillExecutions.includes(val)}
-                onAdd={(val) => addCustomPreset('drillExecutions', val, PRESETS.drills.executions)}
+                isDeletable={(val) => !val.startsWith('#')}
+                onAdd={(val) => setPendingObjective({ value: val, field: 'drillExecutions', mode: 'add' })}
+                onMove={(val) => setPendingObjective({ value: val, field: 'drillExecutions', mode: 'move' })}
               />
             </div>
             <textarea
@@ -272,8 +300,9 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, progression: vals.map(v => t(v as any)).join('\n') })}
                   selectedValues={typeof currentDrill.progression === 'string' ? currentDrill.progression.split('\n') : currentDrill.progression}
                   onDelete={(val) => removeCustomPreset('drillProgressions', val)}
-                  isDeletable={(val) => customPresets.drillProgressions.includes(val)}
-                  onAdd={(val) => addCustomPreset('drillProgressions', val, PRESETS.drills.progressions)}
+                  isDeletable={(val) => !val.startsWith('#')}
+                  onAdd={(val) => setPendingObjective({ value: val, field: 'drillProgressions', mode: 'add' })}
+                  onMove={(val) => setPendingObjective({ value: val, field: 'drillProgressions', mode: 'move' })}
                 />
               </div>
               <textarea
@@ -292,8 +321,9 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, successCriteria: vals.map(v => t(v as any)).join('\n') })}
                   selectedValues={typeof currentDrill.successCriteria === 'string' ? currentDrill.successCriteria.split('\n') : currentDrill.successCriteria}
                   onDelete={(val) => removeCustomPreset('drillSuccessCriteria', val)}
-                  isDeletable={(val) => customPresets.drillSuccessCriteria.includes(val)}
-                  onAdd={(val) => addCustomPreset('drillSuccessCriteria', val, PRESETS.drills.successCriteria)}
+                  isDeletable={(val) => !val.startsWith('#')}
+                  onAdd={(val) => setPendingObjective({ value: val, field: 'drillSuccessCriteria', mode: 'add' })}
+                  onMove={(val) => setPendingObjective({ value: val, field: 'drillSuccessCriteria', mode: 'move' })}
                 />
               </div>
               <textarea
@@ -307,9 +337,25 @@ export const DrillForm: React.FC<DrillFormProps> = ({
         )}
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-black/5">
-        <button type="button" onClick={onCancel} className="px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-black/5 rounded transition-all">{t('discard')}</button>
-        <button type="button" onClick={onSave} className="bg-primary text-on-primary px-6 py-2 rounded text-xs font-bold uppercase tracking-widest hover:bg-primary-dim transition-all active:scale-95 shadow-lg shadow-primary/20">{editingDrillId ? t('saveChanges') : t('addExerciseToSession')}</button>
+      <div className="flex justify-between items-center pt-4 border-t border-black/5">
+        <button
+          type="button"
+          onClick={async () => {
+            if (!currentDrill.title) {
+              alert(t('drillTitleRequiredMsg' as any));
+              return;
+            }
+            await onSave();
+          }}
+          className="flex items-center gap-2 text-[10px] font-bold text-primary hover:text-primary-dim uppercase tracking-widest transition-all"
+        >
+          <Library className="w-4 h-4" />
+          {t('saveToLibrary')}
+        </button>
+        <div className="flex gap-3">
+          <button type="button" onClick={onCancel} className="px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-black/5 rounded transition-all">{t('discard')}</button>
+          <button type="button" onClick={onSave} className="bg-primary text-on-primary px-6 py-2 rounded text-xs font-bold uppercase tracking-widest hover:bg-primary-dim transition-all active:scale-95 shadow-lg shadow-primary/20">{editingDrillId ? t('saveChanges') : t('addExerciseToSession')}</button>
+        </div>
       </div>
     </div>
   );

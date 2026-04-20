@@ -29,7 +29,6 @@ interface VectorAvatarProps {
   id?: string;
   scaleXY?: number;
   facing?: 'front' | 'back';
-  label?: string;
   scaleX?: number;
   scaleY?: number;
   rotation?: number;
@@ -50,7 +49,6 @@ export const VectorAvatar: React.FC<VectorAvatarProps> = ({
   id,
   scaleXY = 1,
   facing = 'front',
-  label,
   scaleX = 1,
   scaleY = 1,
   rotation = 0,
@@ -131,17 +129,17 @@ export const VectorAvatar: React.FC<VectorAvatarProps> = ({
               fill={hairColor}
             />
           ) : (
-             <Path
-              /* Back: larger hair coverage for full head coverage */
-              data="M -9.5 -22 C -11 -30 -10 -45 -1 -45 C 8 -45 11 -30 9.5 -22 C 8 -24 5 -26 0 -26 C -5 -26 -8 -24 -9.5 -22 Z"
+            <Path
+              /* Back: larger hair coverage for full head and neck coverage (nuca) */
+              data="M -10 -18 C -11 -30 -10 -48 0 -48 C 10 -48 11 -30 10 -18 C 10 -18 6 -20 0 -20 C -6 -20 -10 -18 -10 -18 Z"
               fill={hairColor}
             />
           )}
 
-          {/* ── BACK VIEW: collar/neckline detail ── */}
+          {/* ── BACK VIEW: neckline detail ── */}
           {!isFront && (
             <Path
-              data="M -6 -16 Q -3 -18 0 -18.5 Q 3 -18 6 -16"
+              data="M -6 -15 Q 0 -17 6 -15"
               fill="transparent"
               stroke="rgba(0,0,0,0.1)"
               strokeWidth={1}
@@ -248,25 +246,7 @@ export const VectorAvatar: React.FC<VectorAvatarProps> = ({
             </>
           )}
 
-          {/* ── LABEL ── */}
-          {label && (
-            <Text
-              text={label}
-              x={-20}
-              y={58}
-              width={40}
-              align="center"
-              fontSize={9}
-              fill="#ffffff"
-              fontStyle="bold"
-              shadowColor="rgba(0,0,0,0.8)"
-              shadowBlur={3}
-              shadowOffsetY={1}
-            />
-          )}
-
         </Group>
-
       </Group>
     </Group>
   );

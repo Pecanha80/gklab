@@ -12,7 +12,8 @@ import { cn, getTodayDateString, toDateString } from '../../lib/utils';
 import { TrainingSession } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { QuickSelect } from '../ui/QuickSelect';
-import type { DayKey, SavedMicrocycle } from '../../hooks/useMicrocycle';
+import type { DayKey } from '../../hooks/useMicrocycle';
+import { SavedMicrocycle } from '../../types';
 
 interface PlanningTabProps {
   sessions: TrainingSession[];

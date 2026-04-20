@@ -4,6 +4,7 @@ import { toDateString } from '../lib/utils';
 import { SavedMicrocycle } from '../types';
 
 export const ALL_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+export type DayKey = typeof ALL_DAYS[number];
 
 export function useMicrocycle(
   externalSavedMicrocycles: SavedMicrocycle[],

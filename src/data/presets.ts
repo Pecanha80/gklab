@@ -268,6 +268,18 @@ export const PRESETS = {
     'reactionSpeed',
     'endurance'
   ],
+  drillCategories: [
+    'tactCategoryOrganization',
+    'tactCategorySetPieces',
+    'tactCategoryPositioning',
+    'tactCategoryProtection',
+    'tactCategorySupport',
+    'tactCategoryTransition',
+    'strength',
+    'velocity',
+    'reactionSpeed',
+    'endurance'
+  ],
   drillTypes: ['analytical', 'decision', 'contextualized'] as const,
   intensities: ['low', 'medium', 'high'] as const,
   durations: ['dur_5min', 'dur_10min', 'dur_15min', 'dur_20min', 'dur_30min'],

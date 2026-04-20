@@ -155,7 +155,22 @@ export const MethodologyTab: React.FC = () => {
       { name: t('warmup'), value: taxonomyCounts.warmup, color: '#8b5cf6' },
     ].filter(d => d.value > 0);
 
-    // 2. Load Trend (Aggregated Daily Load for Team)
+    // 2. Tactical Category Distribution
+    const tacticalCategories = [
+      'tactCategoryOrganization',
+      'tactCategorySetPieces',
+      'tactCategoryPositioning',
+      'tactCategoryProtection',
+      'tactCategorySupport',
+      'tactCategoryTransition'
+    ];
+
+    const tacticalDistribution = tacticalCategories.map(cat => ({
+      name: t(cat as any),
+      value: exercises.filter(e => e.category === cat).length
+    })).filter(d => d.value > 0);
+
+    // 3. Load Trend (Aggregated Daily Load for Team)
     const dailyLoadMap = new Map<string, number>();
     sessions.forEach(session => {
       const sessionAtt = attendance.filter(a => a.session_id === session.id);
@@ -176,7 +191,7 @@ export const MethodologyTab: React.FC = () => {
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(-15);
 
-    // 3. Team Wellness Average (Current State)
+    // 4. Team Wellness Average (Current State)
     const recentWellness = wellnessLogs.filter(l => new Date(l.date) >= last30Days);
     const wellnessRadar = [
       { subject: t('sleep'), A: 0, fullMark: 5 },
@@ -194,7 +209,7 @@ export const MethodologyTab: React.FC = () => {
       wellnessRadar[4].A = recentWellness.reduce((s, l) => s + l.mood, 0) / recentWellness.length;
     }
 
-    // 4. Global Stats
+    // 5. Global Stats
     const totalExercises = exercises.length;
     const avgTeamWellness = recentWellness.length > 0 
       ? recentWellness.reduce((s, l) => s + (l.score || 0), 0) / recentWellness.length 
@@ -207,6 +222,7 @@ export const MethodologyTab: React.FC = () => {
 
     return {
       exerciseDonutData,
+      tacticalDistribution,
       loadTrendData,
       wellnessRadar,
       stats: {
@@ -587,17 +603,17 @@ export const MethodologyTab: React.FC = () => {
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-3xl font-black text-on-surface">{analyticsData.stats.totalExercises}</span>
-                      <span className="text-[8px] font-black uppercase tracking-widest text-on-surface-variant">{t('total' as any)}</span>
+                      <span className="text-2xl font-black text-on-surface">{analyticsData.stats.totalExercises}</span>
+                      <span className="text-[8px] font-black uppercase text-on-surface-variant tracking-widest">{t('exercisesCount' as any)}</span>
                     </div>
                   </div>
-
+                  
                   <div className="mt-8 space-y-3">
                     {analyticsData.exerciseDonutData.map((item, i) => (
                       <div key={i} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                          <span className="text-xs font-bold text-on-surface-variant">{item.name}</span>
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                          <span className="text-xs font-bold text-on-surface-variant uppercase">{item.name}</span>
                         </div>
                         <span className="text-xs font-black text-on-surface">{item.value}</span>
                       </div>
@@ -606,64 +622,80 @@ export const MethodologyTab: React.FC = () => {
                 </section>
               </div>
 
-              {/* Load Trend Chart */}
-              <section className="lg:col-span-12 bg-surface-container rounded-3xl p-8 border border-black/5 shadow-sm">
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="font-headline font-black text-lg flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                    {t('loadTrend' as any)}
+              {/* Tactical Distribution & Load Trend */}
+              <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <section className="bg-surface-container rounded-3xl p-8 border border-black/5 shadow-sm">
+                  <h3 className="font-headline font-black text-lg flex items-center gap-2 mb-8">
+                    <Brain className="w-5 h-5 text-primary" />
+                    {t('methComp_tactical' as any)}
                   </h3>
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                      <div className="w-3 h-3 rounded bg-primary/20 border border-primary/50" />
-                      AU (Volume × RPE)
-                    </div>
+                  
+                  <div className="space-y-6">
+                    {analyticsData.tacticalDistribution.length > 0 ? (
+                      analyticsData.tacticalDistribution.map((item, i) => (
+                        <div key={i} className="space-y-2">
+                          <div className="flex justify-between items-baseline">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant">{item.name}</span>
+                            <span className="text-[10px] font-black text-primary">{item.value} {t('exercisesLabel' as any)}</span>
+                          </div>
+                          <div className="h-2 w-full bg-on-surface/5 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${(item.value / analyticsData.stats.totalExercises) * 100}%` }}
+                              className="h-full bg-primary"
+                            />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-12 flex flex-col items-center justify-center text-center opacity-50">
+                        <Target className="w-8 h-8 mb-4 stroke-1" />
+                        <p className="text-xs font-bold uppercase tracking-widest">{t('noData' as any)}</p>
+                      </div>
+                    )}
                   </div>
-                </div>
+                </section>
 
-                <div className="h-80 w-full mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={analyticsData.loadTrendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="loadGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                          <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-                      <XAxis 
-                        dataKey="date" 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 600 }}
-                        dy={10}
-                      />
-                      <YAxis 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 600 }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#fff', 
-                          border: 'none', 
-                          borderRadius: '16px', 
-                          boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
-                          fontSize: '12px',
-                          fontWeight: 700
-                        }} 
-                        cursor={{ fill: 'rgba(59, 130, 246, 0.05)' }}
-                      />
-                      <Bar 
-                        dataKey="load" 
-                        fill="url(#loadGradient)" 
-                        radius={[8, 8, 0, 0]} 
-                        maxBarSize={45}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </section>
+                <section className="bg-surface-container rounded-3xl p-8 border border-black/5 shadow-sm">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="font-headline font-black text-lg flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-primary" />
+                      {t('loadTrend' as any)}
+                    </h3>
+                  </div>
+                  
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={analyticsData.loadTrendData}>
+                        <defs>
+                          <linearGradient id="loadGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 10, fill: '#6b7280', fontWeight: 600 }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 10, fill: '#6b7280', fontWeight: 600 }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <Tooltip />
+                        <Bar 
+                          dataKey="load" 
+                          fill="url(#loadGradient)" 
+                          radius={[8, 8, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </section>
+              </div>
             </div>
           </motion.div>
         ) : (

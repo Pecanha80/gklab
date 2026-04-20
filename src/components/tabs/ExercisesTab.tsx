@@ -246,7 +246,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                 <div className="space-y-1">
                   <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('type')}</label>
                   <div className="flex gap-1">
-                    {PRESETS.drillTypes.filter(t => t !== 'warmup').map(dtype => (
+                    {PRESETS.drillTypes.map(dtype => (
                       <button
                         key={dtype}
                         type="button"
@@ -264,9 +264,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('physicalCapacity')}</label>
+                <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('category')}</label>
                 <div className="flex flex-wrap gap-1">
-                  {PRESETS.physicalCapacities.map(cap => (
+                  {PRESETS.drillCategories.map(cap => (
                     <button
                       key={cap}
                       type="button"

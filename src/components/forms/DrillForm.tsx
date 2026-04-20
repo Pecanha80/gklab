@@ -3,7 +3,7 @@ import { X, Target, Library } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Exercise } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useCustomPresets } from '../../hooks/useCustomPresets';
+import { useCustomPresets, type CustomPresetsState } from '../../hooks/useCustomPresets';
 import { PRESETS } from '../../data/presets';
 import { QuickSelect } from '../ui/QuickSelect';
 
@@ -119,9 +119,9 @@ export const DrillForm: React.FC<DrillFormProps> = ({
           )}
           
           <div className="space-y-1">
-            <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('physicalCapacity')}</label>
+            <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('category')}</label>
             <div className="flex flex-wrap gap-1">
-              {PRESETS.physicalCapacities.map(cap => (
+              {PRESETS.drillCategories.map(cap => (
                 <button
                   key={cap}
                   type="button"

@@ -22,7 +22,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn, getTodayDateString } from '../../lib/utils';
 import { TrainingSession, Exercise } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useCustomPresets } from '../../hooks/useCustomPresets';
+import { useCustomPresets, type CustomPresetsState } from '../../hooks/useCustomPresets';
 import { PRESETS } from '../../data/presets';
 import { Section } from '../ui/Section';
 import { QuickSelect } from '../ui/QuickSelect';
@@ -600,7 +600,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
               </Section>
 
               {/* 5. Integrated with Team */}
-              <Section title={t('sectionIntegrated')} icon={Trophy}>
+              <Section title={t('sectionIntegrated' as any)} icon={Trophy}>
                 <div className="space-y-4">
                   {newSession.integratedWithTeam?.map((integrated) => (
                     <div key={integrated.id} className="bg-surface-container-highest p-4 rounded-lg border border-black/5 relative group">
@@ -712,7 +712,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
               </Section>
 
               {/* 6. Cool Down */}
-              <Section title={t('sectionCoolDown')} icon={Wind}>
+              <Section title={t('sectionCoolDown' as any)} icon={Wind}>
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">Exercises</label>
@@ -957,7 +957,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
               <div className="p-6">
                 {(() => {
                   const field = pendingObjective.field;
-                  let categories = PRESETS.sessionTitles;
+                  let categories: any[] = [...PRESETS.sessionTitles];
                   
                   if (field === 'technical' || field === 'drillTitles' || field === 'drillObjectives') {
                      categories = ['techCategoryHandling', 'techCategoryDiving', 'techCategoryAerial', 'techCategory1v1', 'techCategoryDistribution', 'techCategoryReactions'];
@@ -1041,7 +1041,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                       <button
                         onClick={() => {
                           const { value, field, mode } = pendingObjective;
-                          const actualValue = value.replace(/^\[.*?\]/, '');
+                          const actualValue = (value as string).replace(/^\[.*?\]/, '');
                           let defaultOptions: readonly string[] = [];
                           if (field === 'generalObjectives') defaultOptions = PRESETS.objectives.general;
                           else if (field === 'sessionTitles') defaultOptions = PRESETS.sessionTitles;
@@ -1053,7 +1053,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                           }
                           
                           if (mode === 'add') {
-                            addCustomPreset(field, value, defaultOptions, '');
+                            addCustomPreset(field as any, value as any, defaultOptions, '');
                             if (field === 'generalObjectives') {
                                handleGeneralObjectivesChange([...newSession.generalObjectives.filter(Boolean), actualValue]);
                             } else if (field === 'sessionTitles') {
@@ -1067,7 +1067,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({
                               }));
                             }
                           } else {
-                            moveCustomPreset(field, value, '');
+                            moveCustomPreset(field as any, value as any, '');
                             if (field === 'generalObjectives' && newSession.generalObjectives.includes(value)) {
                                handleGeneralObjectivesChange(
                                  newSession.generalObjectives.filter(Boolean).map(o => o === value ? actualValue : o)

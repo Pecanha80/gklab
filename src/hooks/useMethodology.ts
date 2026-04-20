@@ -26,7 +26,7 @@ export function useMethodology() {
   const { user } = useAuth();
   const [methodology, setMethodology] = useState<Methodology>(createDefaultMethodology);
   const [isLoading, setIsLoading] = useState(true);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const persistToSupabase = useCallback((data: Methodology) => {
     if (!user) return;

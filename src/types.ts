@@ -143,7 +143,6 @@ export interface PerformanceVideo {
   duration: string;
   imageUrl: string;
   status: 'Analysis Ready' | 'Uncut' | 'Edited';
-  imageUrl: string;
 }
 
 export interface SavedMicrocycle {

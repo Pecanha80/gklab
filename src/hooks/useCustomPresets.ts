@@ -82,7 +82,7 @@ export function useCustomPresets() {
   const { user } = useAuth();
   const [customPresets, setCustomPresets] = useState<CustomPresetsState>(defaultStructure);
   const [isLoading, setIsLoading] = useState(true);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const persistToSupabase = useCallback(async (data: CustomPresetsState) => {
     if (!user) return;

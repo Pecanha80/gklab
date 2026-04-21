@@ -67,7 +67,7 @@ interface PlanningTabProps {
   getOptions: (field: keyof CustomPresetsState, defaultOptions: readonly string[]) => string[];
 }
 
-export const PlanningTab: React.FC<PlanningTabProps> = ({
+export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
   sessions,
   microcycleName,
   setMicrocycleName,
@@ -113,7 +113,6 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
   getOptions,
 }) => {
   const { t, isPortuguese } = useTranslation();
-  const [pendingObjective, setPendingObjective] = React.useState<{ value: string; field: keyof CustomPresetsState; mode: 'add' | 'move' } | null>(null);
 
   return (
     <div className="space-y-6">
@@ -127,11 +126,11 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
             onClick={() => setShowMicrocycleHistory(!showMicrocycleHistory)}
             className={cn(
               "px-4 py-2 rounded-md font-label text-xs font-bold transition-all active:scale-95 flex items-center border",
-              showMicrocycleHistory ? "bg-primary/10 border-primary text-primary" : "border-primary/40 text-on-surface-variant hover:border-primary hover:text-primary"
+              showMicrocycleHistory ? "bg-primary/10 border-primary text-primary" : "border-white/[0.06] text-on-surface-variant hover:border-primary hover:text-primary"
             )}
           >
             <Clock className="w-4 h-4 mr-2" />
-            {t('history' as any)}
+            {t('history')}
           </button>
           <button onClick={() => { setActiveTab('Training'); setIsAddingSession(true); }} className="bg-primary hover:bg-primary-dim text-on-primary px-4 py-2 rounded-md font-label text-xs font-bold transition-all active:scale-95 flex items-center">
             <Plus className="w-4 h-4 mr-2" />
@@ -149,24 +148,24 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-surface-container rounded-xl border border-primary/40 p-5 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">{t('savedMicrocycles' as any)}</h3>
+            <div className="bg-surface rounded-xl border border-white/[0.06] p-5 space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">{t('savedMicrocycles')}</h3>
               {savedMicrocycles.length === 0 ? (
-                <p className="text-xs text-on-surface-variant italic">{t('noSavedMicrocycles' as any)}</p>
+                <p className="text-xs text-on-surface-variant italic">{t('noSavedMicrocycles')}</p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {savedMicrocycles.map(mc => {
                     const startDate = new Date(mc.startDate);
                     return (
-                      <div key={mc.id} className="bg-surface-container-highest p-3 rounded-lg border border-primary/40 flex items-center justify-between group hover:border-primary transition-all">
+                      <div key={mc.id} className="bg-surface-elevated p-3 rounded-lg border border-white/[0.06] flex items-center justify-between group hover:border-primary transition-all">
                         <button onClick={() => loadMicrocycle(mc)} className="flex-1 text-left">
                           <div className="text-xs font-bold text-on-surface">{mc.name}</div>
                           <div className="text-[10px] text-on-surface-variant mt-0.5">
                             {startDate.toLocaleDateString(isPortuguese ? 'pt-BR' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
-                            {mc.matchDay && <> · <Trophy className="w-2.5 h-2.5 inline-block text-yellow-500" /> {t(mc.matchDay as any)}</>}
+                            {mc.matchDay && <> · <Trophy className="w-2.5 h-2.5 inline-block text-yellow-500" /> {t(mc.matchDay)}</>}
                           </div>
                         </button>
-                        <button aria-label={t('delete' as any)} onClick={() => deleteMicrocycle(mc.id)} className="p-1.5 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all">
+                        <button aria-label={t('delete')} onClick={() => deleteMicrocycle(mc.id)} className="p-1.5 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -180,7 +179,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
       </AnimatePresence>
 
       {/* Microcycle Config */}
-      <div className="bg-surface-container rounded-xl border border-primary/40 p-5">
+      <div className="bg-surface rounded-xl border border-white/[0.06] p-5">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="space-y-1">
             <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('microcycleName')}</label>
@@ -189,40 +188,40 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
               value={microcycleName}
               onChange={e => setMicrocycleName(e.target.value)}
               placeholder={t('microcycleNamePlaceholder')}
-              className="w-full bg-surface-container-highest border border-primary/40 rounded px-3 py-2 text-xs"
+              className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('mesocycle' as any)}</label>
+            <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('mesocycle')}</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={mesocycle}
                 onChange={e => setMesocycle(e.target.value)}
                 placeholder="ex. Pré-Temporada"
-                className="flex-1 bg-surface-container-highest border border-primary/40 rounded px-3 py-2 text-xs"
+                className="flex-1 bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
               />
               <QuickSelect
                 label="Presets"
                 options={getOptions('mesocycles', PRESETS.mesocycles)}
-                onSelect={(vals) => setMesocycle(vals.map(v => t(v as any)).join(', '))}
+                onSelect={(vals) => setMesocycle(vals.map(v => t(v)).join(', '))}
                 selectedValues={mesocycle.split(', ').filter(Boolean)}
                 onDelete={(val) => removeCustomPreset('mesocycles', val)}
                 isDeletable={(val) => !val.startsWith('#')}
-                onAdd={(val) => setPendingObjective({ value: val, field: 'mesocycles', mode: 'add' })}
-                onMove={(val) => setPendingObjective({ value: val, field: 'mesocycles', mode: 'move' })}
+                onAdd={(val) => addCustomPreset('mesocycles', val, [])}
+                onMove={(val) => moveCustomPreset('mesocycles', val, '')}
               />
             </div>
           </div>
           <div className="space-y-1">
-            <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('startDate' as any)}</label>
+            <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('startDate')}</label>
             <input
               type="date"
               value={microcycleStartDate}
               onChange={e => {
                 setMicrocycleStartDate(e.target.value);
               }}
-              className="w-full bg-surface-container-highest border border-primary/40 rounded px-3 py-2 text-xs"
+              className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
             />
           </div>
           <div className="space-y-1">
@@ -231,7 +230,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
               type="date"
               value={microcycleEndDate}
               onChange={e => setMicrocycleEndDate(e.target.value)}
-              className="w-full bg-surface-container-highest border border-primary/40 rounded px-3 py-2 text-xs"
+              className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
             />
           </div>
           <div className="space-y-1">
@@ -240,7 +239,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
               <select
                 value={matchDay || ''}
                 onChange={e => setMatchDay(e.target.value || null)}
-                className="flex-1 bg-surface-container-highest border border-primary/40 rounded px-3 py-2 text-xs"
+                className="flex-1 bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
               >
                 <option value="">{t('noMatch')}</option>
                 {getMicrocycleDays().map(dateStr => (
@@ -259,7 +258,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
                 "w-full px-3 py-2 rounded font-label text-xs font-bold transition-all flex items-center justify-center gap-2",
                 microcycleName.trim() && !isSaving
                   ? "bg-primary hover:bg-primary-dim text-on-primary active:scale-95"
-                  : "bg-black/5 text-on-surface-variant cursor-not-allowed"
+                  : "bg-white/[0.03] text-on-surface-variant cursor-not-allowed"
               )}
             >
               {isSaving ? (
@@ -267,7 +266,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
               ) : (
                 <FileText className="w-3.5 h-3.5" />
               )}
-              {isSaving ? t('saving' as any) : t('save' as any)}
+              {isSaving ? t('saving') : t('save')}
             </button>
           </div>
         </div>
@@ -277,7 +276,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
           <motion.div 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-4 pt-4 border-t border-black/5 grid grid-cols-1 sm:grid-cols-4 gap-4"
+            className="mt-4 pt-4 border-t border-white/[0.04] grid grid-cols-1 sm:grid-cols-4 gap-4"
           >
             <div className="space-y-1">
               <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('opponent')}</label>
@@ -286,7 +285,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
                 value={matchOpponent}
                 onChange={e => setMatchOpponent(e.target.value)}
                 placeholder="ex. Flamengo"
-                className="w-full bg-surface-container-highest border border-primary/40 rounded px-3 py-2 text-xs"
+                className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
               />
             </div>
             <div className="space-y-1">
@@ -296,7 +295,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
                 value={matchLocation}
                 onChange={e => setMatchLocation(e.target.value)}
                 placeholder="ex. Maracanã"
-                className="w-full bg-surface-container-highest border border-primary/40 rounded px-3 py-2 text-xs"
+                className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
               />
             </div>
             <div className="space-y-1">
@@ -305,7 +304,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
                 type="time"
                 value={matchTime}
                 onChange={e => setMatchTime(e.target.value)}
-                className="w-full bg-surface-container-highest border border-primary/40 rounded px-3 py-2 text-xs"
+                className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
               />
             </div>
             <div className="space-y-1">
@@ -316,17 +315,17 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
                   value={matchCompetition}
                   onChange={e => setMatchCompetition(e.target.value)}
                   placeholder="ex. Brasileirão"
-                  className="flex-1 bg-surface-container-highest border border-primary/40 rounded px-3 py-2 text-xs"
+                  className="flex-1 bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
                 />
                 <QuickSelect
                   label="Presets"
                   options={getOptions('competitions', PRESETS.competitions)}
-                  onSelect={(vals) => setMatchCompetition(vals.map(v => t(v as any)).join(', '))}
+                  onSelect={(vals) => setMatchCompetition(vals.map(v => t(v)).join(', '))}
                   selectedValues={matchCompetition.split(', ').filter(Boolean)}
                   onDelete={(val) => removeCustomPreset('competitions', val)}
                   isDeletable={(val) => !val.startsWith('#')}
-                  onAdd={(val) => setPendingObjective({ value: val, field: 'competitions', mode: 'add' })}
-                  onMove={(val) => setPendingObjective({ value: val, field: 'competitions', mode: 'move' })}
+                  onAdd={(val) => addCustomPreset('competitions', val, [])}
+                  onMove={(val) => moveCustomPreset('competitions', val, '')}
                 />
               </div>
             </div>
@@ -355,7 +354,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
                     ? "bg-blue-500/10 border-blue-400" 
                     : isToday 
                       ? "bg-primary/10 border-primary" 
-                      : "bg-surface-container-highest border-primary/50"
+                      : "bg-surface-elevated border-white/[0.06]"
               )}>
                 <span className={cn(
                   "text-[10px] font-black uppercase tracking-widest",
@@ -378,16 +377,16 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
                 )}
               </div>
               <div className={cn(
-                "rounded-b-xl border border-black/5 min-h-[300px] p-3 space-y-3 transition-colors",
-                isMatch ? "bg-yellow-500/5" : isRestDay ? "bg-blue-500/5" : "bg-surface-container"
+                "rounded-b-xl border border-white/[0.04] min-h-[300px] p-3 space-y-3 transition-colors",
+                isMatch ? "bg-yellow-500/5" : isRestDay ? "bg-blue-500/5" : "bg-surface"
               )}>
                 {daySessions.map(session => (
-                  <div key={session.id} onClick={() => setViewingSession(session)} className="bg-surface-container-highest p-3 rounded-lg border border-primary/40 group cursor-pointer hover:border-primary transition-all">
+                  <div key={session.id} onClick={() => setViewingSession(session)} className="bg-surface-elevated p-3 rounded-lg border border-white/[0.06] group cursor-pointer hover:border-primary transition-all">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[8px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">{t(session.category as any)}</span>
+                      <span className="text-[8px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">{Array.isArray(session.category) ? session.category.map(c => t(c)).join(', ') : t(session.category)}</span>
                       <Clock className="w-3 h-3 text-on-surface-variant" />
                     </div>
-                    <h4 className="text-xs font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2">{session.titles?.map(t_ => t(t_ as any)).join(' & ')}</h4>
+                    <h4 className="text-xs font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2">{session.titles?.map(t_ => t(t_)).join(' & ')}</h4>
                     <div className="flex items-center gap-2 mt-2">
                       <div className="flex -space-x-1">
                         {[1, 2, 3].map(i => (
@@ -433,7 +432,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
                           setActiveTab('Training'); 
                           setIsAddingSession(true); 
                         }} 
-                        className="w-full py-4 border border-dashed border-primary/40 rounded-xl text-on-surface-variant hover:border-primary hover:text-primary transition-all flex flex-col items-center justify-center gap-1 group bg-black/5"
+                        className="w-full py-4 border border-dashed border-white/[0.06] rounded-xl text-on-surface-variant hover:border-primary hover:text-primary transition-all flex flex-col items-center justify-center gap-1 group bg-white/[0.03]"
                       >
                         <Plus className="w-4 h-4" />
                         <span className="text-[8px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">{t('newSession')}</span>
@@ -446,7 +445,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
                         "w-full py-2 rounded-lg text-[8px] font-bold uppercase tracking-widest transition-all border",
                         isRestDay 
                           ? "bg-blue-500 text-white border-blue-500 hover:bg-blue-600" 
-                          : "bg-surface-container-highest text-on-surface-variant border-black/5 hover:bg-blue-500/10 hover:text-blue-600 hover:border-blue-500/20"
+                          : "bg-surface-elevated text-on-surface-variant border-white/[0.04] hover:bg-blue-500/10 hover:text-blue-600 hover:border-blue-500/20"
                       )}
                     >
                       {isRestDay ? 'Remover Folga' : 'Marcar Folga'}
@@ -460,99 +459,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = ({
       </div>
       </div>
 
-      <AnimatePresence>
-        {pendingObjective && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setPendingObjective(null)} className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative bg-surface rounded-2xl shadow-2xl border border-primary/40 w-full max-w-lg overflow-hidden">
-              <div className="p-6 border-b border-primary/40 flex items-center justify-between bg-surface-container-low">
-                <div>
-                  <h3 className="text-lg font-black font-headline tracking-tight">{t(pendingObjective.mode === 'add' ? 'sessionCategorySelect' as any : 'moveTo' as any)}</h3>
-                  <p className="text-xs text-on-surface-variant font-label mt-1">"{pendingObjective.value.replace(/^\[.*?\]/, '')}"</p>
-                </div>
-                <button onClick={() => setPendingObjective(null)} className="p-2 hover:bg-black/5 rounded-full transition-colors"><X className="w-5 h-5" /></button>
-              </div>
-              
-              <div className="p-6">
-                {(() => {
-                  const field = pendingObjective.field;
-                  let categories: any[] = [];
-                  
-                  if (field === 'mesocycles') {
-                     categories = ['# mesocycleCategory'];
-                  } else if (field === 'competitions') {
-                     categories = ['# competitionCategory'];
-                  }
-
-                  return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                      {categories.map((titleKey) => (
-                        <button
-                          key={titleKey}
-                          onClick={() => {
-                            const { value, field, mode } = pendingObjective;
-                            const actualValue = value.replace(/^\[.*?\]/, '');
-                            const newFullValue = titleKey ? `[${titleKey}]${actualValue}` : actualValue;
-                            
-                            const p = PRESETS as any;
-                            const defaultOptions = p[field] || [];
-
-                            if (mode === 'add') {
-                              addCustomPreset(field, value, defaultOptions, titleKey);
-                              if (field === 'mesocycles') setMesocycle(newFullValue);
-                              else if (field === 'competitions') setMatchCompetition(newFullValue);
-                            } else {
-                              moveCustomPreset(field, value, titleKey);
-                              if (field === 'mesocycles' && mesocycle === value) setMesocycle(newFullValue);
-                              else if (field === 'competitions' && matchCompetition === value) setMatchCompetition(newFullValue);
-                            }
-                            setPendingObjective(null);
-                          }}
-                          className="group flex items-center gap-3 p-4 bg-surface-container-highest hover:bg-primary/10 border border-black/5 rounded-xl transition-all text-left"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shrinking-0">
-                            <Plus className="w-4 h-4 text-primary" />
-                          </div>
-                          <span className="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                            {t(titleKey as any)}
-                          </span>
-                        </button>
-                      ))}
-                      <button
-                        onClick={() => {
-                          const { value, field, mode } = pendingObjective;
-                          const actualValue = value.replace(/^\[.*?\]/, '');
-                          const p = PRESETS as any;
-                          const defaultOptions = p[field] || [];
-                          
-                          if (mode === 'add') {
-                            addCustomPreset(field, value, defaultOptions, '');
-                            if (field === 'mesocycles') setMesocycle(actualValue);
-                            else if (field === 'competitions') setMatchCompetition(actualValue);
-                          } else {
-                            moveCustomPreset(field, value, '');
-                            if (field === 'mesocycles' && mesocycle === value) setMesocycle(actualValue);
-                            else if (field === 'competitions' && matchCompetition === value) setMatchCompetition(actualValue);
-                          }
-                          setPendingObjective(null);
-                        }}
-                        className="group flex items-center gap-3 p-4 bg-on-surface/5 hover:bg-on-surface/10 border border-dashed border-primary/40 rounded-xl transition-all text-left col-span-full mt-2"
-                      >
-                        <div className="w-8 h-8 rounded-lg bg-on-surface/10 flex items-center justify-center">
-                          <X className="w-4 h-4 text-on-surface-variant" />
-                        </div>
-                        <span className="text-sm font-bold text-on-surface opacity-70 italic">
-                          {t('sessionCategoryNone' as any) || 'Sem Categoria / Geral'}
-                        </span>
-                      </button>
-                    </div>
-                  );
-                })()}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
-};
+});
+PlanningTab.displayName = 'PlanningTab';

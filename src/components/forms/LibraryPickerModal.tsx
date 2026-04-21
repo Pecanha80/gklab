@@ -44,9 +44,9 @@ export const LibraryPickerModal: React.FC<LibraryPickerModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label={t('selectFromLibrary')}
-        className="relative z-10 bg-surface-container border border-black/10 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col"
+        className="relative z-10 bg-surface border border-white/[0.06] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col"
       >
-        <div className="p-6 border-b border-black/10 flex items-center justify-between bg-surface-container-highest">
+        <div className="p-6 border-b border-white/[0.06] flex items-center justify-between bg-surface-elevated">
           <div>
             <h3 className="text-xl font-bold text-on-surface flex items-center gap-2">
               <Library className="w-5 h-5 text-secondary" />
@@ -67,7 +67,7 @@ export const LibraryPickerModal: React.FC<LibraryPickerModalProps> = ({
               value={exerciseSearchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder={t('searchSavedExercises')}
-              className="w-full bg-surface-container-highest border border-black/10 rounded-full pl-10 pr-4 py-2 text-sm focus:border-secondary transition-all"
+              className="w-full bg-surface-elevated border border-white/[0.06] rounded-full pl-10 pr-4 py-2 text-sm focus:border-secondary transition-all"
             />
           </div>
 
@@ -83,7 +83,7 @@ export const LibraryPickerModal: React.FC<LibraryPickerModalProps> = ({
                   key={ex.id}
                   type="button"
                   onClick={() => onSelect(ex)}
-                  className="bg-surface-container-highest p-4 rounded-xl border border-black/5 hover:border-secondary transition-all text-left group"
+                  className="bg-surface-elevated p-4 rounded-xl border border-white/[0.04] hover:border-secondary transition-all text-left group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="bg-secondary/20 text-secondary text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">{ex.type}</span>
@@ -95,7 +95,7 @@ export const LibraryPickerModal: React.FC<LibraryPickerModalProps> = ({
               ))}
 
             {exercisesLibrary.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-black/10 rounded-xl">
+              <div className="col-span-full flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-white/[0.06] rounded-xl">
                 <Target className="w-10 h-10 text-on-surface-variant mb-3" />
                 <h4 className="text-lg font-bold text-on-surface mb-1">{t('libraryEmpty')}</h4>
                 <p className="text-[10px] text-on-surface-variant max-w-xs mb-4">{t('libraryEmptyDescription')}</p>
@@ -111,7 +111,7 @@ export const LibraryPickerModal: React.FC<LibraryPickerModalProps> = ({
           </div>
         </div>
 
-        <div className="p-6 border-t border-black/10 flex justify-end">
+        <div className="p-6 border-t border-white/[0.06] flex justify-end">
           <button
             type="button"
             onClick={onClose}

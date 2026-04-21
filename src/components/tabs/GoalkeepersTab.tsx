@@ -93,7 +93,7 @@ function calculateAge(birthDate: string): number | null {
   return age;
 }
 
-export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
+export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
   goalkeepers,
   addGoalkeeper,
   updateGoalkeeper,
@@ -150,8 +150,8 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
 
   const membershipLabels: Record<MembershipFilter, string> = {
     'All': t('all'),
-    'permanent': t('permanentAthletes' as any),
-    'trial': t('trialAthletes' as any),
+    'permanent': t('permanentAthletes'),
+    'trial': t('trialAthletes'),
   };
 
   const filteredGoalkeepers = goalkeepers.filter((gk) => {
@@ -227,7 +227,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="font-headline text-2xl font-bold text-on-surface">{t('goalkeepersTitle')}</h1>
         <div className="flex items-center gap-3">
-          <div className="flex gap-1 rounded-lg bg-surface-container p-1">
+          <div className="flex gap-1 rounded-lg bg-surface p-1">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -236,14 +236,14 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   'rounded-md px-3 py-1.5 font-label text-sm font-medium transition-colors',
                   activeCategory === cat
                     ? 'bg-primary text-on-primary'
-                    : 'text-on-surface-variant hover:bg-surface-container-highest'
+                    : 'text-on-surface-variant hover:bg-surface-elevated'
                 )}
               >
                 {categoryLabels[cat]}
               </button>
             ))}
           </div>
-          <div className="flex gap-1 rounded-lg bg-surface-container p-1">
+          <div className="flex gap-1 rounded-lg bg-surface p-1">
             {(['All', 'permanent', 'trial'] as MembershipFilter[]).map((mem) => (
               <button
                 key={mem}
@@ -252,7 +252,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   'rounded-md px-3 py-1.5 font-label text-sm font-medium transition-colors',
                   activeMembership === mem
                     ? 'bg-primary text-on-primary'
-                    : 'text-on-surface-variant hover:bg-surface-container-highest'
+                    : 'text-on-surface-variant hover:bg-surface-elevated'
                 )}
               >
                 {membershipLabels[mem]}
@@ -271,7 +271,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
 
       {/* Grid */}
       {filteredGoalkeepers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container py-20">
+        <div className="flex flex-col items-center justify-center rounded-xl bg-surface py-20">
           <Activity className="mb-3 h-10 w-10 text-on-surface-variant/40" />
           <p className="font-label text-on-surface-variant">{t('noGoalkeepersFound')}</p>
         </div>
@@ -280,40 +280,40 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
           {filteredGoalkeepers.map((gk) => (
             <div
               key={gk.id}
-              className="group relative rounded-xl border border-black/5 bg-surface-container p-5 transition-shadow hover:shadow-md"
+              className="group relative rounded-xl border border-white/[0.04] bg-surface p-5 transition-shadow hover:shadow-md"
             >
               {/* Hover actions */}
               <div className="absolute right-3 top-3 flex gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
                 <button
                   onClick={() => openWellnessModal(gk)}
                   className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 p-1.5 text-emerald-700 transition-colors hover:bg-emerald-500 hover:text-white"
-                  title={t('logWellness' as any)}
+                  title={t('logWellness')}
                 >
                   <Heart className="h-4 w-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-tight pr-1">{t('wellness' as any)}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-tight pr-1">{t('wellness')}</span>
                 </button>
                 {(gk.membership || 'permanent') === 'trial' && (
                   <button
                     onClick={() => {
-                      if (confirm(t('confirmConvert' as any))) {
+                      if (confirm(t('confirmConvert'))) {
                         updateGoalkeeper({ ...gk, membership: 'permanent', trialStartDate: undefined, trialEndDate: undefined, trialNotes: undefined });
                       }
                     }}
-                    className="rounded-md bg-surface-container-highest p-1.5 text-on-surface-variant transition-colors hover:text-tertiary"
-                    title={t('convertToPermanent' as any)}
+                    className="rounded-md bg-surface-elevated p-1.5 text-on-surface-variant transition-colors hover:text-tertiary"
+                    title={t('convertToPermanent')}
                   >
                     <UserCheck className="h-4 w-4" />
                   </button>
                 )}
                 <button
                   onClick={() => openEditModal(gk)}
-                  className="rounded-md bg-surface-container-highest p-1.5 text-on-surface-variant transition-colors hover:text-primary"
+                  className="rounded-md bg-surface-elevated p-1.5 text-on-surface-variant transition-colors hover:text-primary"
                 >
                   <Edit3 className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => { if (window.confirm(t('confirmDeleteGoalkeeper' as any))) deleteGoalkeeper(gk.id); }}
-                  className="rounded-md bg-surface-container-highest p-1.5 text-on-surface-variant transition-colors hover:text-error"
+                  onClick={() => { if (window.confirm(t('confirmDeleteGoalkeeper'))) deleteGoalkeeper(gk.id); }}
+                  className="rounded-md bg-surface-elevated p-1.5 text-on-surface-variant transition-colors hover:text-error"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -349,9 +349,9 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                         expired: 'bg-red-100 text-red-700',
                       };
                       const badgeText = {
-                        active: t('trial' as any),
-                        expiring: t('trialExpiring' as any),
-                        expired: t('trialExpired' as any),
+                        active: t('trial'),
+                        expiring: t('trialExpiring'),
+                        expired: t('trialExpired'),
                       };
                       return (
                         <span className={cn('inline-block rounded-md px-2 py-0.5 font-label text-xs font-medium', badgeClasses[trialStatus])}>
@@ -372,32 +372,32 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
               {/* Details */}
               <div className="flex flex-wrap gap-3 text-xs">
                 {gk.birthDate && (
-                  <div className="rounded-md bg-surface-container-highest px-2.5 py-1.5">
-                    <span className="text-on-surface-variant">{t('age' as any)}: </span>
-                    <span className="font-medium text-on-surface">{calculateAge(gk.birthDate)} {t('years' as any)}</span>
+                  <div className="rounded-md bg-surface-elevated px-2.5 py-1.5">
+                    <span className="text-on-surface-variant">{t('age')}: </span>
+                    <span className="font-medium text-on-surface">{calculateAge(gk.birthDate)} {t('years')}</span>
                   </div>
                 )}
                 {gk.height && (
-                  <div className="rounded-md bg-surface-container-highest px-2.5 py-1.5">
-                    <span className="text-on-surface-variant">{t('height' as any)}: </span>
+                  <div className="rounded-md bg-surface-elevated px-2.5 py-1.5">
+                    <span className="text-on-surface-variant">{t('height')}: </span>
                     <span className="font-medium text-on-surface">{gk.height} cm</span>
                   </div>
                 )}
                 {gk.weight && (
-                  <div className="rounded-md bg-surface-container-highest px-2.5 py-1.5">
-                    <span className="text-on-surface-variant">{t('weight' as any)}: </span>
+                  <div className="rounded-md bg-surface-elevated px-2.5 py-1.5">
+                    <span className="text-on-surface-variant">{t('weight')}: </span>
                     <span className="font-medium text-on-surface">{gk.weight} kg</span>
                   </div>
                 )}
                 {(gk.membership || 'permanent') === 'trial' && gk.trialStartDate && (
                   <div className="rounded-md bg-amber-50 px-2.5 py-1.5">
-                    <span className="text-amber-600">{t('trialStartDate' as any)}: </span>
+                    <span className="text-amber-600">{t('trialStartDate')}: </span>
                     <span className="font-medium text-amber-800">{new Date(gk.trialStartDate).toLocaleDateString()}</span>
                   </div>
                 )}
                 {(gk.membership || 'permanent') === 'trial' && gk.trialEndDate && (
                   <div className="rounded-md bg-amber-50 px-2.5 py-1.5">
-                    <span className="text-amber-600">{t('trialEndDate' as any)}: </span>
+                    <span className="text-amber-600">{t('trialEndDate')}: </span>
                     <span className="font-medium text-amber-800">{new Date(gk.trialEndDate).toLocaleDateString()}</span>
                   </div>
                 )}
@@ -435,7 +435,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                 <button
                   aria-label={t('close')}
                   onClick={closeModal}
-                  className="rounded-md p-1 text-on-surface-variant transition-colors hover:bg-surface-container-highest"
+                  className="rounded-md p-1 text-on-surface-variant transition-colors hover:bg-surface-elevated"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -452,7 +452,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                     required
                     value={formState.name}
                     onChange={(e) => setFormState((s) => ({ ...s, name: e.target.value }))}
-                    className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                    className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                     placeholder={t('goalkeeperName')}
                   />
                 </div>
@@ -471,7 +471,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                           category: e.target.value as Goalkeeper['category'],
                         }))
                       }
-                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                     >
                       {gkCategories.map((cat) => (
                         <option key={cat} value={cat}>
@@ -492,7 +492,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                           status: e.target.value as Goalkeeper['status'],
                         }))
                       }
-                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                     >
                       {statuses.map((st) => (
                         <option key={st} value={st}>
@@ -503,7 +503,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   </div>
                   <div>
                     <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
-                      {t('membership' as any)}
+                      {t('membership')}
                     </label>
                     <select
                       value={formState.membership}
@@ -513,10 +513,10 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                           membership: e.target.value as 'permanent' | 'trial',
                         }))
                       }
-                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                     >
-                      <option value="permanent">{t('permanent' as any)}</option>
-                      <option value="trial">{t('trial' as any)}</option>
+                      <option value="permanent">{t('permanent')}</option>
+                      <option value="trial">{t('trial')}</option>
                     </select>
                   </div>
                 </div>
@@ -527,45 +527,45 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
-                          {t('trialStartDate' as any)}
+                          {t('trialStartDate')}
                         </label>
                         <input
                           type="date"
                           value={formState.trialStartDate}
                           onChange={(e) => setFormState((s) => ({ ...s, trialStartDate: e.target.value }))}
-                          className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                          className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                         />
                       </div>
                       <div>
                         <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
-                          {t('trialEndDate' as any)}
+                          {t('trialEndDate')}
                         </label>
                         <input
                           type="date"
                           value={formState.trialEndDate}
                           onChange={(e) => setFormState((s) => ({ ...s, trialEndDate: e.target.value }))}
-                          className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                          className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                         />
                       </div>
                     </div>
                     <div>
                       <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
-                        {t('trialNotes' as any)}
+                        {t('trialNotes')}
                       </label>
                       <textarea
                         value={formState.trialNotes}
                         onChange={(e) => setFormState((s) => ({ ...s, trialNotes: e.target.value }))}
                         rows={3}
-                        className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary resize-none"
-                        placeholder={t('trialNotesPlaceholder' as any)}
+                        className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary resize-none"
+                        placeholder={t('trialNotesPlaceholder')}
                       />
                     </div>
                   </div>
                 )}
 
                 {/* Form, Recovery, Load */}
-                <div className="space-y-3 rounded-lg border border-black/5 bg-surface-container p-4">
-                  <p className="font-label text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{t('physicalMetrics' as any)}</p>
+                <div className="space-y-3 rounded-lg border border-white/[0.04] bg-surface p-4">
+                  <p className="font-label text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{t('physicalMetrics')}</p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
                       <label className="w-24 font-label text-sm text-on-surface-variant">{t('formLabel')}</label>
@@ -610,24 +610,24 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
-                      {t('birthDate' as any)}
+                      {t('birthDate')}
                     </label>
                     <input
                       type="date"
                       max={getTodayDateString()}
                       value={formState.birthDate}
                       onChange={(e) => setFormState((s) => ({ ...s, birthDate: e.target.value }))}
-                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                     />
                     {formState.birthDate && (
                       <p className="mt-1 font-label text-xs text-primary font-medium">
-                        {calculateAge(formState.birthDate)} {t('years' as any)}
+                        {calculateAge(formState.birthDate)} {t('years')}
                       </p>
                     )}
                   </div>
                   <div>
                     <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
-                      {t('height' as any)} (cm)
+                      {t('height')} (cm)
                     </label>
                     <input
                       type="number"
@@ -635,13 +635,13 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                       max={220}
                       value={formState.height}
                       onChange={(e) => setFormState((s) => ({ ...s, height: e.target.value === '' ? '' : Number(e.target.value) }))}
-                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                       placeholder="185"
                     />
                   </div>
                   <div>
                     <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
-                      {t('weight' as any)} (kg)
+                      {t('weight')} (kg)
                     </label>
                     <input
                       type="number"
@@ -649,7 +649,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                       max={150}
                       value={formState.weight}
                       onChange={(e) => setFormState((s) => ({ ...s, weight: e.target.value === '' ? '' : Number(e.target.value) }))}
-                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                       placeholder="80"
                     />
                   </div>
@@ -661,7 +661,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                     {t('imageUrl')}
                   </label>
                   <div className="flex items-center gap-4">
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-dashed border-primary/40 bg-surface-container">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-dashed border-white/[0.06] bg-surface">
                       {formState.imageUrl ? (
                         <img src={formState.imageUrl} alt="Preview" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
@@ -674,11 +674,11 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        aria-label={t('uploadImage' as any)}
-                        className="flex items-center gap-2 rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
+                        aria-label={t('uploadImage')}
+                        className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
                       >
                         <Upload className="h-4 w-4" />
-                        {t('uploadImage' as any)}
+                        {t('uploadImage')}
                       </button>
                       <input
                         ref={fileInputRef}
@@ -712,8 +712,8 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                         type="text"
                         value={formState.imageUrl.startsWith('data:') ? '' : formState.imageUrl}
                         onChange={(e) => setFormState((s) => ({ ...s, imageUrl: e.target.value }))}
-                        className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-1.5 font-label text-xs text-on-surface outline-none focus:border-primary"
-                        placeholder={t('orPasteUrl' as any)}
+                        className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-1.5 font-label text-xs text-on-surface outline-none focus:border-primary"
+                        placeholder={t('orPasteUrl')}
                       />
                     </div>
                   </div>
@@ -724,7 +724,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="rounded-lg border border-primary/40 px-4 py-2 font-label text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container-highest"
+                    className="rounded-lg border border-white/[0.06] px-4 py-2 font-label text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-elevated"
                   >
                     {t('cancel')}
                   </button>
@@ -755,4 +755,5 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
       </AnimatePresence>
     </div>
   );
-};
+});
+GoalkeepersTab.displayName = 'GoalkeepersTab';

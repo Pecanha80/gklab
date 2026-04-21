@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Methodology, PeriodizationPhase } from '../types';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
+import { useToast } from './useToast';
 
 function createDefaultMethodology(): Methodology {
   return {
@@ -24,6 +25,7 @@ function createDefaultMethodology(): Methodology {
 
 export function useMethodology() {
   const { user } = useAuth();
+  const { showError } = useToast();
   const [methodology, setMethodology] = useState<Methodology>(createDefaultMethodology);
   const [isLoading, setIsLoading] = useState(true);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -46,7 +48,7 @@ export function useMethodology() {
         });
 
       if (error) {
-        console.error('Error saving methodology:', error);
+        showError('Erro ao salvar metodologia');
       }
     }, 500);
   }, [user]);
@@ -67,7 +69,7 @@ export function useMethodology() {
           .single();
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error loading methodology:', error);
+          showError('Erro ao carregar metodologia');
         } else if (data) {
           setMethodology({
             gameModel: data.game_model || [],
@@ -77,7 +79,7 @@ export function useMethodology() {
           });
         }
       } catch (err) {
-        console.error('Error loading methodology:', err);
+        showError('Erro ao carregar metodologia');
       }
       setIsLoading(false);
     };

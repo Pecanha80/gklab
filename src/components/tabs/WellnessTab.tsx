@@ -44,7 +44,7 @@ export const WellnessTab: React.FC = () => {
         <div className="w-20 h-20 rounded-full bg-on-surface/5 flex items-center justify-center">
           <Heart className="w-10 h-10 text-on-surface-variant opacity-20" />
         </div>
-        <h3 className="text-xl font-bold">{t('wellnessTab' as any)}</h3>
+        <h3 className="text-xl font-bold">{t('wellnessTab')}</h3>
         <p className="text-on-surface-variant max-w-md">
           Nenhum goleiro encontrado. Adicione goleiros e peça que preencham os questionários de bem-estar para ver as estatísticas.
         </p>
@@ -58,16 +58,16 @@ export const WellnessTab: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h2 className="text-3xl font-black font-headline tracking-tight text-on-surface">
-            {t('wellnessTab' as any)}
+            {t('wellnessTab')}
           </h2>
           <p className="text-on-surface-variant font-label mt-1">
-            {t('monitoring' as any)} — {new Date().toLocaleDateString()}
+            {t('monitoring')} — {new Date().toLocaleDateString()}
           </p>
         </div>
         
         <div className="flex flex-wrap gap-3">
           <StatCard 
-            label={t('averageWellness' as any)} 
+            label={t('averageWellness')} 
             value={stats?.avgRecovery || "0.0"} 
             subValue="/ 5.0"
             icon={Heart} 
@@ -75,7 +75,7 @@ export const WellnessTab: React.FC = () => {
             bg="bg-emerald-500/10"
           />
           <StatCard 
-            label={t('overallRecovery' as any)} 
+            label={t('overallRecovery')} 
             value={stats ? `${stats.readiness}%` : "0%"} 
             icon={TrendingUp} 
             color="text-primary" 
@@ -83,7 +83,7 @@ export const WellnessTab: React.FC = () => {
             trend={stats ? "+0%" : undefined}
           />
           <StatCard 
-            label={t('lowRecoveryAlert' as any)} 
+            label={t('lowRecoveryAlert')} 
             value={stats?.alertCount.toString() || "0"} 
             icon={AlertTriangle} 
             color="text-amber-500" 
@@ -95,17 +95,17 @@ export const WellnessTab: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Main Chart Area */}
         <div className="lg:col-span-8 space-y-6">
-          <section className="bg-surface-container rounded-2xl border border-black/5 p-6 shadow-sm overflow-hidden relative">
+          <section className="bg-surface rounded-2xl border border-white/[0.04] p-6 shadow-sm overflow-hidden relative">
             <div className="flex items-center justify-between mb-8">
               <h3 className="font-headline font-bold text-lg flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-primary" />
-                {t('recoveryTrend' as any)}
+                {t('recoveryTrend')}
               </h3>
               <div className="flex gap-2">
                 {['7D', '14D', '30D'].map(p => (
                   <button key={p} className={cn(
                     "px-3 py-1 rounded-full text-[10px] font-bold transition-all",
-                    p === '7D' ? "bg-primary text-on-primary" : "bg-black/5 text-on-surface-variant hover:bg-black/10"
+                    p === '7D' ? "bg-primary text-on-primary" : "bg-white/[0.03] text-on-surface-variant hover:bg-white/[0.04]"
                   )}>{p}</button>
                 ))}
               </div>
@@ -138,13 +138,13 @@ export const WellnessTab: React.FC = () => {
                   ))}
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[1px]">
-                  <span className="bg-surface-container-high px-4 py-2 rounded-lg border border-black/10 shadow-xl font-bold text-primary animate-in fade-in zoom-in duration-300">
-                    {t('recoveryScore' as any)}: {stats?.avgRecovery}
+                  <span className="bg-surface-container-high px-4 py-2 rounded-lg border border-white/[0.06] shadow-xl font-bold text-primary animate-in fade-in zoom-in duration-300">
+                    {t('recoveryScore')}: {stats?.avgRecovery}
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="h-64 w-full flex items-center justify-center border-2 border-dashed border-black/5 rounded-xl">
+              <div className="h-64 w-full flex items-center justify-center border-2 border-dashed border-white/[0.04] rounded-xl">
                 <p className="text-on-surface-variant text-sm font-medium">Dados insuficientes para gerar tendência</p>
               </div>
             )}
@@ -152,7 +152,7 @@ export const WellnessTab: React.FC = () => {
 
           {/* Individual Breakdowns */}
           <section className="space-y-4">
-            <h3 className="font-headline font-bold text-lg px-2">{t('athletes' as any)}</h3>
+            <h3 className="font-headline font-bold text-lg px-2">{t('athletes')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {goalkeepers.map(gk => (
                 <AthleteWellnessCard key={gk.id} goalkeeper={gk} />
@@ -163,21 +163,21 @@ export const WellnessTab: React.FC = () => {
 
         {/* Sidebar / Secondary Info */}
         <div className="lg:col-span-4 space-y-6">
-          <section className="bg-surface-container rounded-2xl border border-black/5 p-6 shadow-sm">
+          <section className="bg-surface rounded-2xl border border-white/[0.04] p-6 shadow-sm">
             <h3 className="font-headline font-bold text-lg mb-4 flex items-center gap-2">
               <Clock className="w-5 h-5 text-secondary" />
-              {t('wellnessHistory' as any)}
+              {t('wellnessHistory')}
             </h3>
             <div className="space-y-4">
               {allLogs.slice(0, 5).map((log, i) => {
                 const gk = goalkeepers.find(k => k.id === log.goalkeeper_id);
                 return (
-                  <div key={log.id} className="flex gap-4 p-3 rounded-xl hover:bg-black/5 transition-colors group cursor-pointer border border-transparent hover:border-black/5">
+                  <div key={log.id} className="flex gap-4 p-3 rounded-xl hover:bg-white/[0.03] transition-colors group cursor-pointer border border-transparent hover:border-white/[0.04]">
                     <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-primary group-hover:scale-110 transition-transform shadow-sm">
                       {log.score}/5
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold truncate">{gk?.name || t('athlete' as any)}</p>
+                      <p className="text-sm font-bold truncate">{gk?.name || t('athlete')}</p>
                       <p className="text-[10px] text-on-surface-variant uppercase font-medium">
                         {new Date(log.date).toLocaleDateString()}
                       </p>
@@ -188,18 +188,18 @@ export const WellnessTab: React.FC = () => {
               })}
               {allLogs.length === 0 && (
                 <p className="text-center py-8 text-xs text-on-surface-variant italic">
-                  {t('noWellnessRecords' as any)}
+                  {t('noWellnessRecords')}
                 </p>
               )}
             </div>
             {allLogs.length > 5 && (
-              <button className="w-full mt-6 py-3 rounded-xl border border-black/5 text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:bg-black/5 transition-all">
-                {t('viewAll' as any)}
+              <button className="w-full mt-6 py-3 rounded-xl border border-white/[0.04] text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:bg-white/[0.03] transition-all">
+                {t('viewAll')}
               </button>
             )}
           </section>
 
-          <div className="bg-primary/10 rounded-2xl p-6 border border-primary/20 relative overflow-hidden">
+          <div className="bg-primary/10 rounded-2xl p-6 border border-white/[0.06] relative overflow-hidden">
             <Heart className="absolute -bottom-6 -right-6 w-32 h-32 text-primary opacity-5 transform rotate-12" />
             <h4 className="text-primary font-bold mb-2 flex items-center gap-2 italic">
               <Zap className="w-4 h-4" />
@@ -216,7 +216,7 @@ export const WellnessTab: React.FC = () => {
 };
 
 const StatCard: React.FC<{ label: string, value: string, subValue?: string, icon: any, color: string, bg: string, trend?: string }> = ({ label, value, subValue, icon: Icon, color, bg, trend }) => (
-  <div className="bg-surface-container-low rounded-2xl border border-black/5 p-4 min-w-[160px] flex-1 shadow-sm">
+  <div className="bg-surface-container-low rounded-2xl border border-white/[0.04] p-4 min-w-[160px] flex-1 shadow-sm">
     <div className="flex items-center justify-between mb-2">
       <div className={cn("p-2 rounded-lg", bg)}>
         <Icon className={cn("w-4 h-4", color)} />
@@ -252,10 +252,10 @@ const AthleteWellnessCard: React.FC<{ goalkeeper: Goalkeeper }> = ({ goalkeeper 
   }, []);
 
   return (
-    <div className="bg-surface-container-low rounded-2xl border border-black/5 p-5 hover:shadow-md transition-all group border-l-4 border-l-emerald-500">
+    <div className="bg-surface-container-low rounded-2xl border border-white/[0.04] p-5 hover:shadow-md transition-all group border-l-4 border-l-emerald-500">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-on-surface/5 overflow-hidden border border-black/5 group-hover:scale-105 transition-transform shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-on-surface/5 overflow-hidden border border-white/[0.04] group-hover:scale-105 transition-transform shadow-sm">
             {goalkeeper.imageUrl ? (
                 <img src={goalkeeper.imageUrl} alt={goalkeeper.name} className="w-full h-full object-cover" />
             ) : (
@@ -277,7 +277,7 @@ const AthleteWellnessCard: React.FC<{ goalkeeper: Goalkeeper }> = ({ goalkeeper 
       
       <div className="flex justify-between gap-2 mt-2">
         {metrics.map((m, idx) => (
-          <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 p-2 rounded-lg bg-surface-container shadow-inner">
+          <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 p-2 rounded-lg bg-surface shadow-inner">
             <m.icon className="w-3.5 h-3.5 text-on-surface-variant opacity-40" />
             <div className="w-full h-1 bg-on-surface/5 rounded-full overflow-hidden" />
             <span className="text-[9px] font-bold text-on-surface-variant/40">--/5</span>

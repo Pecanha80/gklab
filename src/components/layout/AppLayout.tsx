@@ -68,7 +68,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       </main>
 
       {/* Mobile Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-surface/95 backdrop-blur-lg border-t border-black/5 flex items-center justify-around h-16 z-50 px-2" role="navigation" aria-label="Mobile navigation">
+      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-surface/95 backdrop-blur-xl border-t border-white/[0.04] flex items-center justify-around h-16 z-50 px-2" role="navigation" aria-label="Mobile navigation">
         {[
           { id: 'Dashboard', icon: LayoutDashboard, labelKey: 'dashboard' as const },
           { id: 'Training', icon: DumbbellIcon, labelKey: 'sessions' as const },
@@ -93,7 +93,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         <div className="relative" ref={moreMenuRef}>
           <button
             onClick={() => setMoreMenuOpen(prev => !prev)}
-            aria-label={t('more' as any)}
+            aria-label={t('more')}
             aria-expanded={moreMenuOpen}
             className={cn(
               "flex flex-col items-center gap-1 transition-colors",
@@ -101,15 +101,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             )}
           >
             <MoreHorizontal className="w-5 h-5" />
-            <span className="text-[10px] font-label">{t('more' as any)}</span>
+            <span className="text-[10px] font-label">{t('more')}</span>
           </button>
           {moreMenuOpen && (
-            <div className="absolute bottom-14 right-0 bg-surface-container border border-black/10 rounded-xl shadow-xl py-2 min-w-[180px] z-50">
+            <div className="absolute bottom-14 right-0 bg-surface-elevated border border-white/[0.06] rounded-xl shadow-xl py-2 min-w-[180px] z-50">
               <button
                 onClick={() => { setActiveTab('Videos'); setMoreMenuOpen(false); }}
                 className={cn(
                   "flex items-center gap-3 w-full px-4 py-2.5 text-sm font-label transition-colors",
-                  activeTab === 'Videos' ? "text-primary bg-primary/5" : "text-on-surface-variant hover:bg-surface-container-highest"
+                  activeTab === 'Videos' ? "text-accent bg-accent/10" : "text-on-surface-variant hover:bg-white/[0.04]"
                 )}
               >
                 <Video className="w-4 h-4" />
@@ -119,46 +119,46 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 onClick={() => { setActiveTab('Wellness'); setMoreMenuOpen(false); }}
                 className={cn(
                   "flex items-center gap-3 w-full px-4 py-2.5 text-sm font-label transition-colors",
-                  activeTab === 'Wellness' ? "text-primary bg-primary/5" : "text-on-surface-variant hover:bg-surface-container-highest"
+                  activeTab === 'Wellness' ? "text-accent bg-accent/10" : "text-on-surface-variant hover:bg-white/[0.04]"
                 )}
               >
                 <Heart className="w-4 h-4" />
-                {t('wellnessTab' as any)}
+                {t('wellnessTab')}
               </button>
               <button
                 onClick={() => { setActiveTab('RPE'); setMoreMenuOpen(false); }}
                 className={cn(
                   "flex items-center gap-3 w-full px-4 py-2.5 text-sm font-label transition-colors",
-                  activeTab === 'RPE' ? "text-primary bg-primary/5" : "text-on-surface-variant hover:bg-surface-container-highest"
+                  activeTab === 'RPE' ? "text-accent bg-accent/10" : "text-on-surface-variant hover:bg-white/[0.04]"
                 )}
               >
                 <Activity className="w-4 h-4" />
-                {t('rpeTab' as any)}
+                {t('rpeTab')}
               </button>
               <button
                 onClick={() => { setActiveTab('Methodology'); setMoreMenuOpen(false); }}
                 className={cn(
                   "flex items-center gap-3 w-full px-4 py-2.5 text-sm font-label transition-colors",
-                  activeTab === 'Methodology' ? "text-primary bg-primary/5" : "text-on-surface-variant hover:bg-surface-container-highest"
+                  activeTab === 'Methodology' ? "text-accent bg-accent/10" : "text-on-surface-variant hover:bg-white/[0.04]"
                 )}
               >
                 <BookOpen className="w-4 h-4" />
-                {t('methodology' as any)}
+                {t('methodology')}
               </button>
               <button
                 onClick={() => { setActiveTab('Support'); setMoreMenuOpen(false); }}
                 className={cn(
                   "flex items-center gap-3 w-full px-4 py-2.5 text-sm font-label transition-colors",
-                  activeTab === 'Support' ? "text-primary bg-primary/5" : "text-on-surface-variant hover:bg-surface-container-highest"
+                  activeTab === 'Support' ? "text-accent bg-accent/10" : "text-on-surface-variant hover:bg-white/[0.04]"
                 )}
               >
                 <HelpCircle className="w-4 h-4" />
                 {t('support')}
               </button>
-              <div className="border-t border-black/5 my-1" />
+              <div className="border-t border-white/[0.04] my-1" />
               <button
                 onClick={() => { changeLanguage(isPortuguese ? 'en' : 'pt'); setMoreMenuOpen(false); }}
-                className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-label text-on-surface-variant hover:bg-surface-container-highest transition-colors"
+                className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-label text-on-surface-variant hover:bg-white/[0.04] transition-colors"
                 aria-label={isPortuguese ? 'Switch to English' : 'Mudar para Portugues'}
               >
                 <Globe className="w-4 h-4" />

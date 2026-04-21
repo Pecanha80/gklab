@@ -4,7 +4,8 @@ import { translations, Language, TranslationKey } from '../translations';
 interface LanguageContextType {
   language: Language;
   changeLanguage: (newLanguage: Language) => void;
-  t: (key: TranslationKey) => string;
+  /** Translates a key. Accepts known TranslationKeys or dynamic strings (presets, data keys). */
+  t: (key: TranslationKey | (string & {})) => string;
   isPortuguese: boolean;
   isEnglish: boolean;
 }
@@ -13,7 +14,7 @@ interface LanguageContextType {
 const defaultContext: LanguageContextType = {
   language: 'pt',
   changeLanguage: () => {},
-  t: (key: TranslationKey) => translations.pt[key] || translations.en[key] || key,
+  t: (key: TranslationKey | string) => translations.pt[key as TranslationKey] || translations.en[key as TranslationKey] || String(key),
   isPortuguese: true,
   isEnglish: false,
 };
@@ -36,8 +37,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: TranslationKey): string => {
-      const result = translations[language][key] || translations.en[key];
+    (key: TranslationKey | string): string => {
+      const k = key as TranslationKey;
+      const result = translations[language][k] || translations.en[k];
       if (result) return result;
       
       // Handle categorized custom presets (e.g. [sessionCategory...]My Logic)

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Activity, BarChart3, TrendingUp, Users, Calendar, Clock, ChevronRight, Info, Target, Zap } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useToast } from '../../hooks/useToast';
 import { supabase } from '../../lib/supabase';
 import { GoalkeeperComparison } from '../charts/GoalkeeperComparison';
 import type { TrainingSession, Attendance, Goalkeeper, WellnessLog } from '../../types';
@@ -17,6 +18,7 @@ interface SessionWithLoad {
 
 export const RPETab: React.FC = () => {
   const { t } = useTranslation();
+  const { showError } = useToast();
 
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
   const [goalkeepers, setGoalkeepers] = useState<Goalkeeper[]>([]);
@@ -40,7 +42,7 @@ export const RPETab: React.FC = () => {
       setAllAttendance(attRes.data || []);
       setAllWellness(wellRes.data || []);
     } catch (err) {
-      console.error('Error fetching RPE data:', err);
+      showError('Erro ao carregar dados de PSE');
     } finally {
       setLoading(false);
     }
@@ -127,9 +129,9 @@ export const RPETab: React.FC = () => {
 
   const getTeamStatus = (): { label: string; color: string } => {
     if (stats.avgIntensity === 0) return { label: '—', color: 'text-on-surface-variant' };
-    if (stats.avgIntensity <= 4) return { label: t('rpeIdealReady' as any), color: 'text-emerald-600' };
-    if (stats.avgIntensity <= 7) return { label: t('rpeIdealReady' as any), color: 'text-emerald-600' };
-    return { label: t('high' as any), color: 'text-amber-600' };
+    if (stats.avgIntensity <= 4) return { label: t('rpeIdealReady'), color: 'text-emerald-600' };
+    if (stats.avgIntensity <= 7) return { label: t('rpeIdealReady'), color: 'text-emerald-600' };
+    return { label: t('high'), color: 'text-amber-600' };
   };
 
   if (loading) {
@@ -146,11 +148,11 @@ export const RPETab: React.FC = () => {
         <div className="w-20 h-20 rounded-full bg-on-surface/5 flex items-center justify-center">
           <Activity className="w-10 h-10 text-on-surface-variant opacity-20" />
         </div>
-        <h3 className="text-xl font-bold">{t('rpeTab' as any)}</h3>
+        <h3 className="text-xl font-bold">{t('rpeTab')}</h3>
         <p className="text-on-surface-variant max-w-md">
           {(!goalkeepers.length)
-            ? t('rpeNoGoalkeepers' as any)
-            : t('rpeNoSessions' as any)
+            ? t('rpeNoGoalkeepers')
+            : t('rpeNoSessions')
           }
         </p>
       </div>
@@ -166,16 +168,16 @@ export const RPETab: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h2 className="text-3xl font-black font-headline tracking-tight text-on-surface">
-            {t('rpeTab' as any)}
+            {t('rpeTab')}
           </h2>
           <p className="text-on-surface-variant font-label mt-1">
-            {t('trainingIntensity' as any)} — {t('analysis' as any)}
+            {t('trainingIntensity')} — {t('analysis')}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-3">
           <StatCard
-            label={t('averageIntensity' as any)}
+            label={t('averageIntensity')}
             value={stats.avgIntensity.toFixed(1)}
             subValue="/ 10"
             icon={Activity}
@@ -183,7 +185,7 @@ export const RPETab: React.FC = () => {
             bg="bg-primary/10"
           />
           <StatCard
-            label={t('totalLoad' as any)}
+            label={t('totalLoad')}
             value={stats.totalLoad.toString()}
             subValue="A.U."
             icon={TrendingUp}
@@ -192,7 +194,7 @@ export const RPETab: React.FC = () => {
             trend={stats.weeklyTrend}
           />
           <StatCard
-            label={t('athletes' as any)}
+            label={t('athletes')}
             value={goalkeepers.length.toString()}
             icon={Users}
             color="text-emerald-500"
@@ -205,15 +207,15 @@ export const RPETab: React.FC = () => {
         {/* Load Distribution Area */}
         {hasLoad ? (
           <div className="lg:col-span-12">
-            <section className="bg-surface-container rounded-2xl border border-black/5 p-8 shadow-sm">
+            <section className="bg-surface rounded-2xl border border-white/[0.04] p-8 shadow-sm">
               <div className="flex items-center justify-between mb-8">
                 <h3 className="font-headline font-bold text-lg flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-primary" />
-                  {t('rpeLoadBreakdown' as any)}
+                  {t('rpeLoadBreakdown')}
                 </h3>
                 <div className="text-xs text-on-surface-variant font-medium flex items-center gap-2">
                   <Info className="w-3 h-3" />
-                  {t('rpeLoadFormula' as any)}
+                  {t('rpeLoadFormula')}
                 </div>
               </div>
 
@@ -229,7 +231,7 @@ export const RPETab: React.FC = () => {
                         day.pct > 75 ? "bg-error/80" : day.pct > 40 ? "bg-primary" : "bg-emerald-500/80"
                       )}
                     />
-                    <div className="absolute -top-8 bg-surface-container-high px-2 py-1 rounded border border-black/5 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute -top-8 bg-surface-container-high px-2 py-1 rounded border border-white/[0.04] text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
                       {day.load} AU
                     </div>
                     <span className="mt-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{day.label}</span>
@@ -239,43 +241,43 @@ export const RPETab: React.FC = () => {
             </section>
           </div>
         ) : (
-          <div className="lg:col-span-12 bg-surface-container rounded-2xl p-12 flex items-center justify-center border border-dashed border-primary/40">
-            <p className="text-on-surface-variant italic">{t('rpeNoLoadData' as any)}</p>
+          <div className="lg:col-span-12 bg-surface rounded-2xl p-12 flex items-center justify-center border border-dashed border-white/[0.06]">
+            <p className="text-on-surface-variant italic">{t('rpeNoLoadData')}</p>
           </div>
         )}
 
         <div className="lg:col-span-8 space-y-6">
           <section className="space-y-4">
             <div className="flex items-center justify-between px-2">
-              <h3 className="font-headline font-bold text-lg">{t('rpeRecentSessions' as any)}</h3>
-              <button className="text-xs text-primary font-bold hover:underline">{t('viewAll' as any)}</button>
+              <h3 className="font-headline font-bold text-lg">{t('rpeRecentSessions')}</h3>
+              <button className="text-xs text-primary font-bold hover:underline">{t('viewAll')}</button>
             </div>
             <div className="space-y-3">
               {sessionsWithLoad.slice(0, 4).map((sw, i) => (
                 <SessionExertionRow key={sw.session.id} sw={sw} idx={i} t={t} />
               ))}
               {sessions.length === 0 && (
-                <p className="text-xs text-on-surface-variant px-2 italic">{t('rpeAwaitingData' as any)}</p>
+                <p className="text-xs text-on-surface-variant px-2 italic">{t('rpeAwaitingData')}</p>
               )}
             </div>
           </section>
         </div>
 
         <div className="lg:col-span-4 space-y-6">
-          <section className="bg-surface-container-low rounded-2xl border border-black/5 p-6 shadow-sm border-t-4 border-t-primary">
+          <section className="bg-surface-container-low rounded-2xl border border-white/[0.04] p-6 shadow-sm border-t-4 border-t-primary">
             <h4 className="font-headline font-bold mb-4 flex items-center gap-2">
               <Target className="w-5 h-5 text-primary" />
-              {t('rpeIntensityTargets' as any)}
+              {t('rpeIntensityTargets')}
             </h4>
             <div className="space-y-5">
-              <IntensityProgress label={t('rpeVeryHigh' as any)} value={intensityDistribution.veryHigh} color="bg-error" />
-              <IntensityProgress label={t('rpeHigh' as any)} value={intensityDistribution.high} color="bg-primary" />
-              <IntensityProgress label={t('rpeModerate' as any)} value={intensityDistribution.moderate} color="bg-amber-500" />
-              <IntensityProgress label={t('rpeRecovery' as any)} value={intensityDistribution.recovery} color="bg-emerald-500" />
+              <IntensityProgress label={t('rpeVeryHigh')} value={intensityDistribution.veryHigh} color="bg-error" />
+              <IntensityProgress label={t('rpeHigh')} value={intensityDistribution.high} color="bg-primary" />
+              <IntensityProgress label={t('rpeModerate')} value={intensityDistribution.moderate} color="bg-amber-500" />
+              <IntensityProgress label={t('rpeRecovery')} value={intensityDistribution.recovery} color="bg-emerald-500" />
             </div>
-            <div className="mt-8 pt-6 border-t border-black/5 flex items-center justify-between">
+            <div className="mt-8 pt-6 border-t border-white/[0.04] flex items-center justify-between">
               <div>
-                <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">{t('rpeTeamStatus' as any)}</p>
+                <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">{t('rpeTeamStatus')}</p>
                 <p className={cn("text-sm font-bold", teamStatus.color)}>{teamStatus.label}</p>
               </div>
               {hasLoad && (
@@ -284,11 +286,11 @@ export const RPETab: React.FC = () => {
             </div>
           </section>
 
-          <div className="bg-surface-container-highest/30 rounded-2xl p-6 border border-black/5 relative overflow-hidden backdrop-blur-sm">
+          <div className="bg-surface-elevated/30 rounded-2xl p-6 border border-white/[0.04] relative overflow-hidden backdrop-blur-sm">
             <Zap className="absolute -bottom-6 -right-6 w-32 h-32 text-on-surface opacity-5" />
             <h4 className="text-on-surface font-bold mb-3 flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-primary" />
-              {t('rpeWeeklyDistribution' as any)}
+              {t('rpeWeeklyDistribution')}
             </h4>
             <div className="flex gap-1 h-2 rounded-full overflow-hidden bg-on-surface/5">
               <div style={{ width: `${intensityDistribution.veryHigh}%` }} className="bg-error" />
@@ -297,10 +299,10 @@ export const RPETab: React.FC = () => {
               <div style={{ width: `${intensityDistribution.recovery}%` }} className="bg-emerald-500" />
             </div>
             <div className="mt-4 grid grid-cols-2 gap-y-2">
-              <LegendItem color="bg-error" label={t('rpeElevated' as any)} />
-              <LegendItem color="bg-primary" label={t('rpeStrong' as any)} />
-              <LegendItem color="bg-amber-500" label={t('rpeMod' as any)} />
-              <LegendItem color="bg-emerald-500" label={t('rpeLight' as any)} />
+              <LegendItem color="bg-error" label={t('rpeElevated')} />
+              <LegendItem color="bg-primary" label={t('rpeStrong')} />
+              <LegendItem color="bg-amber-500" label={t('rpeMod')} />
+              <LegendItem color="bg-emerald-500" label={t('rpeLight')} />
             </div>
           </div>
         </div>
@@ -310,7 +312,7 @@ export const RPETab: React.FC = () => {
       {goalkeepers.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-2xl font-black font-headline tracking-tight text-on-surface">
-            {t('comparisonCharts' as any)}
+            {t('comparisonCharts')}
           </h2>
           <GoalkeeperComparison
             goalkeepers={goalkeepers}
@@ -326,7 +328,7 @@ export const RPETab: React.FC = () => {
 };
 
 const StatCard: React.FC<{ label: string; value: string; subValue?: string; icon: any; color: string; bg: string; trend?: string }> = ({ label, value, subValue, icon: Icon, color, bg, trend }) => (
-  <div className="bg-surface-container-low rounded-2xl border border-black/5 p-5 min-w-[180px] flex-1 shadow-sm group hover:scale-[1.02] transition-all">
+  <div className="bg-surface-container-low rounded-2xl border border-white/[0.04] p-5 min-w-[180px] flex-1 shadow-sm group hover:scale-[1.02] transition-all">
     <div className="flex items-center justify-between mb-3">
       <div className={cn("p-2.5 rounded-xl", bg)}>
         <Icon className={cn("w-5 h-5", color)} />
@@ -374,7 +376,7 @@ const SessionExertionRow: React.FC<{ sw: SessionWithLoad; idx: number; t: (key: 
   const hasRpe = avgRpe > 0;
 
   return (
-    <div className="bg-surface-container-low rounded-xl border border-black/5 p-4 flex items-center justify-between hover:bg-surface-container-high transition-colors group">
+    <div className="bg-surface-container-low rounded-xl border border-white/[0.04] p-4 flex items-center justify-between hover:bg-surface-container-high transition-colors group">
       <div className="flex items-center gap-4">
         <div className={cn(
           "w-12 h-12 rounded-xl flex flex-col items-center justify-center font-bold shadow-sm group-hover:scale-110 transition-transform",
@@ -384,11 +386,11 @@ const SessionExertionRow: React.FC<{ sw: SessionWithLoad; idx: number; t: (key: 
           "bg-emerald-500/10 text-emerald-500"
         )}>
           <span className="text-lg leading-none">{displayRpe}</span>
-          <span className="text-[8px] uppercase tracking-tighter">{t('rpe' as any)}</span>
+          <span className="text-[8px] uppercase tracking-tighter">{t('rpe')}</span>
         </div>
         <div>
           <h4 className="font-bold text-sm text-on-surface truncate max-w-[200px]">
-            {session.titles?.map(title => t(title as any)).join(' & ') || 'Session'}
+            {session.titles?.map(title => t(title)).join(' & ') || 'Session'}
           </h4>
           <div className="flex items-center gap-3 mt-1">
             <span className="text-[10px] text-on-surface-variant flex items-center gap-1">
@@ -410,7 +412,7 @@ const SessionExertionRow: React.FC<{ sw: SessionWithLoad; idx: number; t: (key: 
 
       <div className="flex items-center gap-8">
         <div className="hidden sm:block text-right">
-          <p className="text-[10px] text-on-surface-variant font-bold uppercase">{t('rpeAccumulatedLoad' as any)}</p>
+          <p className="text-[10px] text-on-surface-variant font-bold uppercase">{t('rpeAccumulatedLoad')}</p>
           <p className="text-sm font-black text-on-surface">{load > 0 ? `${load} AU` : '—'}</p>
         </div>
         <ChevronRight className="w-5 h-5 text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity" />

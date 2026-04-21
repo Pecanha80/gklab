@@ -3,6 +3,7 @@ import { X, Clock, Users, Target, Dumbbell, Trophy, Wind, Edit3, Download, Calen
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../hooks/useTranslation';
+import { useToast } from '../hooks/useToast';
 import { useAttendance } from '../hooks/useAttendance';
 import { WellnessModal } from './WellnessModal';
 import { AnimatePresence } from 'motion/react';
@@ -22,7 +23,7 @@ const SectionHeading: React.FC<{ title: string; icon?: React.ComponentType<{ cla
   title,
   icon: Icon,
 }) => (
-  <div className="flex items-center gap-2 pt-6 border-t border-black/5 first:border-t-0 first:pt-0">
+  <div className="flex items-center gap-2 pt-6 border-t border-white/[0.04] first:border-t-0 first:pt-0">
     {Icon && <Icon className="w-4 h-4 text-primary" />}
     <h4 className="text-[10px] text-primary uppercase font-label font-bold tracking-widest">
       {title}
@@ -54,13 +55,14 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   onEdit,
 }) => {
   const { t } = useTranslation();
-  const { 
-    attendance, 
-    eligibleGoalkeepers, 
-    loading, 
-    fetchAttendanceData, 
+  const { showError } = useToast();
+  const {
+    attendance,
+    eligibleGoalkeepers,
+    loading,
+    fetchAttendanceData,
     updateAttendance,
-    updateRpe 
+    updateRpe
   } = useAttendance(session.id);
 
   const [localAttendance, setLocalAttendance] = React.useState<Record<string, { status: AttendanceStatus; notes: string; rpe?: number }>>({});
@@ -105,7 +107,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     try {
       await updateAttendance(gkId, status, currentNotes);
     } catch (err) {
-      console.error('Failed to update attendance', err);
+      showError('Erro ao atualizar presença');
     }
   };
 
@@ -123,7 +125,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     try {
       await updateAttendance(gkId, data.status, data.notes);
     } catch (err) {
-      console.error('Failed to save notes', err);
+      showError('Erro ao salvar notas');
     }
   };
 
@@ -135,7 +137,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     try {
       await updateRpe(gkId, rpe);
     } catch (err) {
-      console.error('Failed to update RPE', err);
+      showError('Erro ao atualizar PSE');
     }
   };
 
@@ -148,7 +150,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   };
 
   const getRpeLabel = (rpe: number): string => {
-    const key = `rpeScale${rpe}` as any;
+    const key = `rpeScale${rpe}`;
     return t(key);
   };
 
@@ -181,14 +183,14 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           role="dialog"
           aria-modal="true"
-          aria-label={session.titles?.map(t_ => t(t_ as any)).join(' & ') || t('sessionDetails' as any)}
-          className="bg-surface-container border border-black/5 rounded-2xl w-full max-w-[95vw] max-h-[90vh] overflow-y-auto shadow-xl"
+          aria-label={session.titles?.map(t_ => t(t_)).join(' & ') || t('sessionDetails')}
+          className="bg-surface border border-white/[0.04] rounded-2xl w-full max-w-[95vw] max-h-[90vh] overflow-y-auto shadow-xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="sticky top-0 z-10 bg-surface-container border-b border-black/5 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+          <div className="sticky top-0 z-10 bg-surface border-b border-white/[0.04] px-6 py-4 flex items-center justify-between rounded-t-2xl">
             <h2 className="font-headline text-lg text-on-surface font-bold truncate pr-4">
-              {session.titles?.map(t_ => t(t_ as any)).join(' & ')}
+              {session.titles?.map(t_ => t(t_)).join(' & ')}
             </h2>
             <div className="flex items-center gap-2 shrink-0">
               <button
@@ -210,7 +212,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               <button
                 aria-label={t('close')}
                 onClick={onClose}
-                className="p-1.5 rounded-lg hover:bg-black/5 transition-colors text-on-surface/60"
+                className="p-1.5 rounded-lg hover:bg-white/[0.03] transition-colors text-on-surface/60"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -229,13 +231,13 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               {session.category && (
                 <div className="flex items-center gap-1.5 text-on-surface/60 text-xs">
                   <Trophy className="w-3.5 h-3.5" />
-                  <span>{Array.isArray(session.category) ? session.category.map(c => t(c as any)).join(', ') : t(session.category as any)}</span>
+                  <span>{Array.isArray(session.category) ? session.category.map(c => t(c)).join(', ') : t(session.category)}</span>
                 </div>
               )}
               {session.duration && (
                 <div className="flex items-center gap-1.5 text-on-surface/60 text-xs">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>{Array.isArray(session.duration) ? session.duration.map(d => t(d as any)).join(', ') : t(session.duration as any)}</span>
+                  <span>{Array.isArray(session.duration) ? session.duration.map(d => t(d)).join(', ') : t(session.duration)}</span>
                 </div>
               )}
               {session.numAthletes > 0 && (
@@ -252,7 +254,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 {session.gameMoments && session.gameMoments.length > 0 && (
                   <div className="space-y-1">
                     <label className="text-[10px] text-primary font-black uppercase tracking-widest">{t('gameMomentsLabel')}</label>
-                    <p className="text-xs text-on-surface font-bold">{session.gameMoments.map(m => t(m as any)).join(' • ')}</p>
+                    <p className="text-xs text-on-surface font-bold">{session.gameMoments.map(m => t(m)).join(' • ')}</p>
                   </div>
                 )}
                 {session.tacticalPrinciples && session.tacticalPrinciples.length > 0 && (
@@ -271,7 +273,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               <div className="space-y-3">
                 <SectionHeading title={t('generalObjectiveHeading')} icon={Target} />
                 <p className="text-sm text-on-surface leading-relaxed">
-                  {session.generalObjectives.map(o => t(o as any)).join(', ')}
+                  {session.generalObjectives.map(o => t(o)).join(', ')}
                 </p>
               </div>
             )}
@@ -295,7 +297,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 <SectionHeading title={t('warmUpHeading')} icon={Wind} />
                 <div className="space-y-4">
                   {session.warmup.map((drill, idx) => (
-                    <div key={drill.id} className="bg-surface rounded-xl border border-black/5 p-4 space-y-3">
+                    <div key={drill.id} className="bg-surface rounded-xl border border-white/[0.04] p-4 space-y-3">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded">
                           {idx + 1}
@@ -324,7 +326,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                   {session.exercises.map((exercise, idx) => (
                     <div
                       key={exercise.id}
-                      className="bg-surface rounded-xl border border-black/5 p-4 space-y-3"
+                      className="bg-surface rounded-xl border border-white/[0.04] p-4 space-y-3"
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] bg-on-surface/5 text-on-surface/50 font-bold px-2 py-0.5 rounded-md">
@@ -344,7 +346,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                       </div>
                       <div className="grid grid-cols-1 gap-2">
                         <Field label={t('objective')} value={exercise.objective} />
-                        <Field label={t('gameMomentsLabel')} value={exercise.gameMoment ? t(exercise.gameMoment as any) : undefined} />
+                        <Field label={t('gameMomentsLabel')} value={exercise.gameMoment ? t(exercise.gameMoment) : undefined} />
                         <Field label={t('startingPoint')} value={exercise.startingPoint} />
                         <Field label={t('coachingPoints')} value={exercise.coachingPoints} />
                         <Field label={t('organization')} value={exercise.organization} />
@@ -363,7 +365,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                           <img
                             src={exercise.diagram}
                             alt={`Diagram for ${exercise.title}`}
-                            className="rounded-lg border border-black/5 max-h-64 object-contain"
+                            className="rounded-lg border border-white/[0.04] max-h-64 object-contain"
                           />
                         </div>
                       )}
@@ -381,7 +383,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                   {session.integratedWithTeam.map((item) => (
                     <div
                       key={item.id}
-                      className="bg-surface rounded-xl border border-black/5 p-4 grid grid-cols-2 sm:grid-cols-4 gap-3"
+                      className="bg-surface rounded-xl border border-white/[0.04] p-4 grid grid-cols-2 sm:grid-cols-4 gap-3"
                     >
                       <Field label={t('format')} value={item.format} />
                       <Field label={t('number')} value={item.number} />
@@ -424,9 +426,9 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                       {session.athleteObservations.map((obs) => {
                         const athlete = eligibleGoalkeepers.find(g => g.id === obs.athleteId);
                         return (
-                          <div key={obs.athleteId} className="bg-surface rounded-xl border border-black/5 p-4 space-y-2">
+                          <div key={obs.athleteId} className="bg-surface rounded-xl border border-white/[0.04] p-4 space-y-2">
                             <div className="flex items-center gap-2 mb-1">
-                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/20 overflow-hidden">
+                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary border border-white/[0.06] overflow-hidden">
                                 {athlete?.imageUrl ? (
                                   <img src={athlete.imageUrl} alt={athlete.name} className="w-full h-full object-cover" />
                                 ) : (
@@ -439,7 +441,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                             {obs.interventionType && (
                                <div className="flex items-center gap-1.5 mt-2">
                                  <span className="text-[9px] bg-secondary/10 text-secondary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                                   {t(`intervention${obs.interventionType.replace('_', '').toUpperCase()}` as any)}
+                                   {t(`intervention${obs.interventionType.replace('_', '').toUpperCase()}`)}
                                  </span>
                                </div>
                              )}
@@ -453,7 +455,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             )}
 
             {/* Attendance Section */}
-            <div className="space-y-4 pt-6 border-t border-black/5">
+            <div className="space-y-4 pt-6 border-t border-white/[0.04]">
               <SectionHeading title={t('attendanceHeading')} icon={Users} />
               
               {loading && eligibleGoalkeepers.length === 0 ? (
@@ -464,7 +466,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 <div className="grid grid-cols-1 gap-3">
                   {eligibleGoalkeepers.length === 0 && !loading && (
                       <p className="text-xs text-on-surface/50 italic">
-                        {t('noGoalkeepersForCategory' as any)}
+                        {t('noGoalkeepersForCategory')}
                       </p>
                   )}
                   {eligibleGoalkeepers.map((gk) => {
@@ -476,10 +478,10 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                     const showRpe = isPresent || isLate;
 
                     return (
-                      <div key={gk.id} className="bg-surface rounded-xl border border-black/5 p-3 flex flex-col gap-3">
+                      <div key={gk.id} className="bg-surface rounded-xl border border-white/[0.04] p-3 flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-on-surface/5 flex items-center justify-center overflow-hidden border border-black/5">
+                            <div className="w-8 h-8 rounded-full bg-on-surface/5 flex items-center justify-center overflow-hidden border border-white/[0.04]">
                               {gk.imageUrl ? (
                                 <img src={gk.imageUrl} alt={gk.name} className="w-full h-full object-cover" />
                               ) : (
@@ -542,7 +544,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                             <button
                               onClick={() => openWellnessModal(gk)}
                               className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-1.5 ml-2 border border-emerald-100 bg-white shadow-sm"
-                              title={t('logWellness' as any)}
+                              title={t('logWellness')}
                             >
                               <Heart className={cn("w-4 h-4", "fill-emerald-100")} />
                               <span className="text-[10px] font-bold">Wellness</span>
@@ -555,7 +557,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-2">
                               <Activity className="w-3.5 h-3.5 text-primary" />
-                              <span className="text-[10px] font-bold text-primary uppercase tracking-wider">{t('rpeLabel' as any)}</span>
+                              <span className="text-[10px] font-bold text-primary uppercase tracking-wider">{t('rpeLabel')}</span>
                               {att.rpe && (
                                 <span className={cn(
                                   'text-[10px] font-bold text-white px-2 py-0.5 rounded-full ml-auto',
@@ -598,7 +600,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                             onChange={(e) => handleNotesChange(gk.id, e.target.value)}
                             onBlur={() => saveNotes(gk.id)}
                             placeholder={t('notesPlaceholder')}
-                            className="flex-1 bg-transparent text-xs text-on-surface placeholder:text-on-surface/20 outline-none border-b border-transparent focus:border-primary/30 transition-all font-medium"
+                            className="flex-1 bg-transparent text-xs text-on-surface placeholder:text-on-surface/20 outline-none border-b border-transparent focus:border-white/[0.08] transition-all font-medium"
                           />
                         </div>
                       </div>
@@ -610,7 +612,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="sticky bottom-0 bg-surface-container border-t border-black/5 px-6 py-4 flex items-center justify-between rounded-b-2xl">
+          <div className="sticky bottom-0 bg-surface border-t border-white/[0.04] px-6 py-4 flex items-center justify-between rounded-b-2xl">
             <div className="flex items-center gap-3">
               {onDelete && (
                 <button

@@ -91,10 +91,10 @@ export const GoalkeeperComparison: React.FC<Props> = ({
 
       return {
         name: gk.name,
-        [t('compPresent' as any)]: present,
-        [t('compLate' as any)]: late,
-        [t('compAbsent' as any)]: absent,
-        [t('compJustified' as any)]: justified,
+        [t('compPresent')]: present,
+        [t('compLate')]: late,
+        [t('compAbsent')]: absent,
+        [t('compJustified')]: justified,
         attended,
         missed,
         justified,
@@ -114,7 +114,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
     return sortedSessions.map(session => {
       const point: Record<string, any> = {
         date: session.date,
-        session: session.titles?.map(title => t(title as any)).join(' & ').substring(0, 20) || session.date,
+        session: session.titles?.map(title => t(title)).join(' & ').substring(0, 20) || session.date,
       };
       filteredGks.forEach(gk => {
         const att = allAttendance.find(
@@ -129,11 +129,11 @@ export const GoalkeeperComparison: React.FC<Props> = ({
   // 5. Wellness radar per goalkeeper
   const wellnessRadarData = useMemo(() => {
     const dims = [
-      { key: 'sleep', label: t('sleep' as any) },
-      { key: 'stress', label: t('stress' as any) },
-      { key: 'fatigue', label: t('fatigue' as any) },
-      { key: 'soreness', label: t('soreness' as any) },
-      { key: 'mood', label: t('moodLabel' as any) },
+      { key: 'sleep', label: t('sleep') },
+      { key: 'stress', label: t('stress') },
+      { key: 'fatigue', label: t('fatigue') },
+      { key: 'soreness', label: t('soreness') },
+      { key: 'mood', label: t('moodLabel') },
     ];
 
     return dims.map(dim => {
@@ -156,9 +156,9 @@ export const GoalkeeperComparison: React.FC<Props> = ({
 
   if (!hasAnyData) {
     return (
-      <div className="bg-slate-50 rounded-2xl border border-dashed border-black/10 p-12 text-center shadow-md">
+      <div className="bg-slate-50 rounded-2xl border border-dashed border-white/[0.06] p-12 text-center shadow-md">
         <Users className="w-10 h-10 text-on-surface-variant/20 mx-auto mb-3" />
-        <p className="text-on-surface-variant italic">{t('compNoData' as any)}</p>
+        <p className="text-on-surface-variant italic">{t('compNoData')}</p>
       </div>
     );
   }
@@ -166,16 +166,16 @@ export const GoalkeeperComparison: React.FC<Props> = ({
   return (
     <div className="space-y-8">
       {/* GK Selector */}
-      <div className="bg-slate-50 rounded-2xl border border-black/10 p-5 shadow-md">
+      <div className="bg-slate-50 rounded-2xl border border-white/[0.06] p-5 shadow-md">
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
-            {t('compSelectGk' as any)}
+            {t('compSelectGk')}
           </h4>
           <button
             onClick={selectAll}
             className="text-[10px] font-bold text-primary hover:underline"
           >
-            {t('compAllGk' as any)}
+            {t('compAllGk')}
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -189,7 +189,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
                   "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border",
                   selected
                     ? "text-white border-transparent shadow-sm"
-                    : "text-on-surface-variant border-black/10 bg-surface hover:bg-surface-container-high"
+                    : "text-on-surface-variant border-white/[0.06] bg-surface hover:bg-surface-container-high"
                 )}
                 style={selected ? { backgroundColor: GK_COLORS[i % GK_COLORS.length] } : undefined}
               >
@@ -202,7 +202,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
       </div>
 
       {/* Chart 1: Average RPE */}
-      <ChartSection title={t('compAvgRpe' as any)}>
+      <ChartSection title={t('compAvgRpe')}>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={avgRpeData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#0000000a" />
@@ -210,7 +210,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
             <YAxis domain={[0, 10]} tick={{ fontSize: 11 }} />
             <Tooltip
               contentStyle={{ borderRadius: 12, border: '1px solid #0000000d', fontSize: 12 }}
-              formatter={(value: number) => [value.toFixed(1), 'RPE']}
+              formatter={(value) => [Number(value).toFixed(1), 'RPE']}
             />
             <Bar dataKey="avg" radius={[8, 8, 0, 0]} maxBarSize={60}>
               {avgRpeData.map((entry, i) => (
@@ -222,7 +222,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
       </ChartSection>
 
       {/* Chart 2: Total Load */}
-      <ChartSection title={t('compTotalLoad' as any)}>
+      <ChartSection title={t('compTotalLoad')}>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={totalLoadData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#0000000a" />
@@ -230,7 +230,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
             <YAxis tick={{ fontSize: 11 }} />
             <Tooltip
               contentStyle={{ borderRadius: 12, border: '1px solid #0000000d', fontSize: 12 }}
-              formatter={(value: number) => [`${value} A.U.`, t('totalLoad' as any)]}
+              formatter={(value) => [`${value} A.U.`, t('totalLoad')]}
             />
             <Bar dataKey="load" radius={[8, 8, 0, 0]} maxBarSize={60}>
               {totalLoadData.map((entry, i) => (
@@ -242,7 +242,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
       </ChartSection>
 
       {/* Chart 3: Attendance */}
-      <ChartSection title={t('compAttendance' as any)}>
+      <ChartSection title={t('compAttendance')}>
         <ResponsiveContainer width="100%" height={350}>
           <BarChart data={attendanceData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#0000000a" />
@@ -250,29 +250,29 @@ export const GoalkeeperComparison: React.FC<Props> = ({
             <YAxis tick={{ fontSize: 11 }} />
             <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #0000000d', fontSize: 12 }} />
             <Legend wrapperStyle={{ fontSize: 11, fontWeight: 600 }} />
-            <Bar dataKey={t('compPresent' as any)} stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} maxBarSize={50} />
-            <Bar dataKey={t('compLate' as any)} stackId="a" fill="#f59e0b" />
-            <Bar dataKey={t('compAbsent' as any)} stackId="a" fill="#ef4444" />
-            <Bar dataKey={t('compJustified' as any)} stackId="a" fill="#6366f1" radius={[8, 8, 0, 0]} />
+            <Bar dataKey={t('compPresent')} stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} maxBarSize={50} />
+            <Bar dataKey={t('compLate')} stackId="a" fill="#f59e0b" />
+            <Bar dataKey={t('compAbsent')} stackId="a" fill="#ef4444" />
+            <Bar dataKey={t('compJustified')} stackId="a" fill="#6366f1" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
 
         {/* Attendance detail cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-6">
           {attendanceData.map((gk, i) => (
-            <div key={i} className="bg-white rounded-xl border border-black/10 p-4 space-y-2 shadow-sm">
+            <div key={i} className="bg-white rounded-xl border border-white/[0.06] p-4 space-y-2 shadow-sm">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: GK_COLORS[i % GK_COLORS.length] }} />
                 <span className="text-sm font-bold text-on-surface">{gk.name}</span>
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-                <span className="text-on-surface-variant">{t('compSessionsAttended' as any)}</span>
+                <span className="text-on-surface-variant">{t('compSessionsAttended')}</span>
                 <span className="font-bold text-emerald-600 text-right">{gk.attended}</span>
-                <span className="text-on-surface-variant">{t('compSessionsMissed' as any)}</span>
+                <span className="text-on-surface-variant">{t('compSessionsMissed')}</span>
                 <span className="font-bold text-error text-right">{gk.missed}</span>
-                <span className="text-on-surface-variant">{t('compSessionsJustified' as any)}</span>
+                <span className="text-on-surface-variant">{t('compSessionsJustified')}</span>
                 <span className="font-bold text-indigo-500 text-right">{gk.justified}</span>
-                <span className="text-on-surface-variant font-semibold">{t('compAttendanceRate' as any)}</span>
+                <span className="text-on-surface-variant font-semibold">{t('compAttendanceRate')}</span>
                 <span className={cn(
                   "font-black text-right",
                   gk.rate >= 80 ? "text-emerald-600" : gk.rate >= 50 ? "text-amber-600" : "text-error"
@@ -285,7 +285,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
                 {gk.justified > 0 && <div className="bg-indigo-500 h-full" style={{ width: `${(gk.justified / gk.total) * 100}%` }} />}
               </div>
               <p className="text-[10px] text-on-surface-variant text-center">
-                {gk.attended + gk.missed + gk.justified} / {gk.total} {t('sessions' as any).toLowerCase()}
+                {gk.attended + gk.missed + gk.justified} / {gk.total} {t('sessions').toLowerCase()}
               </p>
             </div>
           ))}
@@ -294,7 +294,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
 
       {/* Chart 4: RPE Trend */}
       {rpeTrendData.length > 0 && (
-        <ChartSection title={t('compRpeTrend' as any)}>
+        <ChartSection title={t('compRpeTrend')}>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={rpeTrendData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#0000000a" />
@@ -320,7 +320,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
 
       {/* Chart 5: Wellness Radar */}
       {hasWellnessData && (
-        <ChartSection title={t('compWellnessRadar' as any)}>
+        <ChartSection title={t('compWellnessRadar')}>
           <ResponsiveContainer width="100%" height={400}>
             <RadarChart data={wellnessRadarData} cx="50%" cy="50%" outerRadius="75%">
               <PolarGrid stroke="#0000000a" />
@@ -348,7 +348,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
 };
 
 const ChartSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <section className="bg-slate-50 rounded-2xl border border-black/10 p-6 shadow-md">
+  <section className="bg-slate-50 rounded-2xl border border-white/[0.06] p-6 shadow-md">
     <h3 className="font-headline font-bold text-lg mb-6">{title}</h3>
     {children}
   </section>

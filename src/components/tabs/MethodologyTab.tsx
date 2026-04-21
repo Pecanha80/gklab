@@ -46,6 +46,7 @@ import {
 } from 'recharts';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useToast } from '../../hooks/useToast';
 import { useMethodology } from '../../hooks/useMethodology';
 import { supabase } from '../../lib/supabase';
 import { PeriodizationPhase, Goalkeeper, TrainingSession, Attendance, WellnessLog, Exercise } from '../../types';
@@ -68,6 +69,7 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export const MethodologyTab: React.FC = () => {
   const { t } = useTranslation();
+  const { showError } = useToast();
   const {
     methodology,
     updateGameModelPrinciples,
@@ -125,7 +127,7 @@ export const MethodologyTab: React.FC = () => {
       setWellnessLogs(wellRes.data || []);
       setExercises(exeRes.data || []);
     } catch (err) {
-      console.error('Error fetching methodology analytics:', err);
+      showError('Erro ao carregar dados de metodologia');
     } finally {
       setLoading(false);
     }
@@ -166,7 +168,7 @@ export const MethodologyTab: React.FC = () => {
     ];
 
     const tacticalDistribution = tacticalCategories.map(cat => ({
-      name: t(cat as any),
+      name: t(cat),
       value: exercises.filter(e => e.category === cat).length
     })).filter(d => d.value > 0);
 
@@ -319,7 +321,7 @@ export const MethodologyTab: React.FC = () => {
   }> = ({ sectionKey, icon: Icon, titleKey, descriptionKey, badge }) => (
     <button
       onClick={() => toggleSection(sectionKey)}
-      className="w-full flex items-center justify-between p-5 hover:bg-surface-container-highest/50 transition-colors rounded-xl"
+      className="w-full flex items-center justify-between p-5 hover:bg-surface-elevated/50 transition-colors rounded-xl"
     >
       <div className="flex items-center gap-4">
         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -327,14 +329,14 @@ export const MethodologyTab: React.FC = () => {
         </div>
         <div className="text-left">
           <div className="flex items-center gap-2">
-            <h3 className="font-headline font-bold text-on-surface">{t(titleKey as any)}</h3>
+            <h3 className="font-headline font-bold text-on-surface">{t(titleKey)}</h3>
             {badge && (
               <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                 {badge}
               </span>
             )}
           </div>
-          <p className="text-xs text-on-surface-variant font-label mt-0.5">{t(descriptionKey as any)}</p>
+          <p className="text-xs text-on-surface-variant font-label mt-0.5">{t(descriptionKey)}</p>
         </div>
       </div>
       {expandedSections[sectionKey] ? (
@@ -370,13 +372,13 @@ export const MethodologyTab: React.FC = () => {
                   value={editValue}
                   onChange={e => setEditValue(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') onEdit(parentId, index, editValue); if (e.key === 'Escape') setEditing(null); }}
-                  className="flex-1 bg-surface-container border border-primary/30 rounded-lg px-3 py-1.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="flex-1 bg-surface border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
                   autoFocus
                 />
                 <button onClick={() => onEdit(parentId, index, editValue)} className="p-1 text-primary hover:bg-primary/10 rounded">
                   <Check className="w-4 h-4" />
                 </button>
-                <button onClick={() => setEditing(null)} className="p-1 text-on-surface-variant hover:bg-surface-container-highest rounded">
+                <button onClick={() => setEditing(null)} className="p-1 text-on-surface-variant hover:bg-surface-elevated rounded">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -407,8 +409,8 @@ export const MethodologyTab: React.FC = () => {
           value={newText}
           onChange={e => setNewText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') onAdd(parentId); }}
-          placeholder={t(placeholderKey as any)}
-          className="flex-1 bg-surface-container border border-black/5 rounded-lg px-3 py-1.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+          placeholder={t(placeholderKey)}
+          className="flex-1 bg-surface border border-white/[0.04] rounded-lg px-3 py-1.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
         <button
           onClick={() => onAdd(parentId)}
@@ -433,11 +435,11 @@ export const MethodologyTab: React.FC = () => {
       {/* Header & Sub-nav */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-headline font-black text-on-surface tracking-tight uppercase">{t('methodologyTitle' as any)}</h1>
-          <p className="text-on-surface-variant font-label mt-1">{t('methodologySubtitle' as any)}</p>
+          <h1 className="text-4xl font-headline font-black text-on-surface tracking-tight uppercase">{t('methodologyTitle')}</h1>
+          <p className="text-on-surface-variant font-label mt-1">{t('methodologySubtitle')}</p>
         </div>
 
-        <div className="flex bg-surface-container rounded-2xl p-1 shadow-inner border border-black/5 self-start md:self-auto">
+        <div className="flex bg-surface rounded-2xl p-1 shadow-inner border border-white/[0.04] self-start md:self-auto">
           <button
             onClick={() => setActiveTab('analytics')}
             className={cn(
@@ -448,7 +450,7 @@ export const MethodologyTab: React.FC = () => {
             )}
           >
             <BarChart3 className="w-4 h-4" />
-            {t('analytics' as any)}
+            {t('analytics')}
           </button>
           <button
             onClick={() => setActiveTab('guide')}
@@ -460,7 +462,7 @@ export const MethodologyTab: React.FC = () => {
             )}
           >
             <BookOpen className="w-4 h-4" />
-            {t('theoryGuide' as any)}
+            {t('theoryGuide')}
           </button>
         </div>
       </div>
@@ -477,7 +479,7 @@ export const MethodologyTab: React.FC = () => {
             {/* Global Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard 
-                label={t('averageWellness' as any)} 
+                label={t('averageWellness')} 
                 value={analyticsData.stats.avgTeamWellness.toFixed(1)} 
                 subValue="/ 5.0"
                 icon={Heart} 
@@ -485,7 +487,7 @@ export const MethodologyTab: React.FC = () => {
                 bg="bg-red-500/10" 
               />
               <StatCard 
-                label={t('averageIntensity' as any)} 
+                label={t('averageIntensity')} 
                 value={analyticsData.stats.avgIntensity.toFixed(1)} 
                 subValue="/ 10"
                 icon={Zap} 
@@ -493,14 +495,14 @@ export const MethodologyTab: React.FC = () => {
                 bg="bg-amber-500/10" 
               />
               <StatCard 
-                label={t('exercisesCount' as any)} 
+                label={t('exercisesCount')} 
                 value={analyticsData.stats.totalExercises.toString()} 
                 icon={Target} 
                 color="text-primary" 
                 bg="bg-primary/10" 
               />
               <StatCard 
-                label={t('sessionsCreated' as any)} 
+                label={t('sessionsCreated')} 
                 value={analyticsData.stats.totalSessions.toString()} 
                 icon={Calendar} 
                 color="text-emerald-500" 
@@ -511,14 +513,14 @@ export const MethodologyTab: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Wellness Radar & Exercise Pie */}
               <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <section className="lg:col-span-2 bg-surface-container rounded-3xl p-8 border border-black/5 shadow-sm">
+                <section className="lg:col-span-2 bg-surface rounded-3xl p-8 border border-white/[0.04] shadow-sm">
                    <div className="flex items-center justify-between mb-8">
                      <h3 className="font-headline font-black text-lg flex items-center gap-2">
                        <Activity className="w-5 h-5 text-primary" />
-                       {t('teamWellnessAvg' as any)}
+                       {t('teamWellnessAvg')}
                      </h3>
                      <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant bg-on-surface/5 px-3 py-1 rounded-full">
-                       {t('last30Days' as any)}
+                       {t('last30Days')}
                      </span>
                    </div>
                    
@@ -570,10 +572,10 @@ export const MethodologyTab: React.FC = () => {
                    </div>
                 </section>
 
-                <section className="bg-surface-container rounded-3xl p-8 border border-black/5 shadow-sm">
+                <section className="bg-surface rounded-3xl p-8 border border-white/[0.04] shadow-sm">
                   <h3 className="font-headline font-black text-lg flex items-center gap-2 mb-8">
                     <PieChartIcon className="w-5 h-5 text-primary" />
-                    {t('exerciseDistribution' as any)}
+                    {t('exerciseDistribution')}
                   </h3>
                   
                   <div className="h-64 relative">
@@ -604,7 +606,7 @@ export const MethodologyTab: React.FC = () => {
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                       <span className="text-2xl font-black text-on-surface">{analyticsData.stats.totalExercises}</span>
-                      <span className="text-[8px] font-black uppercase text-on-surface-variant tracking-widest">{t('exercisesCount' as any)}</span>
+                      <span className="text-[8px] font-black uppercase text-on-surface-variant tracking-widest">{t('exercisesCount')}</span>
                     </div>
                   </div>
                   
@@ -624,10 +626,10 @@ export const MethodologyTab: React.FC = () => {
 
               {/* Tactical Distribution & Load Trend */}
               <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <section className="bg-surface-container rounded-3xl p-8 border border-black/5 shadow-sm">
+                <section className="bg-surface rounded-3xl p-8 border border-white/[0.04] shadow-sm">
                   <h3 className="font-headline font-black text-lg flex items-center gap-2 mb-8">
                     <Brain className="w-5 h-5 text-primary" />
-                    {t('methComp_tactical' as any)}
+                    {t('methComp_tactical')}
                   </h3>
                   
                   <div className="space-y-6">
@@ -636,7 +638,7 @@ export const MethodologyTab: React.FC = () => {
                         <div key={i} className="space-y-2">
                           <div className="flex justify-between items-baseline">
                             <span className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant">{item.name}</span>
-                            <span className="text-[10px] font-black text-primary">{item.value} {t('exercisesLabel' as any)}</span>
+                            <span className="text-[10px] font-black text-primary">{item.value} {t('exercisesLabel')}</span>
                           </div>
                           <div className="h-2 w-full bg-on-surface/5 rounded-full overflow-hidden">
                             <motion.div
@@ -650,17 +652,17 @@ export const MethodologyTab: React.FC = () => {
                     ) : (
                       <div className="py-12 flex flex-col items-center justify-center text-center opacity-50">
                         <Target className="w-8 h-8 mb-4 stroke-1" />
-                        <p className="text-xs font-bold uppercase tracking-widest">{t('noData' as any)}</p>
+                        <p className="text-xs font-bold uppercase tracking-widest">{t('noData')}</p>
                       </div>
                     )}
                   </div>
                 </section>
 
-                <section className="bg-surface-container rounded-3xl p-8 border border-black/5 shadow-sm">
+                <section className="bg-surface rounded-3xl p-8 border border-white/[0.04] shadow-sm">
                   <div className="flex items-center justify-between mb-8">
                     <h3 className="font-headline font-black text-lg flex items-center gap-2">
                       <TrendingUp className="w-5 h-5 text-primary" />
-                      {t('loadTrend' as any)}
+                      {t('loadTrend')}
                     </h3>
                   </div>
                   
@@ -708,13 +710,13 @@ export const MethodologyTab: React.FC = () => {
           >
             {/* Existing Theoretical Content */}
             {/* ===== 1. GAME MODEL ===== */}
-            <div className="bg-surface rounded-2xl border border-black/5 overflow-hidden shadow-sm">
+            <div className="bg-surface rounded-2xl border border-white/[0.04] overflow-hidden shadow-sm">
               <SectionHeader
                 sectionKey="gameModel"
                 icon={Target}
                 titleKey="methGameModel"
                 descriptionKey="methGameModelDesc"
-                badge={t('methEditable' as any)}
+                badge={t('methEditable')}
               />
               <AnimatePresence>
                 {expandedSections.gameModel && (
@@ -728,10 +730,10 @@ export const MethodologyTab: React.FC = () => {
                       {methodology.gameModel.map(moment => {
                         const Icon = MOMENT_ICONS[moment.moment as keyof typeof MOMENT_ICONS];
                         return (
-                          <div key={moment.id} className="bg-surface-container rounded-xl p-4 border border-black/5">
+                          <div key={moment.id} className="bg-surface rounded-xl p-4 border border-white/[0.04]">
                             <div className="flex items-center gap-2 mb-3">
                               {Icon && <Icon className={cn("w-4 h-4", moment.moment === 'defending' ? 'text-blue-500' : moment.moment === 'attacking' ? 'text-red-500' : 'text-amber-500')} />}
-                              <h4 className="font-headline font-bold text-sm text-on-surface">{t(`methMoment_${moment.moment}` as any)}</h4>
+                              <h4 className="font-headline font-bold text-sm text-on-surface">{t(`methMoment_${moment.moment}`)}</h4>
                             </div>
                             <EditableList
                               items={moment.principles}
@@ -756,13 +758,13 @@ export const MethodologyTab: React.FC = () => {
             </div>
 
             {/* ===== 2. COMPETENCY PROFILES ===== */}
-            <div className="bg-surface rounded-2xl border border-black/5 overflow-hidden shadow-sm">
+            <div className="bg-surface rounded-2xl border border-white/[0.04] overflow-hidden shadow-sm">
               <SectionHeader
                 sectionKey="competencies"
                 icon={Brain}
                 titleKey="methCompetencies"
                 descriptionKey="methCompetenciesDesc"
-                badge={t('methEditable' as any)}
+                badge={t('methEditable')}
               />
               <AnimatePresence>
                 {expandedSections.competencies && (
@@ -776,10 +778,10 @@ export const MethodologyTab: React.FC = () => {
                       {methodology.competencyProfiles.map(profile => {
                         const Icon = COMPETENCY_ICONS[profile.category as keyof typeof COMPETENCY_ICONS];
                         return (
-                          <div key={profile.id} className="bg-surface-container rounded-xl p-4 border border-black/5">
+                          <div key={profile.id} className="bg-surface rounded-xl p-4 border border-white/[0.04]">
                             <div className="flex items-center gap-2 mb-3">
                               {Icon && <Icon className="w-4 h-4 text-primary" />}
-                              <h4 className="font-headline font-bold text-sm text-on-surface">{t(`methComp_${profile.category}` as any)}</h4>
+                              <h4 className="font-headline font-bold text-sm text-on-surface">{t(`methComp_${profile.category}`)}</h4>
                             </div>
                             <EditableList
                               items={profile.competencies}
@@ -804,13 +806,13 @@ export const MethodologyTab: React.FC = () => {
             </div>
 
             {/* ===== 3. PERIODIZATION ===== */}
-            <div className="bg-surface rounded-2xl border border-black/5 overflow-hidden shadow-sm">
+            <div className="bg-surface rounded-2xl border border-white/[0.04] overflow-hidden shadow-sm">
               <SectionHeader
                 sectionKey="periodization"
                 icon={Calendar}
                 titleKey="methPeriodization"
                 descriptionKey="methPeriodizationDesc"
-                badge={t('methEditable' as any)}
+                badge={t('methEditable')}
               />
               <AnimatePresence>
                 {expandedSections.periodization && (
@@ -823,44 +825,44 @@ export const MethodologyTab: React.FC = () => {
                     <div className="p-5 pt-0 space-y-3">
                       <div className="flex items-start gap-3 bg-primary/5 rounded-xl p-4 border border-primary/10">
                         <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <p className="text-xs text-on-surface-variant">{t('methPeriodizationInfo' as any)}</p>
+                        <p className="text-xs text-on-surface-variant">{t('methPeriodizationInfo')}</p>
                       </div>
 
                       {methodology.periodization.map(phase => {
                         const isEditing = editingPhaseId === phase.id;
                         if (isEditing) {
                           return (
-                            <div key={phase.id} className="bg-surface-container rounded-xl p-4 border border-primary/20 space-y-3">
+                            <div key={phase.id} className="bg-surface rounded-xl p-4 border border-white/[0.06] space-y-3">
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <input
                                   value={phaseForm.name}
                                   onChange={e => setPhaseForm(prev => ({ ...prev, name: e.target.value }))}
-                                  placeholder={t('methPhaseName' as any)}
-                                  className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                  placeholder={t('methPhaseName')}
+                                  className="bg-surface border border-white/[0.06] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                                 <input
                                   value={phaseForm.duration}
                                   onChange={e => setPhaseForm(prev => ({ ...prev, duration: e.target.value }))}
-                                  placeholder={t('methPhaseDuration' as any)}
-                                  className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                  placeholder={t('methPhaseDuration')}
+                                  className="bg-surface border border-white/[0.06] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                                 <input
                                   value={phaseForm.intensity}
                                   onChange={e => setPhaseForm(prev => ({ ...prev, intensity: e.target.value }))}
-                                  placeholder={t('methPhaseIntensity' as any)}
-                                  className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                  placeholder={t('methPhaseIntensity')}
+                                  className="bg-surface border border-white/[0.06] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                               </div>
                               <textarea
                                 value={phaseForm.objectives}
                                 onChange={e => setPhaseForm(prev => ({ ...prev, objectives: e.target.value }))}
-                                placeholder={t('methPhaseObjectives' as any)}
+                                placeholder={t('methPhaseObjectives')}
                                 rows={3}
-                                className="w-full bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                                className="w-full bg-surface border border-white/[0.06] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                               />
                               <div className="flex justify-end gap-2">
-                                <button onClick={() => setEditingPhaseId(null)} className="px-3 py-1.5 text-sm text-on-surface-variant hover:bg-surface-container-highest rounded-lg transition-colors">
-                                  {t('cancel' as any)}
+                                <button onClick={() => setEditingPhaseId(null)} className="px-3 py-1.5 text-sm text-on-surface-variant hover:bg-surface-elevated rounded-lg transition-colors">
+                                  {t('cancel')}
                                 </button>
                                 <button
                                   onClick={() => handleEditPhase({
@@ -872,7 +874,7 @@ export const MethodologyTab: React.FC = () => {
                                   })}
                                   className="px-3 py-1.5 text-sm bg-primary text-on-primary rounded-lg hover:bg-primary/90 transition-colors"
                                 >
-                                  {t('save' as any)}
+                                  {t('save')}
                                 </button>
                               </div>
                             </div>
@@ -880,13 +882,13 @@ export const MethodologyTab: React.FC = () => {
                         }
 
                         return (
-                          <div key={phase.id} className="bg-surface-container rounded-xl p-4 border border-black/5 group">
+                          <div key={phase.id} className="bg-surface rounded-xl p-4 border border-white/[0.04] group">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
                                   <h4 className="font-headline font-bold text-sm text-on-surface">{phase.name}</h4>
                                   {phase.duration && (
-                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-surface-elevated text-on-surface-variant">
                                       {phase.duration}
                                     </span>
                                   )}
@@ -931,7 +933,7 @@ export const MethodologyTab: React.FC = () => {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    if (window.confirm(t('confirmDelete' as any))) {
+                                    if (window.confirm(t('confirmDelete'))) {
                                       deletePeriodizationPhase(phase.id);
                                     }
                                   }}
@@ -946,51 +948,51 @@ export const MethodologyTab: React.FC = () => {
                       })}
 
                       {addingPhase ? (
-                        <div className="bg-surface-container rounded-xl p-4 border border-primary/20 space-y-3">
+                        <div className="bg-surface rounded-xl p-4 border border-white/[0.06] space-y-3">
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <input
                               value={phaseForm.name}
                               onChange={e => setPhaseForm(prev => ({ ...prev, name: e.target.value }))}
-                              placeholder={t('methPhaseName' as any)}
-                              className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              placeholder={t('methPhaseName')}
+                              className="bg-surface border border-white/[0.06] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                               autoFocus
                             />
                             <input
                               value={phaseForm.duration}
                               onChange={e => setPhaseForm(prev => ({ ...prev, duration: e.target.value }))}
-                              placeholder={t('methPhaseDuration' as any)}
-                              className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              placeholder={t('methPhaseDuration')}
+                              className="bg-surface border border-white/[0.06] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                             />
                             <input
                               value={phaseForm.intensity}
                               onChange={e => setPhaseForm(prev => ({ ...prev, intensity: e.target.value }))}
-                              placeholder={t('methPhaseIntensity' as any)}
-                              className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              placeholder={t('methPhaseIntensity')}
+                              className="bg-surface border border-white/[0.06] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                             />
                           </div>
                           <textarea
                             value={phaseForm.objectives}
                             onChange={e => setPhaseForm(prev => ({ ...prev, objectives: e.target.value }))}
-                            placeholder={t('methPhaseObjectives' as any)}
+                            placeholder={t('methPhaseObjectives')}
                             rows={3}
-                            className="w-full bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                            className="w-full bg-surface border border-white/[0.06] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                           />
                           <div className="flex justify-end gap-2">
-                             <button onClick={() => { setAddingPhase(false); setPhaseForm({ name: '', duration: '', objectives: '', intensity: '' }); }} className="px-3 py-1.5 text-sm text-on-surface-variant hover:bg-surface-container-highest rounded-lg transition-colors">
-                              {t('cancel' as any)}
+                             <button onClick={() => { setAddingPhase(false); setPhaseForm({ name: '', duration: '', objectives: '', intensity: '' }); }} className="px-3 py-1.5 text-sm text-on-surface-variant hover:bg-surface-elevated rounded-lg transition-colors">
+                              {t('cancel')}
                             </button>
                             <button onClick={handleAddPhase} className="px-3 py-1.5 text-sm bg-primary text-on-primary rounded-lg hover:bg-primary/90 transition-colors">
-                              {t('add' as any)}
+                              {t('add')}
                             </button>
                           </div>
                         </div>
                       ) : (
                         <button
                           onClick={() => setAddingPhase(true)}
-                          className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-primary/40 rounded-xl text-sm text-on-surface-variant hover:border-primary/30 hover:text-primary transition-colors"
+                          className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-white/[0.06] rounded-xl text-sm text-on-surface-variant hover:border-white/[0.08] hover:text-primary transition-colors"
                         >
                           <Plus className="w-4 h-4" />
-                          {t('methAddPhase' as any)}
+                          {t('methAddPhase')}
                         </button>
                       )}
                     </div>
@@ -1000,13 +1002,13 @@ export const MethodologyTab: React.FC = () => {
             </div>
 
             {/* ===== 4. EXERCISE TAXONOMY (Reference) ===== */}
-            <div className="bg-surface rounded-2xl border border-black/5 overflow-hidden shadow-sm">
+            <div className="bg-surface rounded-2xl border border-white/[0.04] overflow-hidden shadow-sm">
               <SectionHeader
                 sectionKey="taxonomy"
                 icon={Layout}
                 titleKey="methTaxonomy"
                 descriptionKey="methTaxonomyDesc"
-                badge={t('methReference' as any)}
+                badge={t('methReference')}
               />
               <AnimatePresence>
                 {expandedSections.taxonomy && (
@@ -1018,44 +1020,44 @@ export const MethodologyTab: React.FC = () => {
                   >
                     <div className="p-5 pt-0 space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-surface-container rounded-xl p-4 border border-black/5">
+                        <div className="bg-surface rounded-xl p-4 border border-white/[0.04]">
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-2 h-2 rounded-full bg-blue-500" />
                             <h4 className="font-headline font-bold text-sm text-on-surface">{t('analytical')}</h4>
                           </div>
-                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxAnalytical' as any)}</p>
+                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxAnalytical')}</p>
                         </div>
-                        <div className="bg-surface-container rounded-xl p-4 border border-black/5">
+                        <div className="bg-surface rounded-xl p-4 border border-white/[0.04]">
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-2 h-2 rounded-full bg-amber-500" />
                             <h4 className="font-headline font-bold text-sm text-on-surface">{t('decision')}</h4>
                           </div>
-                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxDecision' as any)}</p>
+                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxDecision')}</p>
                         </div>
-                        <div className="bg-surface-container rounded-xl p-4 border border-black/5">
+                        <div className="bg-surface rounded-xl p-4 border border-white/[0.04]">
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-2 h-2 rounded-full bg-green-500" />
                             <h4 className="font-headline font-bold text-sm text-on-surface">{t('contextualized')}</h4>
                           </div>
-                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxContextualized' as any)}</p>
+                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxContextualized')}</p>
                         </div>
-                        <div className="bg-surface-container rounded-xl p-4 border border-black/5">
+                        <div className="bg-surface rounded-xl p-4 border border-white/[0.04]">
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-2 h-2 rounded-full bg-purple-500" />
                             <h4 className="font-headline font-bold text-sm text-on-surface">{t('warmup')}</h4>
                           </div>
-                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxWarmup' as any)}</p>
+                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxWarmup')}</p>
                         </div>
                       </div>
 
-                      <div className="bg-surface-container rounded-xl p-4 border border-black/5">
-                        <h4 className="font-headline font-bold text-sm text-on-surface mb-3">{t('methProgression' as any)}</h4>
+                      <div className="bg-surface rounded-xl p-4 border border-white/[0.04]">
+                        <h4 className="font-headline font-bold text-sm text-on-surface mb-3">{t('methProgression')}</h4>
                         <div className="flex flex-col items-center gap-1">
                           {[
-                            { label: t('methProgLevel4' as any), width: 'w-1/4', bg: 'bg-red-500/20 text-red-700' },
-                            { label: t('methProgLevel3' as any), width: 'w-2/4', bg: 'bg-amber-500/20 text-amber-700' },
-                            { label: t('methProgLevel2' as any), width: 'w-3/4', bg: 'bg-blue-500/20 text-blue-700' },
-                            { label: t('methProgLevel1' as any), width: 'w-full', bg: 'bg-green-500/20 text-green-700' },
+                            { label: t('methProgLevel4'), width: 'w-1/4', bg: 'bg-red-500/20 text-red-700' },
+                            { label: t('methProgLevel3'), width: 'w-2/4', bg: 'bg-amber-500/20 text-amber-700' },
+                            { label: t('methProgLevel2'), width: 'w-3/4', bg: 'bg-blue-500/20 text-blue-700' },
+                            { label: t('methProgLevel1'), width: 'w-full', bg: 'bg-green-500/20 text-green-700' },
                           ].map((level, i) => (
                             <div key={i} className={cn("rounded-lg py-2 px-4 text-center text-xs font-bold", level.width, level.bg)}>
                               {level.label}
@@ -1070,13 +1072,13 @@ export const MethodologyTab: React.FC = () => {
             </div>
 
             {/* ===== 5. REFERENCES ===== */}
-            <div className="bg-surface rounded-2xl border border-black/5 overflow-hidden shadow-sm">
+            <div className="bg-surface rounded-2xl border border-white/[0.04] overflow-hidden shadow-sm">
               <SectionHeader
                 sectionKey="references"
                 icon={BookOpen}
                 titleKey="methReferences"
                 descriptionKey="methReferencesDesc"
-                badge={t('methReference' as any)}
+                badge={t('methReference')}
               />
               <AnimatePresence>
                 {expandedSections.references && (
@@ -1088,13 +1090,13 @@ export const MethodologyTab: React.FC = () => {
                   >
                     <div className="p-5 pt-0 space-y-3">
                       {[
-                        { author: 'UEFA', title: t('methRefUEFA' as any) },
-                        { author: 'Vitor Frade', title: t('methRefFrade' as any) },
-                        { author: 'Francisco Silveira Ramos', title: t('methRefRamos' as any) },
-                        { author: 'Jorge Maciel', title: t('methRefMaciel' as any) },
-                        { author: 'Daniel Gaspar', title: t('methRefGaspar' as any) },
+                        { author: 'UEFA', title: t('methRefUEFA') },
+                        { author: 'Vitor Frade', title: t('methRefFrade') },
+                        { author: 'Francisco Silveira Ramos', title: t('methRefRamos') },
+                        { author: 'Jorge Maciel', title: t('methRefMaciel') },
+                        { author: 'Daniel Gaspar', title: t('methRefGaspar') },
                       ].map((ref, i) => (
-                        <div key={i} className="flex items-start gap-3 bg-surface-container rounded-xl p-3 border border-black/5">
+                        <div key={i} className="flex items-start gap-3 bg-surface rounded-xl p-3 border border-white/[0.04]">
                           <BookOpen className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                           <div>
                             <p className="text-sm font-bold text-on-surface">{ref.author}</p>
@@ -1109,14 +1111,14 @@ export const MethodologyTab: React.FC = () => {
             </div>
 
             {/* ===== NOTES ===== */}
-            <div className="bg-surface rounded-2xl border border-black/5 p-5 shadow-sm">
-              <h3 className="font-headline font-bold text-on-surface mb-3 uppercase tracking-wider text-xs">{t('methNotes' as any)}</h3>
+            <div className="bg-surface rounded-2xl border border-white/[0.04] p-5 shadow-sm">
+              <h3 className="font-headline font-bold text-on-surface mb-3 uppercase tracking-wider text-xs">{t('methNotes')}</h3>
               <textarea
                 value={methodology.notes}
                 onChange={e => updateNotes(e.target.value)}
-                placeholder={t('methNotesPlaceholder' as any)}
+                placeholder={t('methNotesPlaceholder')}
                 rows={4}
-                className="w-full bg-surface-container border border-black/5 rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                className="w-full bg-surface border border-white/[0.04] rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
               />
             </div>
           </motion.div>
@@ -1127,7 +1129,7 @@ export const MethodologyTab: React.FC = () => {
 };
 
 const StatCard: React.FC<{ label: string; value: string; subValue?: string; icon: any; color: string; bg: string }> = ({ label, value, subValue, icon: Icon, color, bg }) => (
-  <div className="bg-surface-container rounded-3xl border border-black/5 p-6 flex-1 shadow-sm group hover:scale-[1.02] transition-all">
+  <div className="bg-surface rounded-3xl border border-white/[0.04] p-6 flex-1 shadow-sm group hover:scale-[1.02] transition-all">
     <div className="flex items-center justify-between mb-4">
       <div className={cn("p-3 rounded-2xl transition-transform group-hover:rotate-12", bg)}>
         <Icon className={cn("w-5 h-5", color)} />

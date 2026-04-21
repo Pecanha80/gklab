@@ -3,6 +3,7 @@ import { X, Heart, Moon, Brain, Zap, Frown, Activity } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../hooks/useTranslation';
+import { useToast } from '../hooks/useToast';
 import { useWellness } from '../hooks/useWellness';
 import type { Goalkeeper } from '../types';
 
@@ -18,6 +19,7 @@ export const WellnessModal: React.FC<WellnessModalProps> = ({
   onSuccess
 }) => {
   const { t } = useTranslation();
+  const { showError } = useToast();
   const { saveWellnessLog } = useWellness(goalkeeper.id);
   
   const [wellnessForm, setWellnessForm] = useState({
@@ -52,7 +54,7 @@ export const WellnessModal: React.FC<WellnessModalProps> = ({
       if (onSuccess) onSuccess();
       setTimeout(onClose, 1500);
     } catch (err) {
-      console.error('Failed to save wellness log', err);
+      showError('Erro ao salvar bem-estar');
     } finally {
       setSaving(false);
     }
@@ -74,7 +76,7 @@ export const WellnessModal: React.FC<WellnessModalProps> = ({
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-xl bg-surface-container-low p-6 shadow-xl border border-black/5"
+        className="w-full max-w-md rounded-xl bg-surface-container-low p-6 shadow-xl border border-white/[0.04]"
       >
         {/* Header */}
         <div className="mb-5 flex items-center justify-between">
@@ -84,14 +86,14 @@ export const WellnessModal: React.FC<WellnessModalProps> = ({
             </div>
             <div>
               <h2 className="font-headline text-lg font-bold text-on-surface">
-                {t('wellnessQuestionnaire' as any)}
+                {t('wellnessQuestionnaire')}
               </h2>
               <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">{goalkeeper.name}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-md p-1 text-on-surface-variant transition-colors hover:bg-surface-container-highest"
+            className="rounded-md p-1 text-on-surface-variant transition-colors hover:bg-surface-elevated"
           >
             <X className="h-5 w-5" />
           </button>
@@ -106,7 +108,7 @@ export const WellnessModal: React.FC<WellnessModalProps> = ({
             <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
               <Heart className="h-8 w-8 text-emerald-500" />
             </div>
-            <p className="text-sm font-bold text-on-surface">{t('wellnessSaved' as any)}</p>
+            <p className="text-sm font-bold text-on-surface">{t('wellnessSaved')}</p>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-black text-emerald-600">{wellnessScore}</span>
               <span className="text-xs text-on-surface-variant">/ 5</span>
@@ -115,11 +117,11 @@ export const WellnessModal: React.FC<WellnessModalProps> = ({
         ) : (
           <form onSubmit={handleWellnessSubmit} className="space-y-5">
             {[
-              { key: 'sleep', icon: Moon, label: t('sleep' as any) },
-              { key: 'stress', icon: Brain, label: t('stress' as any) },
-              { key: 'fatigue', icon: Zap, label: t('fatigue' as any) },
-              { key: 'soreness', icon: Frown, label: t('soreness' as any) },
-              { key: 'mood', icon: Activity, label: t('moodLabel' as any) },
+              { key: 'sleep', icon: Moon, label: t('sleep') },
+              { key: 'stress', icon: Brain, label: t('stress') },
+              { key: 'fatigue', icon: Zap, label: t('fatigue') },
+              { key: 'soreness', icon: Frown, label: t('soreness') },
+              { key: 'mood', icon: Activity, label: t('moodLabel') },
             ].map(({ key, icon: Icon, label }) => (
               <div key={key} className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -131,7 +133,7 @@ export const WellnessModal: React.FC<WellnessModalProps> = ({
                     'text-[10px] font-bold text-white px-2 py-0.5 rounded-full',
                     getWellnessScaleColor(wellnessForm[key as keyof typeof wellnessForm] as number)
                   )}>
-                    {t(`wellnessScale${wellnessForm[key as keyof typeof wellnessForm]}` as any)}
+                    {t(`wellnessScale${wellnessForm[key as keyof typeof wellnessForm]}`)}
                   </span>
                 </div>
                 <div className="flex gap-1.5">
@@ -159,14 +161,14 @@ export const WellnessModal: React.FC<WellnessModalProps> = ({
                 value={wellnessForm.notes}
                 onChange={(e) => setWellnessForm(prev => ({ ...prev, notes: e.target.value }))}
                 rows={2}
-                className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary resize-none"
+                className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary resize-none"
                 placeholder={t('notesPlaceholder')}
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-black/5">
+            <div className="flex items-center justify-between pt-2 border-t border-white/[0.04]">
               <div className="flex items-center gap-3">
-                <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">{t('wellnessScore' as any)}</span>
+                <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">{t('wellnessScore')}</span>
                 <span className={cn(
                   'text-lg font-black px-3 py-1 rounded-lg text-white',
                   getWellnessScaleColor(Math.round(wellnessScore))
@@ -178,7 +180,7 @@ export const WellnessModal: React.FC<WellnessModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-lg border border-black/10 px-4 py-2 font-label text-sm font-medium text-on-surface-variant hover:bg-surface-container-highest"
+                  className="rounded-lg border border-white/[0.06] px-4 py-2 font-label text-sm font-medium text-on-surface-variant hover:bg-surface-elevated"
                 >
                   {t('cancel')}
                 </button>

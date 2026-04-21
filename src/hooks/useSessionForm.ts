@@ -53,6 +53,9 @@ export const emptyDrill: Omit<Exercise, 'id'> = {
   coachingPoints: [],
 };
 
+/** Return type of useSessionForm — used as a prop bundle to reduce prop drilling. */
+export type SessionFormState = ReturnType<typeof useSessionForm>;
+
 export function useSessionForm(
   addSession: (session: Omit<TrainingSession, 'id'>) => Promise<boolean>,
   updateSession: (session: TrainingSession) => Promise<void>,
@@ -73,12 +76,15 @@ export function useSessionForm(
   const [isSelectingFromLibrary, setIsSelectingFromLibrary] = useState(false);
   const [isTacticalBoardOpen, setIsTacticalBoardOpen] = useState(false);
 
+  /** Translate a value that may be a string, string array, or undefined. */
+  const tField = (value: string | string[] | undefined): string => {
+    if (!value) return '';
+    if (Array.isArray(value)) return value.map(item => t(item)).join('\n');
+    return t(value);
+  };
+
   const translateContent = (content: string | string[] | undefined) => {
-    if (!content) return '';
-    if (Array.isArray(content)) {
-      return content.map(item => t(item as any)).join('\n');
-    }
-    return t(content as any);
+    return tField(content);
   };
 
   const handleGeneralObjectivesChange = (selected: string[]) => {
@@ -160,7 +166,7 @@ export function useSessionForm(
     savePresets('coolDowns', newSession.coolDown, PRESETS.coolDowns);
     savePresets('obsPositives', newSession.observations.positives, PRESETS.observations.positives);
     savePresets('obsAdjustments', newSession.observations.adjustments, PRESETS.observations.adjustments);
-    savePresets('obsEvaluations', newSession.observations.individualEval, PRESETS.observations.evaluations);
+    savePresets('obsEvaluations', newSession.observations.individualEval, PRESETS.observations.individual);
 
     if (newSession.integratedWithTeam) {
       newSession.integratedWithTeam.forEach(integrated => {
@@ -192,14 +198,14 @@ export function useSessionForm(
         setIsAddingSession(false);
         setNewSession({ ...emptySession, date: getTodayDateString() });
       } else {
-        alert('Error adding session. Check console for details.');
+        // Error toast is shown by useAppData
       }
     }
   };
 
   const handleEditSession = (session: TrainingSession) => {
     setEditingSessionId(session.id);
-    const { id, created_at, ...data } = session as any;
+    const { id, created_at, user_id, ...data } = session as TrainingSession & { created_at?: string; user_id?: string };
     setNewSession(data);
     setIsAddingSession(true);
   };
@@ -298,26 +304,26 @@ export function useSessionForm(
     const foundExercise = allExercises.find(ex =>
       ex.title === title ||
       ex.title.toLowerCase() === normalizedTitle ||
-      t(ex.title as any).toLowerCase() === normalizedTitle
+      t(ex.title).toLowerCase() === normalizedTitle
     );
 
     if (foundExercise) {
       setCurrentDrill(prev => ({
         ...prev,
-        title: t(foundExercise.title as any),
+        title: t(foundExercise.title),
         type: foundExercise.type || prev.type,
-        objective: Array.isArray(foundExercise.objective) ? foundExercise.objective.map(o => t(o as any)) : [foundExercise.objective ? t(foundExercise.objective as any) : ''],
-        organization: Array.isArray(foundExercise.organization) ? foundExercise.organization.map(o => t(o as any)) : [foundExercise.organization ? t(foundExercise.organization as any) : ''],
-        execution: Array.isArray(foundExercise.execution) ? foundExercise.execution.map(e => t(e as any)) : [foundExercise.execution ? t(foundExercise.execution as any) : ''],
-        progression: Array.isArray(foundExercise.progression) ? foundExercise.progression.map(p => t(p as any)) : [foundExercise.progression ? t(foundExercise.progression as any) : ''],
-        successCriteria: Array.isArray(foundExercise.successCriteria) ? foundExercise.successCriteria.map(s => t(s as any)) : [foundExercise.successCriteria ? t(foundExercise.successCriteria as any) : ''],
-        duration: Array.isArray(foundExercise.duration) ? foundExercise.duration.map(d => t(d as any)) : [foundExercise.duration ? t(foundExercise.duration as any) : ''],
+        objective: Array.isArray(foundExercise.objective) ? foundExercise.objective.map(o => t(o)) : [foundExercise.objective ? t(foundExercise.objective) : ''],
+        organization: Array.isArray(foundExercise.organization) ? foundExercise.organization.map(o => t(o)) : [foundExercise.organization ? t(foundExercise.organization) : ''],
+        execution: Array.isArray(foundExercise.execution) ? foundExercise.execution.map(e => t(e)) : [foundExercise.execution ? t(foundExercise.execution) : ''],
+        progression: Array.isArray(foundExercise.progression) ? foundExercise.progression.map(p => t(p)) : [foundExercise.progression ? t(foundExercise.progression) : ''],
+        successCriteria: Array.isArray(foundExercise.successCriteria) ? foundExercise.successCriteria.map(s => t(s)) : [foundExercise.successCriteria ? t(foundExercise.successCriteria) : ''],
+        duration: Array.isArray(foundExercise.duration) ? foundExercise.duration.map(d => t(d)) : [foundExercise.duration ? t(foundExercise.duration) : ''],
         intensity: foundExercise.intensity || prev.intensity,
       }));
     } else {
       setCurrentDrill(prev => ({
         ...prev,
-        title: t(title as any),
+        title: t(title),
         ...(title.trim() === '' ? {
           objective: [],
           organization: [],
@@ -334,7 +340,7 @@ export function useSessionForm(
   const resolveTemplateKey = (title: string): string => {
     if (SESSION_TEMPLATES[title]) return title;
     const keys = Object.keys(SESSION_TEMPLATES);
-    const found = keys.find(k => t(k as any) === title || t(k as any).toLowerCase() === title.toLowerCase());
+    const found = keys.find(k => t(k) === title || t(k).toLowerCase() === title.toLowerCase());
     return found || title;
   };
 
@@ -358,33 +364,33 @@ export function useSessionForm(
           allWarmup = [...allWarmup, ...template.warmup.map(ex => ({
             ...ex,
             id: crypto.randomUUID(),
-            title: t(ex.title as any),
-            objective: Array.isArray(ex.objective) ? ex.objective.map(o => t(o as any)) : [ex.objective ? t(ex.objective as any) : ''],
-            organization: Array.isArray(ex.organization) ? ex.organization.map(o => t(o as any)) : [ex.organization ? t(ex.organization as any) : ''],
-            execution: Array.isArray(ex.execution) ? ex.execution.map(e => t(e as any)) : [ex.execution ? t(ex.execution as any) : ''],
-            progression: Array.isArray(ex.progression) ? ex.progression.map(p => t(p as any)) : [ex.progression ? t(ex.progression as any) : ''],
-            successCriteria: Array.isArray(ex.successCriteria) ? ex.successCriteria.map(s => t(s as any)) : [ex.successCriteria ? t(ex.successCriteria as any) : ''],
-            duration: Array.isArray(ex.duration) ? ex.duration.map(d => t(d as any)) : [ex.duration ? t(ex.duration as any) : ''],
+            title: t(ex.title),
+            objective: Array.isArray(ex.objective) ? ex.objective.map(o => t(o)) : [ex.objective ? t(ex.objective) : ''],
+            organization: Array.isArray(ex.organization) ? ex.organization.map(o => t(o)) : [ex.organization ? t(ex.organization) : ''],
+            execution: Array.isArray(ex.execution) ? ex.execution.map(e => t(e)) : [ex.execution ? t(ex.execution) : ''],
+            progression: Array.isArray(ex.progression) ? ex.progression.map(p => t(p)) : [ex.progression ? t(ex.progression) : ''],
+            successCriteria: Array.isArray(ex.successCriteria) ? ex.successCriteria.map(s => t(s)) : [ex.successCriteria ? t(ex.successCriteria) : ''],
+            duration: Array.isArray(ex.duration) ? ex.duration.map(d => t(d)) : [ex.duration ? t(ex.duration) : ''],
           }))];
         }
         if (template.exercises) {
           allExercises = [...allExercises, ...template.exercises.map(ex => ({
             ...ex,
             id: crypto.randomUUID(),
-            title: t(ex.title as any),
-            objective: Array.isArray(ex.objective) ? ex.objective.map(o => t(o as any)) : [ex.objective ? t(ex.objective as any) : ''],
-            organization: Array.isArray(ex.organization) ? ex.organization.map(o => t(o as any)) : [ex.organization ? t(ex.organization as any) : ''],
-            execution: Array.isArray(ex.execution) ? ex.execution.map(e => t(e as any)) : [ex.execution ? t(ex.execution as any) : ''],
-            progression: Array.isArray(ex.progression) ? ex.progression.map(p => t(p as any)) : [ex.progression ? t(ex.progression as any) : ''],
-            successCriteria: Array.isArray(ex.successCriteria) ? ex.successCriteria.map(s => t(s as any)) : [ex.successCriteria ? t(ex.successCriteria as any) : ''],
-            duration: Array.isArray(ex.duration) ? ex.duration.map(d => t(d as any)) : [ex.duration ? t(ex.duration as any) : ''],
+            title: t(ex.title),
+            objective: Array.isArray(ex.objective) ? ex.objective.map(o => t(o)) : [ex.objective ? t(ex.objective) : ''],
+            organization: Array.isArray(ex.organization) ? ex.organization.map(o => t(o)) : [ex.organization ? t(ex.organization) : ''],
+            execution: Array.isArray(ex.execution) ? ex.execution.map(e => t(e)) : [ex.execution ? t(ex.execution) : ''],
+            progression: Array.isArray(ex.progression) ? ex.progression.map(p => t(p)) : [ex.progression ? t(ex.progression) : ''],
+            successCriteria: Array.isArray(ex.successCriteria) ? ex.successCriteria.map(s => t(s)) : [ex.successCriteria ? t(ex.successCriteria) : ''],
+            duration: Array.isArray(ex.duration) ? ex.duration.map(d => t(d)) : [ex.duration ? t(ex.duration) : ''],
           }))];
         }
         if (template.objectives) {
-          if (template.objectives.technical) technical += (technical ? '\n' : '') + t(template.objectives.technical as any);
-          if (template.objectives.tactical) tactical += (tactical ? '\n' : '') + t(template.objectives.tactical as any);
-          if (template.objectives.physical) physical += (physical ? '\n' : '') + t(template.objectives.physical as any);
-          if (template.objectives.cognitive) cognitive += (cognitive ? '\n' : '') + t(template.objectives.cognitive as any);
+          if (template.objectives.technical) technical += (technical ? '\n' : '') + tField(template.objectives.technical);
+          if (template.objectives.tactical) tactical += (tactical ? '\n' : '') + tField(template.objectives.tactical);
+          if (template.objectives.physical) physical += (physical ? '\n' : '') + tField(template.objectives.physical);
+          if (template.objectives.cognitive) cognitive += (cognitive ? '\n' : '') + tField(template.objectives.cognitive);
         }
         if (template.generalObjectives) {
           generalObjectives = Array.from(new Set([...generalObjectives, ...template.generalObjectives]));
@@ -395,27 +401,27 @@ export function useSessionForm(
     generalObjectives.forEach(objKey => {
       const mapping = OBJECTIVE_MAPPINGS[objKey];
       if (mapping) {
-        if (mapping.technical && !technical.includes(t(mapping.technical as any))) {
-          technical = technical ? `${technical}\n${t(mapping.technical as any)}` : t(mapping.technical as any);
+        if (mapping.technical && !technical.includes(t(mapping.technical))) {
+          technical = technical ? `${technical}\n${t(mapping.technical)}` : t(mapping.technical);
         }
-        if (mapping.tactical && !tactical.includes(t(mapping.tactical as any))) {
-          tactical = tactical ? `${tactical}\n${t(mapping.tactical as any)}` : t(mapping.tactical as any);
+        if (mapping.tactical && !tactical.includes(t(mapping.tactical))) {
+          tactical = tactical ? `${tactical}\n${t(mapping.tactical)}` : t(mapping.tactical);
         }
-        if (mapping.physical && !physical.includes(t(mapping.physical as any))) {
-          physical = physical ? `${physical}\n${t(mapping.physical as any)}` : t(mapping.physical as any);
+        if (mapping.physical && !physical.includes(t(mapping.physical))) {
+          physical = physical ? `${physical}\n${t(mapping.physical)}` : t(mapping.physical);
         }
-        if (mapping.cognitive && !cognitive.includes(t(mapping.cognitive as any))) {
-          cognitive = cognitive ? `${cognitive}\n${t(mapping.cognitive as any)}` : t(mapping.cognitive as any);
+        if (mapping.cognitive && !cognitive.includes(t(mapping.cognitive))) {
+          cognitive = cognitive ? `${cognitive}\n${t(mapping.cognitive)}` : t(mapping.cognitive);
         }
 
         if (mapping.warmupObjective && allWarmup.length === 0) {
            allWarmup.push({
              id: crypto.randomUUID(),
              type: 'warmup',
-             title: t(mapping.warmupObjective as any),
-             objective: [t(mapping.warmupObjective as any)],
-             organization: [t(mapping.warmupOrganization as any) || ''],
-             execution: [t(mapping.warmupDescription as any) || ''],
+             title: t(mapping.warmupObjective),
+             objective: [t(mapping.warmupObjective)],
+             organization: [mapping.warmupOrganization ? t(mapping.warmupOrganization) : ''],
+             execution: [mapping.warmupDescription ? t(mapping.warmupDescription) : ''],
              progression: [],
              successCriteria: [],
              duration: [t('dur_15min')],

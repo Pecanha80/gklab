@@ -2,14 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { TrainingSession, PerformanceVideo, Goalkeeper, Exercise, SavedMicrocycle } from '../types';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
+import { useToast } from './useToast';
+import { getTodayDateString } from '../lib/utils';
 
-function normalizeExercise(ex: any): Exercise {
-  if (!ex) return ex;
+/** Normalizes exercise array fields that may come as JSON strings from Supabase. */
+function normalizeExercise(ex: Record<string, unknown>): Exercise {
+  if (!ex) return ex as unknown as Exercise;
   const arrayFields = ['objective', 'organization', 'execution', 'progression', 'successCriteria'];
   const normalized = { ...ex };
 
   arrayFields.forEach(field => {
-    let value = normalized[field];
+    let value: unknown = normalized[field];
 
     while (typeof value === 'string' && value.trim().startsWith('[')) {
       try {
@@ -20,7 +23,7 @@ function normalizeExercise(ex: any): Exercise {
           break;
         }
       } catch {
-        const trimmed = value.trim();
+        const trimmed = (value as string).trim();
         if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
           value = trimmed.slice(1, -1).split(',').map((s: string) => s.trim().replace(/^["']|["']$/g, ''));
         }
@@ -35,64 +38,103 @@ function normalizeExercise(ex: any): Exercise {
     normalized[field] = value;
   });
 
-  return normalized as Exercise;
+  return normalized as unknown as Exercise;
 }
 
-function mapSessionFromDB(s: any): TrainingSession {
+/** Maps a Supabase row to the TrainingSession interface. DB columns are camelCase. */
+function mapSessionFromDB(s: Record<string, unknown>): TrainingSession {
   return {
-    ...s,
-    numAthletes: s.num_athletes || s.numAthletes,
-    generalObjectives: s.general_objectives || s.generalObjectives || [],
-    microcycleId: s.microcycle_id,
+    id: s.id as string,
+    date: (s.date as string) ?? '',
+    category: (s.category as string | string[]) ?? '',
+    numAthletes: (s.numAthletes as number) ?? 0,
+    duration: (s.duration as string | string[]) ?? '',
+    generalObjectives: (s.generalObjectives as string[]) ?? [],
+    objectives: (s.objectives as TrainingSession['objectives']) ?? { technical: [], tactical: [], physical: [], cognitive: [] },
+    warmup: (s.warmup as Exercise[]) ?? [],
+    exercises: (s.exercises as Exercise[]) ?? [],
+    integratedWithTeam: (s.integratedWithTeam as TrainingSession['integratedWithTeam']) ?? [],
+    coolDown: (s.coolDown as string | string[]) ?? '',
+    observations: (s.observations as TrainingSession['observations']) ?? { positives: [], adjustments: [], individualEval: [] },
+    titles: (s.titles as string[]) ?? [],
+    gameMoments: (s.gameMoments as string[]) ?? [],
+    tacticalPrinciples: (s.tacticalPrinciples as string[]) ?? [],
+    athleteObservations: (s.athleteObservations as TrainingSession['athleteObservations']) ?? [],
+    time: (s.time as string) ?? '',
+    focus: (s.focus as string[]) ?? [],
+    attending: (s.attending as string[]) ?? [],
+    imageUrl: s.imageUrl as string | undefined,
+    isLive: (s.isLive as boolean) ?? false,
+    mesocycle: (s.mesocycle as string) ?? '',
   };
 }
 
+/** Maps a TrainingSession to a Supabase row for insert/update. Uses ?? for nullish safety. */
 function mapSessionToDB(s: Partial<TrainingSession>, userId: string) {
-  const { id, microcycleId, numAthletes, generalObjectives, ...rest } = s;
   return {
-    ...rest,
     user_id: userId,
-    num_athletes: numAthletes || (s as any).numAthletes,
-    general_objectives: generalObjectives || (s as any).generalObjectives,
-    microcycle_id: microcycleId || null,
+    date: s.date ?? getTodayDateString(),
+    numAthletes: s.numAthletes ?? 0,
+    generalObjectives: s.generalObjectives ?? [],
+    category: s.category ?? '',
+    duration: s.duration ?? '',
+    objectives: s.objectives ?? {},
+    warmup: s.warmup ?? [],
+    exercises: s.exercises ?? [],
+    integratedWithTeam: s.integratedWithTeam ?? [],
+    coolDown: s.coolDown ?? '',
+    observations: s.observations ?? {},
+    titles: s.titles ?? [],
+    gameMoments: s.gameMoments ?? [],
+    tacticalPrinciples: s.tacticalPrinciples ?? [],
+    mesocycle: s.mesocycle ?? '',
+    attending: s.attending ?? [],
+    time: s.time ?? '',
+    focus: s.focus ?? [],
+    imageUrl: s.imageUrl ?? null,
+    isLive: s.isLive ?? false,
+    athleteObservations: s.athleteObservations ?? [],
   };
 }
 
-function mapMicrocycleFromDB(mc: any): SavedMicrocycle {
+/** Maps a Supabase microcycles row (snake_case) to the SavedMicrocycle interface (camelCase). */
+function mapMicrocycleFromDB(mc: Record<string, unknown>): SavedMicrocycle {
   return {
-    id: mc.id,
-    name: mc.name,
-    startDate: mc.start_date,
-    endDate: mc.end_date,
-    matchDay: mc.match_day,
-    matchOpponent: mc.match_opponent,
-    matchLocation: mc.match_location,
-    matchTime: mc.match_time,
-    matchCompetition: mc.match_competition,
-    restDays: mc.rest_days || [],
-    mesocycle: mc.mesocycle,
+    id: mc.id as string,
+    name: mc.name as string,
+    startDate: mc.start_date as string,
+    endDate: mc.end_date as string,
+    matchDay: (mc.match_day as string) ?? null,
+    matchOpponent: mc.match_opponent as string | undefined,
+    matchLocation: mc.match_location as string | undefined,
+    matchTime: mc.match_time as string | undefined,
+    matchCompetition: mc.match_competition as string | undefined,
+    restDays: (mc.rest_days as string[]) ?? [],
+    mesocycle: mc.mesocycle as string | undefined,
   };
 }
 
+/** Maps a SavedMicrocycle (camelCase) to a Supabase row (snake_case) for insert/update. */
 function mapMicrocycleToDB(mc: Partial<SavedMicrocycle>, userId: string) {
   return {
     user_id: userId,
     name: mc.name,
     start_date: mc.startDate,
     end_date: mc.endDate,
-    match_day: mc.matchDay || null,
-    match_opponent: mc.matchOpponent || null,
-    match_location: mc.matchLocation || null,
-    match_time: mc.matchTime || null,
-    match_competition: mc.matchCompetition || null,
-    rest_days: mc.restDays || [],
-    mesocycle: mc.mesocycle || null,
+    match_day: mc.matchDay ?? null,
+    match_opponent: mc.matchOpponent ?? null,
+    match_location: mc.matchLocation ?? null,
+    match_time: mc.matchTime ?? null,
+    match_competition: mc.matchCompetition ?? null,
+    rest_days: mc.restDays ?? [],
+    mesocycle: mc.mesocycle ?? null,
   };
 }
 
 
 export function useAppData() {
   const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [goalkeepers, setGoalkeepers] = useState<Goalkeeper[]>([]);
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
   const [videos, setVideos] = useState<PerformanceVideo[]>([]);
@@ -107,12 +149,13 @@ export function useAppData() {
     }
 
     try {
+      const PAGE_LIMIT = 200;
       const [gkRes, sessRes, vidRes, exRes, mcRes] = await Promise.all([
         supabase.from('goalkeepers').select('*').order('display_order', { ascending: true }),
-        supabase.from('sessions').select('*').order('created_at', { ascending: false }),
-        supabase.from('videos').select('*').order('created_at', { ascending: false }),
-        supabase.from('exercises').select('*').order('created_at', { ascending: false }),
-        supabase.from('microcycles').select('*').order('created_at', { ascending: false }),
+        supabase.from('sessions').select('*').order('created_at', { ascending: false }).limit(PAGE_LIMIT),
+        supabase.from('videos').select('*').order('created_at', { ascending: false }).limit(PAGE_LIMIT),
+        supabase.from('exercises').select('*').order('created_at', { ascending: false }).limit(PAGE_LIMIT),
+        supabase.from('microcycles').select('*').order('created_at', { ascending: false }).limit(50),
       ]);
 
       if (gkRes.data) setGoalkeepers(gkRes.data);
@@ -121,14 +164,12 @@ export function useAppData() {
       if (exRes.data) setExercisesLibrary(exRes.data.map(normalizeExercise));
       if (mcRes.data) setSavedMicrocycles(mcRes.data.map(mapMicrocycleFromDB));
 
+      const tables = ['goalkeepers', 'sessions', 'videos', 'exercises', 'microcycles'];
       [gkRes, sessRes, vidRes, exRes, mcRes].forEach((res, i) => {
-        if (res.error) {
-          const tables = ['goalkeepers', 'sessions', 'videos', 'exercises', 'microcycles'];
-          console.error(`Error fetching ${tables[i]}:`, res.error);
-        }
+        if (res.error) showError(`Erro ao carregar ${tables[i]}: ${res.error.message}`);
       });
-    } catch (error) {
-      console.error('Error loading data from Supabase:', error);
+    } catch {
+      showError('Erro ao carregar dados. Verifique sua conexão.');
     } finally {
       setIsLoading(false);
     }
@@ -146,7 +187,7 @@ export function useAppData() {
       .select();
 
     if (error) {
-      console.error('Error adding exercise:', error);
+      showError(`Erro ao adicionar exercício: ${error.message}`);
       return;
     }
     if (data) {
@@ -158,7 +199,7 @@ export function useAppData() {
     const { id, ...rest } = exercise;
     const { error } = await supabase.from('exercises').update(rest).eq('id', id);
     if (error) {
-      console.error('Error updating exercise:', error);
+      showError(`Erro ao atualizar exercício: ${error.message}`);
       return;
     }
     setExercisesLibrary(prev => prev.map(e => e.id === id ? exercise : e));
@@ -167,7 +208,7 @@ export function useAppData() {
   const deleteExercise = async (exerciseId: string) => {
     const { error } = await supabase.from('exercises').delete().eq('id', exerciseId);
     if (error) {
-      console.error('Error deleting exercise:', error);
+      showError(`Erro ao excluir exercício: ${error.message}`);
       return;
     }
     setExercisesLibrary(prev => prev.filter(e => e.id !== exerciseId));
@@ -183,16 +224,18 @@ export function useAppData() {
       .select();
 
     if (error) {
-      console.error('Error adding session:', error);
+      showError(`Erro ao salvar sessão: ${error.message}`);
       return false;
     }
     if (data) {
       setSessions(prev => [mapSessionFromDB(data[0]), ...prev]);
+      showSuccess('Sessão salva com sucesso!');
     }
     return true;
   };
 
   const updateSession = async (session: TrainingSession) => {
+    if (!user) return;
     const { id } = session;
     const { error } = await supabase
       .from('sessions')
@@ -200,7 +243,7 @@ export function useAppData() {
       .eq('id', id);
 
     if (error) {
-      console.error('Error updating session:', error);
+      showError(`Erro ao atualizar sessão: ${error.message}`);
       return;
     }
     setSessions(prev => prev.map(s => s.id === id ? session : s));
@@ -209,7 +252,7 @@ export function useAppData() {
   const deleteSession = async (sessionId: string) => {
     const { error } = await supabase.from('sessions').delete().eq('id', sessionId);
     if (error) {
-      console.error('Error deleting session:', error);
+      showError(`Erro ao excluir sessão: ${error.message}`);
       return;
     }
     setSessions(prev => prev.filter(s => s.id !== sessionId));
@@ -225,7 +268,7 @@ export function useAppData() {
       .select();
 
     if (error) {
-      console.error('Error adding goalkeeper:', error);
+      showError(`Erro ao adicionar goleiro: ${error.message}`);
       return;
     }
     if (data) {
@@ -237,7 +280,7 @@ export function useAppData() {
     const { id, ...rest } = gk;
     const { error } = await supabase.from('goalkeepers').update(rest).eq('id', id);
     if (error) {
-      console.error('Error updating goalkeeper:', error);
+      showError(`Erro ao atualizar goleiro: ${error.message}`);
       return;
     }
     setGoalkeepers(prev => prev.map(k => k.id === id ? gk : k));
@@ -246,7 +289,7 @@ export function useAppData() {
   const deleteGoalkeeper = async (gkId: string) => {
     const { error } = await supabase.from('goalkeepers').delete().eq('id', gkId);
     if (error) {
-      console.error('Error deleting goalkeeper:', error);
+      showError(`Erro ao excluir goleiro: ${error.message}`);
       return;
     }
     setGoalkeepers(prev => prev.filter(k => k.id !== gkId));
@@ -270,8 +313,7 @@ export function useAppData() {
     try {
       await Promise.all(updates);
     } catch (error) {
-      console.error('Error persisting new goalkeeper order:', error);
-      // Optional: refetch to revert to server state on error
+      showError('Erro ao reordenar goleiros');
       fetchAll();
     }
   };
@@ -286,7 +328,7 @@ export function useAppData() {
       .select();
 
     if (error) {
-      console.error('Error adding video:', error);
+      showError(`Erro ao adicionar vídeo: ${error.message}`);
       return;
     }
     if (data) {
@@ -298,7 +340,7 @@ export function useAppData() {
     const { id, ...rest } = video;
     const { error } = await supabase.from('videos').update(rest).eq('id', id);
     if (error) {
-      console.error('Error updating video:', error);
+      showError(`Erro ao atualizar vídeo: ${error.message}`);
       return;
     }
     setVideos(prev => prev.map(v => v.id === id ? video : v));
@@ -307,7 +349,7 @@ export function useAppData() {
   const deleteVideo = async (videoId: string) => {
     const { error } = await supabase.from('videos').delete().eq('id', videoId);
     if (error) {
-      console.error('Error deleting video:', error);
+      showError(`Erro ao excluir vídeo: ${error.message}`);
       return;
     }
     setVideos(prev => prev.filter(v => v.id !== videoId));
@@ -323,7 +365,7 @@ export function useAppData() {
       .select();
 
     if (error) {
-      console.error('Error adding microcycle:', error);
+      showError(`Erro ao adicionar microciclo: ${error.message}`);
       throw error;
     }
     if (data) {
@@ -340,7 +382,7 @@ export function useAppData() {
       .eq('id', id);
 
     if (error) {
-      console.error('Error updating microcycle:', error);
+      showError(`Erro ao atualizar microciclo: ${error.message}`);
       return;
     }
     setSavedMicrocycles(prev => prev.map(m => m.id === id ? mc : m));
@@ -349,7 +391,7 @@ export function useAppData() {
   const deleteMicrocycle = async (mcId: string) => {
     const { error } = await supabase.from('microcycles').delete().eq('id', mcId);
     if (error) {
-      console.error('Error deleting microcycle:', error);
+      showError(`Erro ao excluir microciclo: ${error.message}`);
       return;
     }
     setSavedMicrocycles(prev => prev.filter(m => m.id !== mcId));

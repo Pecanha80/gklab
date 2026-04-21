@@ -561,15 +561,15 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
     return <>{anchors}</>;
   };
 
-  const toolBtnClass = "p-2 bg-surface-container rounded border border-black/5 hover:border-primary/50 transition-all flex items-center justify-center";
+  const toolBtnClass = "p-2 bg-surface rounded border border-white/[0.04] hover:border-white/[0.06] transition-all flex items-center justify-center";
   const toolImgStyle: React.CSSProperties = { width: 22, height: 22, objectFit: 'contain' as const };
   const canvasSize = getCanvasSize(fieldType);
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-surface/90 backdrop-blur-md">
-      <div className="bg-surface-container border border-black/10 rounded-2xl shadow-2xl w-full max-w-6xl h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-surface border border-white/[0.06] rounded-2xl shadow-2xl w-full max-w-6xl h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-4 border-b border-black/10 flex items-center justify-between bg-surface-container-highest">
+        <div className="p-4 border-b border-white/[0.06] flex items-center justify-between bg-surface-elevated">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
               <Target className="w-6 h-6 text-primary" />
@@ -595,7 +595,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
 
         <div className="flex-1 flex overflow-hidden">
           {/* Toolbar */}
-          <div className="w-64 bg-surface-container-highest border-r border-black/10 p-4 flex flex-col gap-3 overflow-y-auto">
+          <div className="w-64 bg-surface-elevated border-r border-white/[0.06] p-4 flex flex-col gap-3 overflow-y-auto">
             {/* Field Type */}
             <CollapsibleSection title={t('fieldType')}>
               <div className="grid grid-cols-3 gap-2">
@@ -610,7 +610,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                     title={t(f.id === 'full' ? 'fullPitch' : f.id === 'half' ? 'halfPitch' : 'penaltyArea')}
                     className={cn(
                       "p-2 rounded border transition-all flex items-center justify-center",
-                      fieldType === f.id ? "bg-primary/20 border-primary text-primary" : "bg-surface-container border-black/5 text-on-surface-variant hover:border-black/20"
+                      fieldType === f.id ? "bg-primary/20 border-primary text-primary" : "bg-surface border-white/[0.04] text-on-surface-variant hover:border-black/20"
                     )}
                   >
                     <f.icon className="w-6 h-6" />
@@ -623,7 +623,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
             <CollapsibleSection title={t('playersAssets')}>
               <div className="flex flex-col gap-3">
                 {/* Player Row */}
-                <div className="flex items-stretch gap-2 p-2 bg-surface-container rounded border border-black/5 hover:border-primary transition-all">
+                <div className="flex items-stretch gap-2 p-2 bg-surface rounded border border-white/[0.04] hover:border-primary transition-all">
                   <button onClick={() => { setActiveTool(null); addElement('player', '#3b82f6', 'AT'); }} className="flex flex-col items-center justify-center gap-1 flex-1">
                     <Stage width={45} height={50} className="pointer-events-none">
                       <Layer>
@@ -632,7 +632,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                     </Stage>
                     <span className="text-[9px] font-bold">{t('attacker')}</span>
                   </button>
-                  <div className="flex flex-col justify-center gap-1 pl-2 border-l border-black/10">
+                  <div className="flex flex-col justify-center gap-1 pl-2 border-l border-white/[0.06]">
                     <input type="color" title="Shirt" value={playerColors.shirt} onChange={(e) => {
                       setPlayerColors(p => ({...p, shirt: e.target.value}));
                       if (selectedId) setElements(prev => prev.map(el => el.id === selectedId && el.type === 'player' ? { ...el, kitColors: { ...(el.kitColors || playerColors), shirt: e.target.value } } : el));
@@ -649,7 +649,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                 </div>
 
                 {/* GK Row */}
-                <div className="flex items-stretch gap-2 p-2 bg-surface-container rounded border border-black/5 hover:border-yellow-500 transition-all">
+                <div className="flex items-stretch gap-2 p-2 bg-surface rounded border border-white/[0.04] hover:border-yellow-500 transition-all">
                   <button onClick={() => { setActiveTool(null); addElement('gk', '#eab308', 'GK'); }} className="flex flex-col items-center justify-center gap-1 flex-1">
                     <Stage width={45} height={50} className="pointer-events-none">
                       <Layer>
@@ -658,7 +658,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                     </Stage>
                     <span className="text-[9px] font-bold">{t('goalkeeperTool')}</span>
                   </button>
-                  <div className="flex flex-col justify-center gap-1 pl-2 border-l border-black/10">
+                  <div className="flex flex-col justify-center gap-1 pl-2 border-l border-white/[0.06]">
                     <input type="color" title="Shirt" value={gkColors.shirt} onChange={(e) => {
                       setGkColors(p => ({...p, shirt: e.target.value}));
                       if (selectedId) setElements(prev => prev.map(el => el.id === selectedId && el.type === 'gk' ? { ...el, kitColors: { ...(el.kitColors || gkColors), shirt: e.target.value } } : el));
@@ -698,7 +698,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                     <button
                       key={elType}
                       onClick={() => { setActiveTool(null); addElement(elType, defaultElementColor); }}
-                      className="flex flex-col items-center justify-center gap-1 p-2 bg-surface-container rounded border border-black/5 hover:border-primary/50 transition-all h-16"
+                      className="flex flex-col items-center justify-center gap-1 p-2 bg-surface rounded border border-white/[0.04] hover:border-white/[0.06] transition-all h-16"
                     >
                       <Stage width={cw} height={ch} className="pointer-events-none">
                         <Layer>
@@ -707,7 +707,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                           </Group>
                         </Layer>
                       </Stage>
-                      <span className="text-[9px] font-bold">{t(elType as any)}</span>
+                      <span className="text-[9px] font-bold">{t(elType)}</span>
                     </button>
                   );
                 })}
@@ -725,7 +725,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                       toolBtnClass,
                       activeTool === tool.type && "ring-2 ring-primary bg-primary/10"
                     )}
-                    title={t(tool.titleKey as any)}
+                    title={t(tool.titleKey)}
                   >
                     <img src={tool.img} alt="" style={toolImgStyle} />
                   </button>
@@ -740,7 +740,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
               </div>
               {activeTool && (
                 <p className="text-[9px] text-primary mt-2 text-center font-medium">
-                  {t('clickAndDrag' as any)}
+                  {t('clickAndDrag')}
                 </p>
               )}
             </CollapsibleSection>
@@ -751,13 +751,13 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
             {selectedId && (() => {
               const el = elements.find(e => e.id === selectedId);
               return (
-                <div className="mt-auto pt-4 border-t border-black/10 flex flex-col gap-2">
+                <div className="mt-auto pt-4 border-t border-white/[0.06] flex flex-col gap-2">
                   {el && (el.type === 'player' || el.type === 'gk') && (
                     <button
                       onClick={() => {
                         setElements(prev => prev.map(item => item.id === selectedId ? { ...item, facing: item.facing === 'back' ? 'front' : 'back' } : item));
                       }}
-                      className="w-full flex justify-center items-center gap-2 p-2 bg-surface-container text-on-surface rounded text-[10px] uppercase font-bold hover:bg-black/5 transition-colors tracking-wider"
+                      className="w-full flex justify-center items-center gap-2 p-2 bg-surface text-on-surface rounded text-[10px] uppercase font-bold hover:bg-white/[0.03] transition-colors tracking-wider"
                     >
                       {el.facing === 'back' ? '👤 Virar de Frente' : '🔄 Virar de Costas'}
                     </button>
@@ -775,9 +775,9 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
           </div>
 
           {/* Canvas Area */}
-          <div className="flex-1 bg-black/5 relative overflow-hidden flex items-center justify-center p-8">
+          <div className="flex-1 bg-white/[0.03] relative overflow-hidden flex items-center justify-center p-8">
             <div
-              className="bg-black/5 rounded-lg shadow-2xl overflow-hidden border border-black/10"
+              className="bg-white/[0.03] rounded-lg shadow-2xl overflow-hidden border border-white/[0.06]"
               style={{ cursor: activeTool ? 'crosshair' : 'default' }}
             >
               <Stage

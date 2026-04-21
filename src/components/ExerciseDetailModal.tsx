@@ -70,11 +70,11 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label={exercise.title}
-        className="bg-surface-container border border-black/5 rounded-2xl w-full max-w-[95vw] max-h-[90vh] overflow-y-auto shadow-xl"
+        className="bg-surface border border-white/[0.04] rounded-2xl w-full max-w-[95vw] max-h-[90vh] overflow-y-auto shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-surface-container border-b border-black/5 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+        <div className="sticky top-0 z-10 bg-surface border-b border-white/[0.04] px-6 py-4 flex items-center justify-between rounded-t-2xl">
           <div className="flex items-center gap-2.5 min-w-0">
             <h2 className="font-headline text-lg text-on-surface font-bold truncate">
               {exercise.title}
@@ -91,7 +91,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
           <button
             aria-label={t('close')}
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-black/5 transition-colors text-on-surface/60 shrink-0"
+            className="p-1.5 rounded-lg hover:bg-white/[0.03] transition-colors text-on-surface/60 shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -103,7 +103,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
             {exercise.duration && (
               <div className="flex items-center gap-1.5 text-on-surface/60 text-xs">
                 <Clock className="w-3.5 h-3.5" />
-                <span>{Array.isArray(exercise.duration) ? exercise.duration.map(d => t(d as any)).join(', ') : t(exercise.duration as any)}</span>
+                <span>{Array.isArray(exercise.duration) ? exercise.duration.map(d => t(d)).join(', ') : t(exercise.duration)}</span>
               </div>
             )}
             {exercise.intensity && (
@@ -139,24 +139,19 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
               <img
                 src={exercise.diagram}
                 alt={`Diagram for ${exercise.title}`}
-                className="rounded-lg border border-black/5 w-full object-contain max-h-72"
+                className="rounded-lg border border-white/[0.04] w-full object-contain max-h-72"
               />
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-surface-container border-t border-black/5 px-6 py-4 flex items-center justify-between rounded-b-2xl">
+        <div className="sticky bottom-0 bg-surface border-t border-white/[0.04] px-6 py-4 flex items-center justify-between rounded-b-2xl">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => { 
-                console.log('Modal: Delete button clicked for', exercise.id);
-                const confirmed = window.confirm(t('confirmDeleteExercise' as any));
-                if (confirmed) {
-                  console.log('Modal: Deletion confirmed');
-                  onDelete(exercise.id); 
-                } else {
-                  console.log('Modal: Deletion cancelled');
+              onClick={() => {
+                if (window.confirm(t('confirmDeleteExercise'))) {
+                  onDelete(exercise.id);
                 }
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-error/10 text-error text-xs font-semibold hover:bg-error/20 transition-colors"

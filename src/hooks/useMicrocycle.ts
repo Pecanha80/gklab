@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from './useTranslation';
-import { toDateString } from '../lib/utils';
+import { useToast } from './useToast';
+import { toDateString, parseDate } from '../lib/utils';
 import { SavedMicrocycle } from '../types';
 
 export const ALL_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
@@ -12,6 +13,7 @@ export function useMicrocycle(
   onDelete: (id: string) => Promise<void>
 ) {
   const { t, isPortuguese } = useTranslation();
+  const { showError } = useToast();
 
   const [microcycleName, setMicrocycleName] = useState('');
   const [microcycleStartDate, setMicrocycleStartDate] = useState(() => {
@@ -44,8 +46,8 @@ export function useMicrocycle(
   const [showMicrocycleHistory, setShowMicrocycleHistory] = useState(false);
 
   const getMicrocycleDays = () => {
-    const start = new Date(microcycleStartDate + 'T00:00:00');
-    const end = new Date(microcycleEndDate + 'T00:00:00');
+    const start = parseDate(microcycleStartDate);
+    const end = parseDate(microcycleEndDate);
     const days: string[] = [];
     
     let current = new Date(start);
@@ -60,7 +62,7 @@ export function useMicrocycle(
   };
 
   const getDayDate = (dateStr: string) => {
-    return new Date(dateStr + 'T00:00:00');
+    return parseDate(dateStr);
   };
 
   const getDayKey = (date: Date): DayKey => {
@@ -116,8 +118,7 @@ export function useMicrocycle(
       });
       alert(isPortuguese ? 'Microciclo salvo com sucesso!' : 'Microcycle saved successfully!');
     } catch (err: any) {
-      console.error('Save failed:', err);
-      alert((isPortuguese ? 'Erro ao salvar: ' : 'Error saving: ') + (err.message || 'Unknown error'));
+      showError(isPortuguese ? 'Erro ao salvar microciclo' : 'Error saving microcycle');
     } finally {
       setIsSaving(false);
     }

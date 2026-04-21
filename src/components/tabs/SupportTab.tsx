@@ -41,7 +41,7 @@ export const SupportTab: React.FC = () => {
         {faqItems.map((item, index) => (
           <div
             key={index}
-            className="bg-surface-container rounded-xl border border-black/5 overflow-hidden"
+            className="bg-surface rounded-xl border border-white/[0.04] overflow-hidden"
           >
             <button
               onClick={() => toggleFaq(index)}
@@ -77,7 +77,7 @@ export const SupportTab: React.FC = () => {
       </div>
 
       {/* Contact Section */}
-      <div className="bg-surface-container rounded-xl border border-black/5 p-6 space-y-3">
+      <div className="bg-surface rounded-xl border border-white/[0.04] p-6 space-y-3">
         <div className="flex items-center gap-2">
           <Mail className="w-4 h-4 text-primary" />
           <h2 className="font-headline text-sm text-on-surface font-semibold uppercase tracking-wide">

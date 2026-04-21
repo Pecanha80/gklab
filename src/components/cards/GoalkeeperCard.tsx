@@ -6,14 +6,14 @@ export const GoalkeeperCard = ({ keeper }: { keeper: Goalkeeper }) => {
   const { t } = useTranslation();
 
   const categoryLabel = CATEGORY_LABEL_KEYS[keeper.category]
-    ? t(CATEGORY_LABEL_KEYS[keeper.category] as any)
+    ? t(CATEGORY_LABEL_KEYS[keeper.category])
     : keeper.category;
   const statusLabel = STATUS_LABEL_KEYS[keeper.status]
-    ? t(STATUS_LABEL_KEYS[keeper.status] as any)
+    ? t(STATUS_LABEL_KEYS[keeper.status])
     : keeper.status;
 
   return (
-    <div className="glass-card p-5 rounded-3xl flex items-center gap-6 group hover:scale-[1.02] transition-all cursor-pointer border border-primary/50 hover:border-primary w-full max-w-[320px] ml-auto">
+    <div className="glass-card p-5 rounded-3xl flex items-center gap-6 group hover:scale-[1.02] transition-all cursor-pointer border border-white/[0.06] hover:border-primary w-full max-w-[320px] ml-auto">
       <div className="relative">
         <div className="w-14 h-14 rounded-2xl overflow-hidden ring-2 ring-white/5 shadow-xl">
           <img

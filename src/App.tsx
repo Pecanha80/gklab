@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { TrainingSession, Exercise } from './types';
 import { useTranslation } from './hooks/useTranslation';
@@ -13,16 +13,24 @@ import { TrainingTab } from './components/tabs/TrainingTab';
 import { ExercisesTab } from './components/tabs/ExercisesTab';
 import { PlanningTab } from './components/tabs/PlanningTab';
 import { GoalkeepersTab } from './components/tabs/GoalkeepersTab';
-import { WellnessTab } from './components/tabs/WellnessTab';
-import { RPETab } from './components/tabs/RPETab';
-import { VideosTab } from './components/tabs/VideosTab';
-import { MethodologyTab } from './components/tabs/MethodologyTab';
-import { SupportTab } from './components/tabs/SupportTab';
 import { TacticalBoard } from './components/TacticalBoard';
 import { SessionDetailModal } from './components/SessionDetailModal';
 import { ExerciseDetailModal } from './components/ExerciseDetailModal';
 import { handleExportSession } from './lib/exportSession';
 import { useCustomPresets } from './hooks/useCustomPresets';
+
+// Lazy-loaded tabs (less frequently accessed on initial load)
+const WellnessTab = lazy(() => import('./components/tabs/WellnessTab').then(m => ({ default: m.WellnessTab })));
+const RPETab = lazy(() => import('./components/tabs/RPETab').then(m => ({ default: m.RPETab })));
+const VideosTab = lazy(() => import('./components/tabs/VideosTab').then(m => ({ default: m.VideosTab })));
+const MethodologyTab = lazy(() => import('./components/tabs/MethodologyTab').then(m => ({ default: m.MethodologyTab })));
+const SupportTab = lazy(() => import('./components/tabs/SupportTab').then(m => ({ default: m.SupportTab })));
+
+const TabFallback = () => (
+  <div className="flex items-center justify-center py-20">
+    <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+  </div>
+);
 
 export default function App() {
   const { t } = useTranslation();
@@ -69,6 +77,17 @@ export default function App() {
   
   const { customPresets, addCustomPreset, removeCustomPreset, moveCustomPreset, getOptions } = useCustomPresets();
 
+  // Memoized callbacks for modals
+  const handleCloseTacticalBoard = useCallback(() => sessionForm.setIsTacticalBoardOpen(false), [sessionForm]);
+  const handleSaveTacticalBoard = useCallback((dataUrl: string) => sessionForm.handleTacticalBoardSave(dataUrl), [sessionForm]);
+  const handleCloseSessionModal = useCallback(() => setViewingSession(null), []);
+  const handleExportAndClose = useCallback((id: string) => { handleExportSession(id); setViewingSession(null); }, []);
+  const handleDeleteAndClose = useCallback((id: string) => { deleteSession(id); setViewingSession(null); }, [deleteSession]);
+  const handleEditAndClose = useCallback((session: TrainingSession) => { sessionForm.handleEditSession(session); setViewingSession(null); }, [sessionForm]);
+  const handleCloseExerciseModal = useCallback(() => setSelectedExercise(null), []);
+  const handleDeleteExercise = useCallback(async (id: string) => { await deleteExercise(id); setSelectedExercise(null); }, [deleteExercise]);
+  const handleEditExerciseNav = useCallback((ex: Exercise) => { setEditingExercise(ex); setActiveTab('Exercises'); setSelectedExercise(null); }, []);
+
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -88,7 +107,7 @@ export default function App() {
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="text-sm text-on-surface-variant font-label">{t('loading' as any)}</p>
+          <p className="text-sm text-on-surface-variant font-label">{t('loading')}</p>
         </div>
       </div>
     );
@@ -148,32 +167,7 @@ export default function App() {
               exercisesLibrary={exercisesLibrary}
               savedMicrocycles={microcycle.savedMicrocycles}
               deleteSession={deleteSession}
-              isAddingSession={sessionForm.isAddingSession}
-              setIsAddingSession={sessionForm.setIsAddingSession}
-              newSession={sessionForm.newSession}
-              setNewSession={sessionForm.setNewSession}
-              isAddingDrill={sessionForm.isAddingDrill}
-              setIsAddingDrill={sessionForm.setIsAddingDrill}
-              drillContext={sessionForm.drillContext}
-              setDrillContext={sessionForm.setDrillContext}
-              editingDrillId={sessionForm.editingDrillId}
-              currentDrill={sessionForm.currentDrill}
-              setCurrentDrill={sessionForm.setCurrentDrill}
-              isSelectingFromLibrary={sessionForm.isSelectingFromLibrary}
-              setIsSelectingFromLibrary={sessionForm.setIsSelectingFromLibrary}
-              setIsTacticalBoardOpen={sessionForm.setIsTacticalBoardOpen}
-              translateContent={sessionForm.translateContent}
-              handleGeneralObjectivesChange={sessionForm.handleGeneralObjectivesChange}
-              handleAddSession={sessionForm.handleAddSession}
-              handleAddDrill={sessionForm.handleAddDrill}
-              handleEditDrill={sessionForm.handleEditDrill}
-              handleCancelDrill={sessionForm.handleCancelDrill}
-              handleRemoveDrill={sessionForm.handleRemoveDrill}
-              applyDrillTemplate={sessionForm.applyDrillTemplate}
-              applySessionTemplates={sessionForm.applySessionTemplates}
-              loadExample={sessionForm.loadExample}
-              handleEditSession={sessionForm.handleEditSession}
-              editingSessionId={sessionForm.editingSessionId}
+              sessionForm={sessionForm}
               setActiveTab={setActiveTab}
               setViewingSession={setViewingSession}
               exerciseSearchTerm={exerciseSearchTerm}
@@ -273,31 +267,31 @@ export default function App() {
         
         {activeTab === 'Wellness' && (
           <motion.div key="wellness" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-            <WellnessTab />
+            <Suspense fallback={<TabFallback />}><WellnessTab /></Suspense>
           </motion.div>
         )}
 
         {activeTab === 'RPE' && (
           <motion.div key="rpe" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-            <RPETab />
+            <Suspense fallback={<TabFallback />}><RPETab /></Suspense>
           </motion.div>
         )}
 
         {activeTab === 'Methodology' && (
           <motion.div key="methodology" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-            <MethodologyTab />
+            <Suspense fallback={<TabFallback />}><MethodologyTab /></Suspense>
           </motion.div>
         )}
 
         {activeTab === 'Videos' && (
           <motion.div key="videos" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-            <VideosTab videos={videos} addVideo={addVideo} deleteVideo={deleteVideo} />
+            <Suspense fallback={<TabFallback />}><VideosTab videos={videos} addVideo={addVideo} deleteVideo={deleteVideo} /></Suspense>
           </motion.div>
         )}
 
         {activeTab === 'Support' && (
           <motion.div key="support" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-            <SupportTab />
+            <Suspense fallback={<TabFallback />}><SupportTab /></Suspense>
           </motion.div>
         )}
       </AnimatePresence>
@@ -305,8 +299,8 @@ export default function App() {
       <AnimatePresence>
         {sessionForm.isTacticalBoardOpen && (
           <TacticalBoard
-            onClose={() => sessionForm.setIsTacticalBoardOpen(false)}
-            onSave={(dataUrl) => sessionForm.handleTacticalBoardSave(dataUrl)}
+            onClose={handleCloseTacticalBoard}
+            onSave={handleSaveTacticalBoard}
           />
         )}
       </AnimatePresence>
@@ -315,26 +309,18 @@ export default function App() {
       {viewingSession && (
         <SessionDetailModal
           session={viewingSession}
-          onClose={() => setViewingSession(null)}
-          onExport={(id) => { handleExportSession(id); setViewingSession(null); }}
-          onDelete={(id) => { deleteSession(id); setViewingSession(null); }}
-          onEdit={(session) => { sessionForm.handleEditSession(session); setViewingSession(null); }}
+          onClose={handleCloseSessionModal}
+          onExport={handleExportAndClose}
+          onDelete={handleDeleteAndClose}
+          onEdit={handleEditAndClose}
         />
       )}
       {selectedExercise && (
-        <ExerciseDetailModal 
-          exercise={selectedExercise} 
-          onClose={() => setSelectedExercise(null)} 
-          onDelete={async (id) => { 
-            console.log('App: Deleting exercise', id);
-            await deleteExercise(id); 
-            setSelectedExercise(null); 
-          }}
-          onEdit={(ex) => {
-            setEditingExercise(ex);
-            setActiveTab('Exercises');
-            setSelectedExercise(null);
-          }}
+        <ExerciseDetailModal
+          exercise={selectedExercise}
+          onClose={handleCloseExerciseModal}
+          onDelete={handleDeleteExercise}
+          onEdit={handleEditExerciseNav}
         />
       )}
     </AppLayout>

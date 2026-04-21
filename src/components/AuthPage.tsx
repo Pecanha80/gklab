@@ -24,17 +24,17 @@ export const AuthPage: React.FC = () => {
     setSuccess(null);
 
     if (!email.trim() || !password.trim()) {
-      setError(t('authFillAllFields' as any));
+      setError(t('authFillAllFields'));
       return;
     }
 
     if (mode === 'register') {
       if (password.length < 6) {
-        setError(t('authPasswordMin' as any));
+        setError(t('authPasswordMin'));
         return;
       }
       if (password !== confirmPassword) {
-        setError(t('authPasswordMismatch' as any));
+        setError(t('authPasswordMismatch'));
         return;
       }
     }
@@ -51,7 +51,7 @@ export const AuthPage: React.FC = () => {
       if (authError) {
         setError(authError);
       } else {
-        setSuccess(t('authCheckEmail' as any));
+        setSuccess(t('authCheckEmail'));
       }
     }
 
@@ -68,13 +68,13 @@ export const AuthPage: React.FC = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-black font-headline tracking-tight text-on-surface">GKLAB</h1>
-          <p className="text-sm text-on-surface-variant font-label mt-2">{t('authSubtitle' as any)}</p>
+          <p className="text-sm text-on-surface-variant font-label mt-2">{t('authSubtitle')}</p>
         </div>
 
         {/* Card */}
-        <div className="bg-surface rounded-2xl border border-black/5 p-8 shadow-sm">
+        <div className="bg-surface rounded-2xl border border-white/[0.04] p-8 shadow-sm">
           {/* Tabs */}
-          <div className="flex gap-1 bg-surface-container rounded-xl p-1 mb-6">
+          <div className="flex gap-1 bg-surface rounded-xl p-1 mb-6">
             <button
               onClick={() => { setMode('login'); setError(null); setSuccess(null); }}
               className={cn(
@@ -82,7 +82,7 @@ export const AuthPage: React.FC = () => {
                 mode === 'login' ? "bg-primary text-on-primary shadow-sm" : "text-on-surface-variant hover:text-on-surface"
               )}
             >
-              {t('authLogin' as any)}
+              {t('authLogin')}
             </button>
             <button
               onClick={() => { setMode('register'); setError(null); setSuccess(null); }}
@@ -91,7 +91,7 @@ export const AuthPage: React.FC = () => {
                 mode === 'register' ? "bg-primary text-on-primary shadow-sm" : "text-on-surface-variant hover:text-on-surface"
               )}
             >
-              {t('authRegister' as any)}
+              {t('authRegister')}
             </button>
           </div>
 
@@ -99,7 +99,7 @@ export const AuthPage: React.FC = () => {
             {/* Email */}
             <div>
               <label className="block text-xs font-bold font-label text-on-surface-variant uppercase tracking-wider mb-1.5">
-                {t('authEmail' as any)}
+                {t('authEmail')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
@@ -108,7 +108,7 @@ export const AuthPage: React.FC = () => {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="coach@example.com"
-                  className="w-full pl-10 pr-4 py-3 bg-surface-container border border-black/5 rounded-xl text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+                  className="w-full pl-10 pr-4 py-3 bg-surface border border-white/[0.04] rounded-xl text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-white/[0.08]"
                   autoComplete="email"
                 />
               </div>
@@ -117,7 +117,7 @@ export const AuthPage: React.FC = () => {
             {/* Password */}
             <div>
               <label className="block text-xs font-bold font-label text-on-surface-variant uppercase tracking-wider mb-1.5">
-                {t('authPassword' as any)}
+                {t('authPassword')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
@@ -126,7 +126,7 @@ export const AuthPage: React.FC = () => {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-12 py-3 bg-surface-container border border-black/5 rounded-xl text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+                  className="w-full pl-10 pr-12 py-3 bg-surface border border-white/[0.04] rounded-xl text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-white/[0.08]"
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 />
                 <button
@@ -143,7 +143,7 @@ export const AuthPage: React.FC = () => {
             {mode === 'register' && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
                 <label className="block text-xs font-bold font-label text-on-surface-variant uppercase tracking-wider mb-1.5">
-                  {t('authConfirmPassword' as any)}
+                  {t('authConfirmPassword')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
@@ -152,7 +152,7 @@ export const AuthPage: React.FC = () => {
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-4 py-3 bg-surface-container border border-black/5 rounded-xl text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+                    className="w-full pl-10 pr-4 py-3 bg-surface border border-white/[0.04] rounded-xl text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-white/[0.08]"
                     autoComplete="new-password"
                   />
                 </div>
@@ -189,7 +189,7 @@ export const AuthPage: React.FC = () => {
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-on-primary border-t-transparent" />
               ) : (
                 <>
-                  {mode === 'login' ? t('authLogin' as any) : t('authRegister' as any)}
+                  {mode === 'login' ? t('authLogin') : t('authRegister')}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -199,7 +199,7 @@ export const AuthPage: React.FC = () => {
 
         {/* Footer */}
         <p className="text-center text-xs text-on-surface-variant/50 mt-6 font-label">
-          {t('authFooter' as any)}
+          {t('authFooter')}
         </p>
       </motion.div>
     </div>

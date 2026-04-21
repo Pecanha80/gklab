@@ -19,6 +19,14 @@ export function toDateString(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+/** Parses a YYYY-MM-DD string into a Date without timezone shift. */
+export function parseDate(dateStr: string): Date {
+  return new Date(dateStr + 'T00:00:00');
+}
+
+/** Debounce timeout constant (ms) used for Supabase persistence. */
+export const DEBOUNCE_MS = 1000;
+
 /** Video status badge CSS classes. */
 export function videoStatusBadgeClass(status: string): string {
   return cn(

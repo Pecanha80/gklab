@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useCallback } from 'react';
 import {
   Edit3,
   Clock,
@@ -6,6 +6,10 @@ import {
   Calendar,
   Video,
   Users,
+  MapPin,
+  Trophy,
+  Target,
+  Zap,
 } from 'lucide-react';
 import { motion, Reorder } from 'motion/react';
 import { cn, getTodayDateString, toDateString } from '../../lib/utils';
@@ -34,7 +38,7 @@ interface DashboardTabProps {
   onReorderGoalkeepers: (orderedGks: Goalkeeper[]) => void;
 }
 
-export const DashboardTab: React.FC<DashboardTabProps> = ({
+export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
   sessions,
   goalkeepers,
   videos,
@@ -52,6 +56,41 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
   onReorderGoalkeepers,
 }) => {
   const { t } = useTranslation();
+
+  // Drag-to-scroll for microcycle timeline
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    isDragging.current = true;
+    startX.current = e.pageX - el.offsetLeft;
+    scrollLeft.current = el.scrollLeft;
+    el.style.cursor = 'grabbing';
+    el.style.userSelect = 'none';
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startX.current) * 1.5;
+    el.scrollLeft = scrollLeft.current - walk;
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    isDragging.current = false;
+    const el = scrollRef.current;
+    if (el) {
+      el.style.cursor = 'grab';
+      el.style.userSelect = '';
+    }
+  }, []);
 
   // Find today's session, or the next upcoming, or the most recent past session
   const featuredSession = useMemo(() => {
@@ -100,9 +139,9 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
     return vals
       .map(d => {
         // Try translating as-is and with dur_ prefix
-        const asKey = t(d as any);
+        const asKey = t(d);
         if (asKey !== d) return asKey;
-        const withPrefix = t(`dur_${d}` as any);
+        const withPrefix = t(`dur_${d}`);
         if (withPrefix !== `dur_${d}`) return withPrefix;
         // Fallback: clean up raw value (e.g. "60min" -> "60 min")
         return d.replace(/(\d+)(min)/, '$1 $2');
@@ -115,14 +154,19 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
   const focusDisplay = useMemo(() => {
     if (!featuredSession) return [];
     if (featuredSession.focus && featuredSession.focus.length > 0) return featuredSession.focus;
-    return featuredSession.titles?.map(title => t(title as any)) || [];
+    return featuredSession.titles?.map(title => t(title)) || [];
   }, [featuredSession, t]);
 
   // Build attending from goalkeepers if session has no attending data
-  const attendingDisplay = useMemo(() => {
+  const attendingGks = useMemo(() => {
     if (!featuredSession) return [];
-    if (featuredSession.attending && featuredSession.attending.length > 0) return featuredSession.attending;
-    return goalkeepers.map(gk => gk.name.split(' ')[0].slice(0, 2).toUpperCase());
+    if (featuredSession.attending && featuredSession.attending.length > 0) {
+      // Resolve IDs to goalkeeper objects
+      return featuredSession.attending
+        .map(idOrName => goalkeepers.find(gk => gk.id === idOrName || gk.name === idOrName))
+        .filter(Boolean) as Goalkeeper[];
+    }
+    return goalkeepers;
   }, [featuredSession, goalkeepers]);
 
   return (
@@ -136,10 +180,10 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               </h3>
               {microcycleName && (
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-lg border border-primary/20">
+                  <span className="text-sm font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-lg border border-white/[0.06]">
                     {microcycleName}
                   </span>
-                  <span className="text-xs text-on-surface-variant font-medium tracking-wide">Microcycle Phase</span>
+                  <span className="text-xs text-on-surface-variant font-medium tracking-wide">{t('microcyclePhase')}</span>
                 </div>
               )}
             </div>
@@ -153,7 +197,15 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           </div>
 
           {getMicrocycleDays().length > 0 ? (
-            <div className="overflow-x-auto -mx-2 px-2 pb-4 scrollbar-thin">
+            <div
+              ref={scrollRef}
+              className="overflow-x-auto -mx-2 px-2 pb-4 cursor-grab select-none"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              style={{ scrollbarWidth: 'thin' }}
+            >
               <div className="flex gap-4 min-w-max">
                 {getMicrocycleDays().map((day) => {
                   const dateStr = day;
@@ -163,64 +215,150 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                   const isMatch = dateStr === matchDay;
                   const isRestDay = restDays.includes(dateStr);
                   const daySessions = sessions.filter(s => s.date === dateStr);
-                  
+
                   return (
                     <div
                       key={day}
                       className={cn(
-                        "p-5 rounded-3xl transition-all duration-300 w-[150px] flex flex-col relative group",
-                        isMatch 
-                          ? "bg-yellow-500/10 border border-yellow-500/30 shadow-[0_0_20px_rgba(234,179,8,0.1)]" 
-                          : isRestDay 
-                            ? "bg-white/5 border border-white/5 opacity-60" 
-                            : isDayToday 
-                              ? "bg-white/10 border border-white/60 shadow-[0_0_25px_rgba(255,255,255,0.1)]" 
-                              : "glass-card border border-primary/40 hover:bg-white/10 hover:border-primary"
+                        "p-5 rounded-2xl transition-all duration-300 w-[200px] flex flex-col relative group shrink-0",
+                        isMatch
+                          ? "bg-yellow-500/10 border border-yellow-500/30 shadow-[0_0_20px_rgba(234,179,8,0.1)]"
+                          : isRestDay
+                            ? "bg-white/[0.03] border border-white/[0.04] opacity-60"
+                            : isDayToday
+                              ? "bg-white/[0.08] border border-accent/40 shadow-[0_0_20px_rgba(124,92,252,0.1)]"
+                              : "glass-card hover:border-white/[0.1]"
                       )}
                     >
                       {isDayToday && (
-                        <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                        <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-accent animate-pulse" />
                       )}
-                      
-                      <div className="flex flex-col mb-4">
-                        <span className={cn(
-                          "text-[10px] font-black uppercase tracking-[0.1em]",
-                          isMatch ? "text-yellow-500" : isDayToday ? "text-primary" : "text-on-surface-variant/40"
-                        )}>
-                          {new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(dayDate)}
-                        </span>
-                        <span className={cn(
-                          "text-3xl font-black tracking-tighter",
-                          isMatch ? "text-yellow-500" : isDayToday ? "text-primary" : "text-on-surface"
-                        )}>
-                          {dayDate.getDate()}
+
+                      {/* Date header */}
+                      <div className="flex items-end justify-between mb-3">
+                        <div className="flex flex-col">
+                          <span className={cn(
+                            "text-[10px] font-bold uppercase tracking-wide",
+                            isMatch ? "text-yellow-500" : isDayToday ? "text-accent" : "text-on-surface-variant/50"
+                          )}>
+                            {new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(dayDate)}
+                          </span>
+                          <span className={cn(
+                            "text-2xl font-black tracking-tighter leading-none",
+                            isMatch ? "text-yellow-500" : isDayToday ? "text-on-surface" : "text-on-surface"
+                          )}>
+                            {dayDate.getDate()}
+                          </span>
+                        </div>
+                        <span className="text-[9px] text-on-surface-variant/40 font-medium">
+                          {new Intl.DateTimeFormat(undefined, { month: 'short' }).format(dayDate)}
                         </span>
                       </div>
-                      
+
+                      {/* Events */}
                       <div className="flex-1 space-y-2">
+                        {/* Match day info */}
                         {isMatch && (
-                          <div className="space-y-1">
-                            <span className="text-[9px] font-black uppercase bg-yellow-500/20 text-yellow-600 px-2 py-0.5 rounded-lg border border-yellow-500/20 block w-fit">MATCH</span>
+                          <div className="space-y-2 bg-yellow-500/5 rounded-xl p-2.5 border border-yellow-500/10">
+                            <span className="text-[9px] font-black uppercase bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded-md block w-fit">MATCH DAY</span>
                             {matchOpponent && (
-                              <p className="text-[11px] font-bold text-on-surface leading-tight truncate">Vs. {matchOpponent}</p>
+                              <p className="text-xs font-bold text-on-surface leading-tight">vs {matchOpponent}</p>
+                            )}
+                            {matchCompetition && (
+                              <div className="flex items-center gap-1.5 text-[10px] text-on-surface-variant">
+                                <Trophy className="w-3 h-3 text-yellow-500/70" />
+                                <span>{matchCompetition}</span>
+                              </div>
+                            )}
+                            {matchLocation && (
+                              <div className="flex items-center gap-1.5 text-[10px] text-on-surface-variant">
+                                <MapPin className="w-3 h-3 text-yellow-500/70" />
+                                <span>{matchLocation}</span>
+                              </div>
+                            )}
+                            {matchTime && (
+                              <div className="flex items-center gap-1.5 text-[10px] text-on-surface-variant">
+                                <Clock className="w-3 h-3 text-yellow-500/70" />
+                                <span>{matchTime}</span>
+                              </div>
                             )}
                           </div>
                         )}
-                        
-                        {daySessions.map(s => (
-                          <div key={s.id} className="flex flex-col gap-1">
-                            <p className="text-[10px] font-bold text-on-surface truncate bg-white/5 px-2 py-1 rounded-lg border border-white/5">
-                              {s.titles?.map(t_ => t(t_ as any)).join(' & ')}
-                            </p>
-                            <div className="flex items-center gap-1 text-[8px] text-on-surface-variant/60 font-bold ml-1">
-                              <Clock className="w-2.5 h-2.5" />
-                              {s.duration}
+
+                        {/* Session cards with full info */}
+                        {daySessions.map(s => {
+                          const sessionDuration = Array.isArray(s.duration)
+                            ? s.duration.map(d => t(d)).join(', ')
+                            : t(s.duration) !== s.duration ? t(s.duration) : s.duration;
+                          const sessionCategories = Array.isArray(s.category) ? s.category : [s.category];
+
+                          return (
+                            <div
+                              key={s.id}
+                              className="flex flex-col gap-1.5 bg-white/[0.03] rounded-xl p-2.5 border border-white/[0.04] hover:border-accent/20 transition-colors cursor-pointer"
+                              onClick={() => setViewingSession(s)}
+                            >
+                              {/* Title */}
+                              <p className="text-[11px] font-bold text-on-surface leading-tight">
+                                {s.titles?.map(t_ => t(t_)).join(' & ')}
+                              </p>
+
+                              {/* Duration + Athletes */}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <div className="flex items-center gap-1 text-[9px] text-on-surface-variant font-medium">
+                                  <Clock className="w-3 h-3 text-accent/60" />
+                                  {sessionDuration}
+                                </div>
+                                {s.numAthletes > 0 && (
+                                  <div className="flex items-center gap-1 text-[9px] text-on-surface-variant font-medium">
+                                    <Users className="w-3 h-3 text-accent/60" />
+                                    {s.numAthletes}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Categories */}
+                              <div className="flex flex-wrap gap-1">
+                                {sessionCategories.slice(0, 2).map(cat => (
+                                  <span key={cat} className="text-[8px] font-bold uppercase tracking-wider text-accent/80 bg-accent/10 px-1.5 py-0.5 rounded">
+                                    {t(cat)}
+                                  </span>
+                                ))}
+                              </div>
+
+                              {/* General Objectives (first 2) */}
+                              {s.generalObjectives?.length > 0 && (
+                                <div className="flex items-start gap-1 mt-0.5">
+                                  <Target className="w-3 h-3 text-success/60 mt-0.5 shrink-0" />
+                                  <p className="text-[9px] text-on-surface-variant leading-tight line-clamp-2">
+                                    {s.generalObjectives.slice(0, 2).map(o => t(o)).join(', ')}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Exercise count */}
+                              {(s.exercises?.length > 0 || s.warmup?.length > 0) && (
+                                <div className="flex items-center gap-1 text-[9px] text-on-surface-variant/60 font-medium">
+                                  <Zap className="w-3 h-3" />
+                                  {(s.warmup?.length || 0) + (s.exercises?.length || 0)} {t('exercises')}
+                                </div>
+                              )}
                             </div>
+                          );
+                        })}
+
+                        {/* Rest day */}
+                        {isRestDay && !isMatch && daySessions.length === 0 && (
+                          <div className="flex items-center justify-center py-4">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/30">OFF</span>
                           </div>
-                        ))}
-                        
-                        {isRestDay && (
-                          <span className="text-[9px] font-black uppercase text-secondary/60">OFF</span>
+                        )}
+
+                        {/* Empty day */}
+                        {!isRestDay && !isMatch && daySessions.length === 0 && (
+                          <div className="flex items-center justify-center py-4">
+                            <span className="text-[10px] text-on-surface-variant/20">—</span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -229,25 +367,25 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               </div>
             </div>
           ) : (
-            <div className="glass-card rounded-[2.5rem] border-dashed border-white/10 p-12 text-center">
+            <div className="glass-card rounded-2xl border-dashed border-white/10 p-12 text-center">
               <Calendar className="w-12 h-12 text-on-surface-variant/20 mx-auto mb-4" />
-              <p className="text-base text-on-surface-variant/60 font-medium">{t('noMicrocycleYet' as any)}</p>
+              <p className="text-base text-on-surface-variant/60 font-medium">{t('noMicrocycleYet')}</p>
               <button 
                 onClick={() => setActiveTab('Planning')} 
                 className="mt-4 text-primary text-sm font-black uppercase tracking-widest hover:text-primary-dim transition-colors"
               >
-                {t('createFirstMicrocycle' as any)}
+                {t('createFirstMicrocycle')}
               </button>
             </div>
           )}
 
           {featuredSession ? (
-            <div className="glass-card rounded-[2.5rem] overflow-hidden relative min-h-[340px] group border-primary/50">
+            <div className="glass-card rounded-2xl overflow-hidden relative min-h-[340px] group border-white/[0.06]">
               <div className="absolute inset-0 z-0">
                 {featuredSession.imageUrl ? (
                   <img
                     src={featuredSession.imageUrl}
-                    alt={t(sessionTimeLabel as any)}
+                    alt={t(sessionTimeLabel)}
                     className="w-full h-full object-cover opacity-30 grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0 group-hover:opacity-40"
                     referrerPolicy="no-referrer"
                   />
@@ -265,7 +403,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                     sessionTimeLabel === 'todaysSession' ? "bg-primary text-white" :
                     sessionTimeLabel === 'nextSession' ? "bg-secondary text-white" : "bg-white/10 text-on-surface-variant backdrop-blur-md"
                   )}>
-                    {t(sessionTimeLabel as any)}
+                    {t(sessionTimeLabel)}
                   </span>
                   {durationDisplay && (
                     <div className="px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-md text-white border border-white/10 flex items-center gap-2">
@@ -277,10 +415,10 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
                 <div className="max-w-2xl space-y-4">
                   <h4 className="text-5xl font-black text-on-surface tracking-tighter leading-[0.9]">
-                    {featuredSession.titles?.map(title => t(title as any)).join(' & ') || ''}
+                    {featuredSession.titles?.map(title => t(title)).join(' & ') || ''}
                   </h4>
                   <p className="text-lg text-on-surface-variant font-medium leading-relaxed max-w-xl">
-                    {featuredSession.generalObjectives?.map(o => t(o as any)).join(', ')}
+                    {featuredSession.generalObjectives?.map(o => t(o)).join(', ')}
                   </p>
                 </div>
 
@@ -295,17 +433,23 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                         ))}
                       </div>
                     )}
-                    {attendingDisplay.length > 0 && (
+                    {attendingGks.length > 0 && (
                       <div className="flex items-center gap-3">
                         <div className="flex -space-x-3">
-                          {attendingDisplay.slice(0, 4).map((a, i) => (
-                            <div key={i} className="w-10 h-10 rounded-2xl border-2 border-background bg-surface-container-highest flex items-center justify-center text-xs font-black shadow-xl ring-2 ring-white/5">
-                              {a}
+                          {attendingGks.slice(0, 4).map((gk, i) => (
+                            <div key={gk.id || i} className="w-10 h-10 rounded-2xl border-2 border-background overflow-hidden shadow-xl ring-2 ring-white/5">
+                              {gk.imageUrl ? (
+                                <img src={gk.imageUrl} alt={gk.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                              ) : (
+                                <div className="w-full h-full bg-surface-elevated flex items-center justify-center text-xs font-black text-on-surface-variant/50">
+                                  {gk.name.split(' ')[0].slice(0, 2).toUpperCase()}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
                         <span className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest">
-                          {attendingDisplay.length} Active GKs
+                          {attendingGks.length} {t('activeGKs')}
                         </span>
                       </div>
                     )}
@@ -329,7 +473,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               </div>
             </div>
           ) : sessions.length === 0 && (
-            <div className="glass-card rounded-[2.5rem] p-16 text-center border-dashed border-white/10">
+            <div className="glass-card rounded-2xl p-16 text-center border-dashed border-white/10">
               <Calendar className="w-16 h-16 text-on-surface-variant/20 mx-auto mb-4" />
               <p className="text-lg text-on-surface-variant/60 font-medium">{t('noTrainingSessions')}</p>
               <button 
@@ -369,14 +513,14 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               </Reorder.Item>
             ))}
             {goalkeepers.length === 0 && (
-              <div className="glass-card rounded-[2rem] p-8 text-center border-dashed border-white/5">
+              <div className="glass-card rounded-2xl p-8 text-center border-dashed border-white/5">
                 <Users className="w-8 h-8 text-on-surface-variant/20 mx-auto mb-3" />
-                <p className="text-xs text-on-surface-variant/40 font-medium">{t('noGoalkeepers' as any)}</p>
+                <p className="text-xs text-on-surface-variant/40 font-medium">{t('noGoalkeepers')}</p>
               </div>
             )}
           </Reorder.Group>
 
-          <div className="glass-card p-8 rounded-[2rem] border-primary/20 relative overflow-hidden bg-gradient-to-br from-primary/5 to-transparent">
+          <div className="glass-card p-8 rounded-2xl border-white/[0.06] relative overflow-hidden bg-gradient-to-br from-primary/5 to-transparent">
             <div className="absolute -top-6 -right-6 opacity-[0.03]">
               <Edit3 className="w-24 h-24" />
             </div>
@@ -398,12 +542,12 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                   </p>
                 ) : (
                   <p className="text-sm text-on-surface-variant/60 italic leading-relaxed">
-                    {t('tacticalDirectiveText' as any)}
+                    {t('tacticalDirectiveText')}
                   </p>
                 )}
                 <div className="mt-6 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
-                  <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-widest">{t('updatedRecently' as any)}</p>
+                  <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-widest">{t('updatedRecently')}</p>
                 </div>
               </div>
             </div>
@@ -415,7 +559,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-4">
             <h3 className="text-2xl font-black text-on-surface tracking-tight">{t('recentAnalysis')}</h3>
-            <span className="px-3 py-1 rounded-lg bg-secondary/10 text-secondary text-[10px] font-black uppercase tracking-widest border border-secondary/20">Video Center</span>
+            <span className="px-3 py-1 rounded-lg bg-secondary/10 text-secondary text-[10px] font-black uppercase tracking-widest border border-secondary/20">{t('videoCenter')}</span>
           </div>
           <button 
             onClick={() => setActiveTab('Videos')} 
@@ -435,15 +579,16 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             ))}
           </div>
         ) : (
-          <div className="glass-card rounded-[2.5rem] p-16 text-center border-dashed border-white/5">
+          <div className="glass-card rounded-2xl p-16 text-center border-dashed border-white/5">
             <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-6">
               <Video className="w-8 h-8 text-on-surface-variant/20" />
             </div>
-            <p className="text-base text-on-surface-variant/60 font-medium">{t('noVideosYetDashboard' as any)}</p>
-            <p className="text-xs text-on-surface-variant/30 mt-2 max-w-[200px] mx-auto uppercase tracking-widest font-bold">Training footage will appear here</p>
+            <p className="text-base text-on-surface-variant/60 font-medium">{t('noVideosYetDashboard')}</p>
+            <p className="text-xs text-on-surface-variant/30 mt-2 max-w-[200px] mx-auto uppercase tracking-widest font-bold">{t('trainingFootageHint')}</p>
           </div>
         )}
       </section>
     </div>
   );
-};
+});
+DashboardTab.displayName = 'DashboardTab';

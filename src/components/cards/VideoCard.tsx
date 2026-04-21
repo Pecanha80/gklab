@@ -13,7 +13,7 @@ export const VideoCard = ({ video }: { video: PerformanceVideo }) => {
   };
 
   return (
-    <div className="glass-card rounded-[2rem] overflow-hidden border-primary/50 group cursor-pointer transition-all duration-500 hover:border-primary">
+    <div className="glass-card rounded-2xl overflow-hidden border-white/[0.06] group cursor-pointer transition-all duration-500 hover:border-primary">
       <div className="aspect-video relative overflow-hidden m-2 rounded-[1.5rem]">
         <img
           src={video.imageUrl}

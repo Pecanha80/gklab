@@ -34,7 +34,7 @@ interface ExercisesTabProps {
   setEditingExercise: (exercise: Exercise | null) => void;
 }
 
-export const ExercisesTab: React.FC<ExercisesTabProps> = ({
+export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
   exercisesLibrary,
   addExerciseToLibrary,
   selectedExercise,
@@ -50,7 +50,6 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
 }) => {
   const { t } = useTranslation();
   const { customPresets, getOptions, addCustomPreset, removeCustomPreset, moveCustomPreset } = useCustomPresets();
-  const [pendingObjective, setPendingObjective] = useState<any>(null);
 
   const [isAddingExerciseToLibrary, setIsAddingExerciseToLibrary] = useState(false);
   const [exerciseSearchTerm, setExerciseSearchTerm] = useState('');
@@ -76,11 +75,11 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
     const errors: string[] = [];
     
     if (!drill.title?.trim()) {
-      errors.push(t('drillTitleRequiredMsg' as any));
+      errors.push(t('drillTitleRequiredMsg'));
     }
     
     if (!drill.category) {
-      errors.push(t('physicalCapacityRequiredMsg' as any));
+      errors.push(t('physicalCapacityRequiredMsg'));
     }
 
     // Objective is recommended but not strictly required to block saving
@@ -144,7 +143,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
       const searchTerm = exerciseSearchTerm.toLowerCase();
       return ex.title.toLowerCase().includes(searchTerm) ||
         objectiveStr.toLowerCase().includes(searchTerm) ||
-        (ex.category && t(ex.category as any).toLowerCase().includes(searchTerm));
+        (ex.category && t(ex.category).toLowerCase().includes(searchTerm));
     });
 
     const groups: Record<string, Exercise[]> = {};
@@ -180,9 +179,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-surface-container p-0 rounded-xl border border-primary/40 w-full max-w-[98vw] mx-auto overflow-hidden flex flex-col max-h-[85vh]"
+          className="bg-surface p-0 rounded-xl border border-white/[0.06] w-full max-w-[98vw] mx-auto overflow-hidden flex flex-col max-h-[85vh]"
         >
-          <div className="bg-surface-container-highest p-6 border-b border-primary/40 flex items-center justify-between">
+          <div className="bg-surface-elevated p-6 border-b border-white/[0.06] flex items-center justify-between">
             <div>
               <h3 className="text-xl font-bold text-on-surface flex items-center gap-2">
                 <Target className="w-5 h-5 text-primary" />
@@ -215,7 +214,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
               </div>
             )}
 
-            <div className="bg-surface-container-highest p-6 rounded-xl border border-primary/30 space-y-4">
+            <div className="bg-surface-elevated p-6 rounded-xl border border-white/[0.08] space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1 md:col-span-2">
                   <div className="flex justify-between items-center">
@@ -227,8 +226,8 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       selectedValues={currentDrill.title ? [currentDrill.title] : []}
                       onDelete={(val) => removeCustomPreset('drillTitles', val)}
                       isDeletable={(val) => !val.startsWith('#')}
-                      onAdd={(val) => setPendingObjective({ value: val, field: 'drillTitles', mode: 'add' })}
-                      onMove={(val) => setPendingObjective({ value: val, field: 'drillTitles', mode: 'move' })}
+                      onAdd={(val) => addCustomPreset('drillTitles', val, [])}
+                      onMove={(val) => moveCustomPreset('drillTitles', val, '')}
                     />
                   </div>
                   <input
@@ -239,8 +238,8 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       setValidationErrors([]);
                     }}
                     className={cn(
-                      "w-full bg-surface-container border rounded px-3 py-2 text-xs transition-colors",
-                      validationErrors.some(e => e.includes('title')) ? "border-error/50 bg-error/5" : "border-black/5"
+                      "w-full bg-surface border rounded px-3 py-2 text-xs transition-colors",
+                      validationErrors.some(e => e.includes('title')) ? "border-error/50 bg-error/5" : "border-white/[0.04]"
                     )}
                     placeholder={t('drillTitlePlaceholder')}
                   />
@@ -255,10 +254,10 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                         onClick={() => setCurrentDrill({ ...currentDrill, type: dtype as Exercise['type'] })}
                         className={cn(
                           "flex-1 py-1.5 rounded text-[8px] font-bold border transition-all",
-                          currentDrill.type === dtype ? "bg-primary/20 border-primary text-primary" : "bg-surface-container border-black/5 text-on-surface-variant"
+                          currentDrill.type === dtype ? "bg-primary/20 border-primary text-primary" : "bg-surface border-white/[0.04] text-on-surface-variant"
                         )}
                       >
-                        {t(dtype as any)}
+                        {t(dtype)}
                       </button>
                     ))}
                   </div>
@@ -276,10 +275,10 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                         onClick={() => setCurrentDrill({ ...currentDrill, category: cap })}
                         className={cn(
                           "px-3 py-1.5 rounded text-[8px] font-bold border transition-all",
-                          currentDrill.category === cap ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface-container border-black/5 text-on-surface-variant"
+                          currentDrill.category === cap ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface border-white/[0.04] text-on-surface-variant"
                         )}
                       >
-                        {t(cap as any)}
+                        {t(cap)}
                       </button>
                     ))}
                   </div>
@@ -290,7 +289,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                     <QuickSelect
                       label={t('presets')}
                       multiSelect={false}
-                      options={getOptions('gameMoments' as any, [
+                      options={getOptions('gameMoments', [
                         'momentOrganizedDefense',
                         'momentDefensiveTransition',
                         'momentOrganizedAttack',
@@ -299,17 +298,17 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       ])}
                       onSelect={(val) => setCurrentDrill({ ...currentDrill, gameMoment: val[0] })}
                       selectedValues={currentDrill.gameMoment ? [currentDrill.gameMoment] : []}
-                      onDelete={(val) => removeCustomPreset('gameMoments' as any, val)}
+                      onDelete={(val) => removeCustomPreset('gameMoments', val)}
                       isDeletable={(val) => !val.startsWith('#')}
-                      onAdd={(val) => addCustomPreset('gameMoments' as any, val, [])}
-                      onMove={(val) => moveCustomPreset('gameMoments' as any, val, '')}
+                      onAdd={(val) => addCustomPreset('gameMoments', val, [])}
+                      onMove={(val) => moveCustomPreset('gameMoments', val, '')}
                     />
                   </div>
                   <input
                     type="text"
                     readOnly
-                    value={currentDrill.gameMoment ? t(currentDrill.gameMoment as any) : ''}
-                    className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs"
+                    value={currentDrill.gameMoment ? t(currentDrill.gameMoment) : ''}
+                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
                     placeholder={t('select')}
                   />
                 </div>
@@ -319,19 +318,19 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                     <QuickSelect
                       label="Presets"
                       multiSelect={true}
-                      options={getOptions('tacticalPrinciples' as any, PRESETS.tacticalPrinciples)}
+                      options={getOptions('tacticalPrinciples', PRESETS.tacticalPrinciples)}
                       onSelect={(vals) => setCurrentDrill({ ...currentDrill, tacticalPrinciples: vals })}
                       selectedValues={currentDrill.tacticalPrinciples || []}
                       onDelete={(val) => removeCustomPreset('tacticalPrinciples', val)}
                       isDeletable={(val) => !val.startsWith('#')}
-                      onAdd={(val) => setPendingObjective({ value: val, field: 'tacticalPrinciples', mode: 'add' })}
-                      onMove={(val) => setPendingObjective({ value: val, field: 'tacticalPrinciples', mode: 'move' })}
+                      onAdd={(val) => addCustomPreset('tacticalPrinciples', val, [])}
+                      onMove={(val) => moveCustomPreset('tacticalPrinciples', val, '')}
                     />
                   </div>
                   <textarea
                     value={translateContent(currentDrill.tacticalPrinciples)}
                     onChange={e => setCurrentDrill({ ...currentDrill, tacticalPrinciples: e.target.value.split('\n') })}
-                    className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[40px]"
+                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[40px]"
                     placeholder={t('objectivePlaceholder')}
                   />
                 </div>
@@ -349,14 +348,14 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       multiSelect={true}
                       onDelete={(val) => removeCustomPreset('drillObjectives', val)}
                       isDeletable={(val) => !val.startsWith('#')}
-                      onAdd={(val) => setPendingObjective({ value: val, field: 'drillObjectives', mode: 'add' })}
-                      onMove={(val) => setPendingObjective({ value: val, field: 'drillObjectives', mode: 'move' })}
+                      onAdd={(val) => addCustomPreset('drillObjectives', val, [])}
+                      onMove={(val) => moveCustomPreset('drillObjectives', val, '')}
                     />
                   </div>
                   <textarea
                     value={translateContent(currentDrill.objective)}
                     onChange={e => setCurrentDrill({ ...currentDrill, objective: e.target.value.split('\n') })}
-                    className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]"
+                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[60px]"
                     placeholder={t('objectivePlaceholder')}
                   />
                 </div>
@@ -371,14 +370,14 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       multiSelect={true}
                       onDelete={(val) => removeCustomPreset('drillOrganizations', val)}
                       isDeletable={(val) => !val.startsWith('#')}
-                      onAdd={(val) => setPendingObjective({ value: val, field: 'drillOrganizations', mode: 'add' })}
-                      onMove={(val) => setPendingObjective({ value: val, field: 'drillOrganizations', mode: 'move' })}
+                      onAdd={(val) => addCustomPreset('drillOrganizations', val, [])}
+                      onMove={(val) => moveCustomPreset('drillOrganizations', val, '')}
                     />
                   </div>
                   <textarea
                     value={translateContent(currentDrill.organization)}
                     onChange={e => setCurrentDrill({ ...currentDrill, organization: e.target.value.split('\n') })}
-                    className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]"
+                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[60px]"
                     placeholder={t('organizationPlaceholder')}
                   />
                 </div>
@@ -394,14 +393,14 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                     multiSelect={true}
                     onDelete={(val) => removeCustomPreset('drillExecutions', val)}
                     isDeletable={(val) => !val.startsWith('#')}
-                    onAdd={(val) => setPendingObjective({ value: val, field: 'drillExecutions', mode: 'add' })}
-                    onMove={(val) => setPendingObjective({ value: val, field: 'drillExecutions', mode: 'move' })}
+                    onAdd={(val) => addCustomPreset('drillExecutions', val, [])}
+                    onMove={(val) => moveCustomPreset('drillExecutions', val, '')}
                   />
                 </div>
                 <textarea
                   value={translateContent(currentDrill.execution)}
                   onChange={e => setCurrentDrill({ ...currentDrill, execution: e.target.value.split('\n') })}
-                  className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]"
+                  className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[60px]"
                   placeholder={t('executionPlaceholder')}
                 />
               </div>
@@ -417,15 +416,15 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       multiSelect={true}
                       onDelete={(val) => removeCustomPreset('drillProgressions', val)}
                       isDeletable={(val) => !val.startsWith('#')}
-                      onAdd={(val) => setPendingObjective({ value: val, field: 'drillProgressions', mode: 'add' })}
-                      onMove={(val) => setPendingObjective({ value: val, field: 'drillProgressions', mode: 'move' })}
+                      onAdd={(val) => addCustomPreset('drillProgressions', val, [])}
+                      onMove={(val) => moveCustomPreset('drillProgressions', val, '')}
                     />
                   </div>
                   <input
                     type="text"
                     value={translateContent(currentDrill.progression)}
                     onChange={e => setCurrentDrill({ ...currentDrill, progression: e.target.value.split(',') })}
-                    className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs"
+                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
                     placeholder={t('progressionPlaceholder')}
                   />
                 </div>
@@ -440,15 +439,15 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       multiSelect={true}
                       onDelete={(val) => removeCustomPreset('drillSuccessCriteria', val)}
                       isDeletable={(val) => !val.startsWith('#')}
-                      onAdd={(val) => setPendingObjective({ value: val, field: 'drillSuccessCriteria', mode: 'add' })}
-                      onMove={(val) => setPendingObjective({ value: val, field: 'drillSuccessCriteria', mode: 'move' })}
+                      onAdd={(val) => addCustomPreset('drillSuccessCriteria', val, [])}
+                      onMove={(val) => moveCustomPreset('drillSuccessCriteria', val, '')}
                     />
                   </div>
                   <input
                     type="text"
                     value={translateContent(currentDrill.successCriteria)}
                     onChange={e => setCurrentDrill({ ...currentDrill, successCriteria: e.target.value.split(',') })}
-                    className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs"
+                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
                     placeholder={t('successCriteriaPlaceholder')}
                   />
                 </div>
@@ -458,7 +457,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                 <div className="space-y-1">
                   <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('duration')}</label>
                   <div className="flex gap-2">
-                    <input type="text" value={currentDrill.duration} onChange={e => setCurrentDrill({ ...currentDrill, duration: e.target.value })} className="flex-1 bg-surface-container border border-black/5 rounded px-3 py-2 text-xs" />
+                    <input type="text" value={currentDrill.duration} onChange={e => setCurrentDrill({ ...currentDrill, duration: e.target.value })} className="flex-1 bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs" />
                     <QuickSelect
                       label={t('presets')}
                       options={getOptions('durations', PRESETS.durations)}
@@ -482,10 +481,10 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                         onClick={() => setCurrentDrill({ ...currentDrill, intensity: intens as Exercise['intensity'] })}
                         className={cn(
                           "flex-1 py-2 rounded text-[8px] font-bold border transition-all",
-                          currentDrill.intensity === intens ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface-container border-black/5 text-on-surface-variant"
+                          currentDrill.intensity === intens ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface border-white/[0.04] text-on-surface-variant"
                         )}
                       >
-                        {t(intens as any)}
+                        {t(intens)}
                       </button>
                     ))}
                   </div>
@@ -499,7 +498,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                   onClick={() => setIsTacticalBoardOpen(true)}
                   className={cn(
                     "w-full h-32 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all",
-                    currentDrill.diagram ? "border-primary bg-primary/5" : "border-primary/40 hover:border-primary/50"
+                    currentDrill.diagram ? "border-primary bg-primary/5" : "border-white/[0.06] hover:border-white/[0.06]"
                   )}
                 >
                   {currentDrill.diagram ? (
@@ -541,12 +540,12 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
             </AnimatePresence>
           </div>
 
-          <div className="bg-surface-container-highest p-6 border-t border-primary/40 flex justify-between items-center">
+          <div className="bg-surface-elevated p-6 border-t border-white/[0.06] flex justify-between items-center">
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setShowPreview(!showPreview)}
-                className="px-4 py-2 rounded-md font-label text-xs font-bold text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all"
+                className="px-4 py-2 rounded-md font-label text-xs font-bold text-on-surface-variant hover:text-on-surface hover:bg-surface transition-all"
               >
                 {showPreview ? t('hidePreview') : t('preview')}
               </button>
@@ -581,13 +580,13 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
               value={exerciseSearchTerm}
               onChange={(e) => setExerciseSearchTerm(e.target.value)}
               placeholder={t('searchExercisesPlaceholder')}
-              className="w-full bg-surface-container border border-primary/40 rounded-full pl-10 pr-4 py-2 text-sm focus:border-primary transition-all"
+              className="w-full bg-surface border border-white/[0.06] rounded-full pl-10 pr-4 py-2 text-sm focus:border-primary transition-all"
             />
           </div>
 
           <div className="space-y-4">
             {Object.entries(groupedExercises).length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-primary/40 rounded-xl">
+              <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-white/[0.06] rounded-xl">
                 <Target className="w-12 h-12 text-on-surface-variant mb-4" />
                 <h3 className="text-xl font-bold text-on-surface mb-2">{t('libraryIsEmpty')}</h3>
                 <p className="text-on-surface-variant max-w-md mb-6">{t('libraryIsEmptyDescription')}</p>
@@ -609,7 +608,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                   <div key={category} className="space-y-3">
                     <button
                       onClick={() => toggleFolder(category)}
-                      className="w-full flex items-center justify-between p-4 bg-surface-container-highest rounded-xl border border-black/5 hover:border-primary/30 transition-all group"
+                      className="w-full flex items-center justify-between p-4 bg-surface-elevated rounded-xl border border-white/[0.04] hover:border-white/[0.08] transition-all group"
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
@@ -617,9 +616,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                         </div>
                         <div className="text-left">
                           <h3 className="font-bold text-on-surface uppercase tracking-tight text-sm">
-                            {category === 'uncategorized' ? t('uncategorized' as any) : t(category as any)}
+                            {category === 'uncategorized' ? t('uncategorized') : t(category)}
                           </h3>
-                          <p className="text-[10px] text-on-surface-variant font-label">{exercises.length} {t('exercisesLabel' as any)}</p>
+                          <p className="text-[10px] text-on-surface-variant font-label">{exercises.length} {t('exercisesLabel')}</p>
                         </div>
                       </div>
                       <ChevronRight className={cn("w-5 h-5 text-on-surface-variant transition-transform", expandedFolders[category] ? "rotate-90" : "")} />
@@ -639,10 +638,10 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                                 key={ex.id}
                                 whileHover={{ y: -4 }}
                                 onClick={() => setSelectedExercise(ex)}
-                                className="bg-surface-container rounded-xl border border-primary/40 overflow-hidden group cursor-pointer"
+                                className="bg-surface rounded-xl border border-white/[0.06] overflow-hidden group cursor-pointer"
                               >
                                 {ex.diagram && (
-                                  <div className="h-40 bg-black/5 relative overflow-hidden border-b border-black/5">
+                                  <div className="h-40 bg-white/[0.03] relative overflow-hidden border-b border-white/[0.04]">
                                     <img src={ex.diagram} alt={ex.title as string} className="w-full h-full object-contain p-4" referrerPolicy="no-referrer" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent opacity-60" />
                                     <button
@@ -651,7 +650,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                                         setEditingExercise(ex);
                                       }}
                                       className="absolute top-2 right-2 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all z-10"
-                                      title={t('edit' as any)}
+                                      title={t('edit')}
                                     >
                                       <Edit3 className="w-4 h-4" />
                                     </button>
@@ -659,14 +658,14 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                                 )}
                                 <div className="p-5 space-y-4">
                                   <div className="flex items-center justify-between">
-                                    <span className="bg-primary/20 text-primary text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">{t(ex.type as any)}</span>
+                                    <span className="bg-primary/20 text-primary text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">{t(ex.type)}</span>
                                     <div className="flex items-center text-[10px] text-on-surface-variant">
-                                      <Clock className="w-3 h-3 mr-1" /> {Array.isArray(ex.duration) ? ex.duration.map(d => t(d as any)).join(', ') : t(ex.duration as any)}
+                                      <Clock className="w-3 h-3 mr-1" /> {Array.isArray(ex.duration) ? ex.duration.map(d => t(d)).join(', ') : t(ex.duration)}
                                     </div>
                                   </div>
                                   <div>
                                     <div className="flex items-center justify-between mb-1">
-                                      <h3 className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">{t(ex.title as any)}</h3>
+                                      <h3 className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">{t(ex.title)}</h3>
                                       {!ex.diagram && (
                                         <button
                                           onClick={(e) => {
@@ -679,19 +678,19 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                                         </button>
                                       )}
                                     </div>
-                                    <p className="text-xs text-on-surface-variant line-clamp-2">{Array.isArray(ex.objective) ? ex.objective.map(o => t(o as any)).join(', ') : t(ex.objective as any)}</p>
+                                    <p className="text-xs text-on-surface-variant line-clamp-2">{Array.isArray(ex.objective) ? ex.objective.map(o => t(o)).join(', ') : t(ex.objective)}</p>
                                   </div>
-                                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-black/5">
+                                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/[0.04]">
                                     <div className="space-y-1">
                                       <span className="text-[8px] text-on-surface-variant uppercase font-bold">{t('intensity')}</span>
-                                      <div className="text-[10px] text-on-surface font-medium">{t(ex.intensity as any)}</div>
+                                      <div className="text-[10px] text-on-surface font-medium">{t(ex.intensity)}</div>
                                     </div>
                                     <div className="space-y-1">
                                       <span className="text-[8px] text-on-surface-variant uppercase font-bold">{t('organization')}</span>
-                                      <div className="text-[10px] text-on-surface font-medium line-clamp-1">{t(ex.organization as any)}</div>
+                                      <div className="text-[10px] text-on-surface font-medium line-clamp-1">{Array.isArray(ex.organization) ? ex.organization.map(o => t(o)).join(', ') : t(ex.organization)}</div>
                                     </div>
                                   </div>
-                                  <button onClick={(e) => { e.stopPropagation(); setSelectedExercise(ex); }} className="w-full py-2 bg-black/5 hover:bg-black/10 rounded text-[10px] font-bold uppercase tracking-widest transition-all">
+                                  <button onClick={(e) => { e.stopPropagation(); setSelectedExercise(ex); }} className="w-full py-2 bg-white/[0.03] hover:bg-white/[0.04] rounded text-[10px] font-bold uppercase tracking-widest transition-all">
                                     {t('viewDetails')}
                                   </button>
                                 </div>
@@ -708,86 +707,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
         </div>
       )}
 
-      {/* ===== REPOSITION / CATEGORIZE MODAL ===== */}
-      <AnimatePresence>
-        {pendingObjective && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setPendingObjective(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-surface-container rounded-2xl shadow-2xl overflow-hidden border border-white/10"
-            >
-              <div className="p-6 border-b border-black/5 bg-surface-container-high">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] uppercase font-black tracking-widest text-primary">
-                    {pendingObjective.mode === 'add' ? t('sessionCategorySelect' as any) || 'Selecionar Categoria' : t('moveTo' as any)}
-                  </span>
-                  <button onClick={() => setPendingObjective(null)} className="p-2 hover:bg-black/5 rounded-full"><X className="w-5 h-5 text-on-surface-variant" /></button>
-                </div>
-                <h3 className="text-xl font-bold text-on-surface truncate pr-8">
-                      {pendingObjective.value.replace(/^\[.*?\]/, '')}
-                </h3>
-              </div>
-              
-              <div className="p-6">
-                {(() => {
-                  const field = pendingObjective.field;
-                  let categories: any[] = [...PRESETS.sessionTitles];
-                  
-                  if (field === 'technical' || field === 'drillTitles' || field === 'drillObjectives') {
-                     categories = ['techCategoryHandling', 'techCategoryDiving', 'techCategoryAerial', 'techCategory1v1', 'techCategoryDistribution', 'techCategoryReactions'];
-                  } else if (field === 'tactical' || field === 'tacticalPrinciples' || field === 'gameMoments') {
-                     categories = ['momentOrganizedDefense', 'momentDefensiveTransition', 'momentOrganizedAttack', 'momentOffensiveTransition', 'momentSetPieces'];
-                  } else if (field === 'physical') {
-                     categories = ['physCategoryPower', 'physCategoryAgility', 'physCategoryReactions', 'physCategoryConditioning'];
-                  } else if (field === 'drillOrganizations') {
-                     categories = ['orgCategoryGoals', 'orgCategoryZones', 'orgCategoryEquipment'];
-                  } else if (field === 'drillProgressions') {
-                     categories = ['progCategoryLoad', 'progCategoryPressure', 'progCategoryConstraints'];
-                  } else if (field === 'gameMoments') {
-                     categories = ['momentOrganizedDefense', 'momentDefensiveTransition', 'momentOrganizedAttack', 'momentOffensiveTransition', 'momentSetPieces'];
-                  } else if (field === 'athleteObservations') {
-                     categories = ['# individualFeedback', '# sessionPositives', '# sessionAdjustments'];
-                  }
-
-                  return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                      {categories.map((titleKey) => (
-                        <button
-                          key={titleKey}
-                          onClick={() => {
-                            if (pendingObjective.mode === 'add') {
-                               const defaultOpts = (PRESETS.drills as any)[field.replace('drill', '').toLowerCase()] || [];
-                               addCustomPreset(field, pendingObjective.value, defaultOpts, titleKey);
-                            } else {
-                               moveCustomPreset(field, pendingObjective.value, titleKey);
-                            }
-                            setPendingObjective(null);
-                          }}
-                          className="flex items-center gap-3 p-3 bg-surface border border-black/5 rounded-xl hover:border-primary hover:bg-primary/5 transition-all group text-left"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Folder className="w-4 h-4 text-primary" />
-                          </div>
-                          <span className="text-xs font-bold text-on-surface uppercase tracking-tight">{t(titleKey as any)}</span>
-                        </button>
-                      ))}
-                    </div>
-                  );
-                })()}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
-};
+});
+ExercisesTab.displayName = 'ExercisesTab';

@@ -22,6 +22,7 @@ import { TacticalBoard } from './components/TacticalBoard';
 import { SessionDetailModal } from './components/SessionDetailModal';
 import { ExerciseDetailModal } from './components/ExerciseDetailModal';
 import { handleExportSession } from './lib/exportSession';
+import { useCustomPresets } from './hooks/useCustomPresets';
 
 export default function App() {
   const { t } = useTranslation();
@@ -65,6 +66,8 @@ export default function App() {
     addMicrocycle,
     deleteMicrocycle
   );
+  
+  const { customPresets, addCustomPreset, removeCustomPreset, moveCustomPreset, getOptions } = useCustomPresets();
 
   if (authLoading) {
     return (
@@ -141,6 +144,7 @@ export default function App() {
           >
             <TrainingTab
               sessions={sessions}
+              goalkeepers={goalkeepers}
               exercisesLibrary={exercisesLibrary}
               savedMicrocycles={microcycle.savedMicrocycles}
               deleteSession={deleteSession}
@@ -252,6 +256,11 @@ export default function App() {
               setActiveTab={setActiveTab}
               setIsAddingSession={sessionForm.setIsAddingSession}
               setViewingSession={setViewingSession}
+              customPresets={customPresets}
+              addCustomPreset={addCustomPreset}
+              removeCustomPreset={removeCustomPreset}
+              moveCustomPreset={moveCustomPreset}
+              getOptions={getOptions}
             />
           </motion.div>
         )}

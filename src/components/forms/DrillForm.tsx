@@ -35,7 +35,7 @@ export const DrillForm: React.FC<DrillFormProps> = ({
   setPendingObjective,
 }) => {
   const { t } = useTranslation();
-  const { customPresets, getOptions, addCustomPreset, removeCustomPreset } = useCustomPresets();
+  const { customPresets, getOptions, addCustomPreset, removeCustomPreset, moveCustomPreset } = useCustomPresets();
 
   const headerLabel = context === 'warmup'
     ? (editingDrillId ? t('editWarmup') : t('newWarmup'))
@@ -158,6 +158,18 @@ export const DrillForm: React.FC<DrillFormProps> = ({
               className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[60px]"
             />
           </div>
+
+          {/* UEFA A: Starting Point */}
+          <div className="space-y-1">
+            <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('startingPoint')}</label>
+            <input 
+              type="text" 
+              value={translateContent(currentDrill.startingPoint)} 
+              onChange={e => setCurrentDrill({ ...currentDrill, startingPoint: e.target.value })} 
+              className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs"
+              placeholder="e.g. Pass from CB to Fullback..."
+            />
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -186,6 +198,72 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="space-y-1">
+             <div className="space-y-1">
+               <div className="flex justify-between items-center">
+                 <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('gameMomentsLabel')}</label>
+                 <QuickSelect
+                   label="Presets"
+                   multiSelect={false}
+                   selectedValues={currentDrill.gameMoment ? [currentDrill.gameMoment] : []}
+                   options={getOptions('gameMoments' as any, [
+                     'momentOrganizedDefense',
+                     'momentDefensiveTransition',
+                     'momentOrganizedAttack',
+                     'momentOffensiveTransition',
+                     'momentSetPieces'
+                   ])}
+                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, gameMoment: vals[vals.length - 1] })}
+                   onDelete={(val) => removeCustomPreset('gameMoments' as any, val)}
+                   isDeletable={(val) => !val.startsWith('#')}
+                   onAdd={(val) => setPendingObjective({ value: val, field: 'gameMoments' as any, mode: 'add' })}
+                   onMove={(val) => setPendingObjective({ value: val, field: 'gameMoments' as any, mode: 'move' })}
+                 />
+               </div>
+               <input
+                 type="text"
+                 readOnly
+                 value={currentDrill.gameMoment ? t(currentDrill.gameMoment as any) : ''}
+                 className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs"
+                 placeholder={t('select')}
+               />
+             </div>
+             <div className="space-y-1">
+               <div className="flex justify-between items-center">
+                 <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('tacticalPrinciplesLabel')}</label>
+                 <QuickSelect
+                   label="Presets"
+                   multiSelect={true}
+                   options={getOptions('tacticalPrinciples' as any, PRESETS.tacticalPrinciples)}
+                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, tacticalPrinciples: vals })}
+                   selectedValues={currentDrill.tacticalPrinciples || []}
+                   onDelete={(val) => removeCustomPreset('tacticalPrinciples', val)}
+                   isDeletable={(val) => !val.startsWith('#')}
+                   onAdd={(val) => setPendingObjective({ value: val, field: 'tacticalPrinciples', mode: 'add' })}
+                   onMove={(val) => setPendingObjective({ value: val, field: 'tacticalPrinciples', mode: 'move' })}
+                 />
+               </div>
+               <textarea
+                 value={translateContent(currentDrill.tacticalPrinciples)}
+                 onChange={e => setCurrentDrill({ ...currentDrill, tacticalPrinciples: e.target.value.split('\n') })}
+                 className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[40px]"
+                 placeholder={t('objectivePlaceholder')}
+               />
+             </div>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('coachingPoints')}</label>
+            </div>
+            <textarea
+              value={translateContent(currentDrill.coachingPoints)}
+              onChange={e => setCurrentDrill({ ...currentDrill, coachingPoints: e.target.value })}
+              className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[80px]"
+              placeholder="Primary & Secondary KCPs..."
+            />
           </div>
 
           <div className="space-y-1">

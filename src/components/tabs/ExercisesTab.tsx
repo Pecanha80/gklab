@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { Exercise } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useCustomPresets } from '../../hooks/useCustomPresets';
+import { useCustomPresets, type CustomPresetsState } from '../../hooks/useCustomPresets';
 import { PRESETS } from '../../data/presets';
 import { QuickSelect } from '../ui/QuickSelect';
 import { ExercisePreview } from '../ExercisePreview';
@@ -49,7 +49,8 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
   setEditingExercise,
 }) => {
   const { t } = useTranslation();
-  const { customPresets, getOptions, addCustomPreset, removeCustomPreset } = useCustomPresets();
+  const { customPresets, getOptions, addCustomPreset, removeCustomPreset, moveCustomPreset } = useCustomPresets();
+  const [pendingObjective, setPendingObjective] = useState<any>(null);
 
   const [isAddingExerciseToLibrary, setIsAddingExerciseToLibrary] = useState(false);
   const [exerciseSearchTerm, setExerciseSearchTerm] = useState('');
@@ -179,9 +180,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-surface-container p-0 rounded-xl border border-black/10 w-full max-w-[98vw] mx-auto overflow-hidden flex flex-col max-h-[85vh]"
+          className="bg-surface-container p-0 rounded-xl border border-primary/40 w-full max-w-[98vw] mx-auto overflow-hidden flex flex-col max-h-[85vh]"
         >
-          <div className="bg-surface-container-highest p-6 border-b border-black/10 flex items-center justify-between">
+          <div className="bg-surface-container-highest p-6 border-b border-primary/40 flex items-center justify-between">
             <div>
               <h3 className="text-xl font-bold text-on-surface flex items-center gap-2">
                 <Target className="w-5 h-5 text-primary" />
@@ -225,8 +226,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
                       selectedValues={currentDrill.title ? [currentDrill.title] : []}
                       onDelete={(val) => removeCustomPreset('drillTitles', val)}
-                      isDeletable={(val) => customPresets.drillTitles.includes(val)}
-                      onAdd={(val) => addCustomPreset('drillTitles', val, PRESETS.drills.titles)}
+                      isDeletable={(val) => !val.startsWith('#')}
+                      onAdd={(val) => setPendingObjective({ value: val, field: 'drillTitles', mode: 'add' })}
+                      onMove={(val) => setPendingObjective({ value: val, field: 'drillTitles', mode: 'move' })}
                     />
                   </div>
                   <input
@@ -263,22 +265,75 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('category')}</label>
-                <div className="flex flex-wrap gap-1">
-                  {PRESETS.drillCategories.map(cap => (
-                    <button
-                      key={cap}
-                      type="button"
-                      onClick={() => setCurrentDrill({ ...currentDrill, category: cap })}
-                      className={cn(
-                        "px-3 py-1.5 rounded text-[8px] font-bold border transition-all",
-                        currentDrill.category === cap ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface-container border-black/5 text-on-surface-variant"
-                      )}
-                    >
-                      {t(cap as any)}
-                    </button>
-                  ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('category')}</label>
+                  <div className="flex flex-wrap gap-1">
+                    {PRESETS.drillCategories.map(cap => (
+                      <button
+                        key={cap}
+                        type="button"
+                        onClick={() => setCurrentDrill({ ...currentDrill, category: cap })}
+                        className={cn(
+                          "px-3 py-1.5 rounded text-[8px] font-bold border transition-all",
+                          currentDrill.category === cap ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface-container border-black/5 text-on-surface-variant"
+                        )}
+                      >
+                        {t(cap as any)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('gameMomentsLabel')}</label>
+                    <QuickSelect
+                      label={t('presets')}
+                      multiSelect={false}
+                      options={getOptions('gameMoments' as any, [
+                        'momentOrganizedDefense',
+                        'momentDefensiveTransition',
+                        'momentOrganizedAttack',
+                        'momentOffensiveTransition',
+                        'momentSetPieces'
+                      ])}
+                      onSelect={(val) => setCurrentDrill({ ...currentDrill, gameMoment: val[0] })}
+                      selectedValues={currentDrill.gameMoment ? [currentDrill.gameMoment] : []}
+                      onDelete={(val) => removeCustomPreset('gameMoments' as any, val)}
+                      isDeletable={(val) => !val.startsWith('#')}
+                      onAdd={(val) => addCustomPreset('gameMoments' as any, val, [])}
+                      onMove={(val) => moveCustomPreset('gameMoments' as any, val, '')}
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    readOnly
+                    value={currentDrill.gameMoment ? t(currentDrill.gameMoment as any) : ''}
+                    className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs"
+                    placeholder={t('select')}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('tacticalPrinciplesLabel')}</label>
+                    <QuickSelect
+                      label="Presets"
+                      multiSelect={true}
+                      options={getOptions('tacticalPrinciples' as any, PRESETS.tacticalPrinciples)}
+                      onSelect={(vals) => setCurrentDrill({ ...currentDrill, tacticalPrinciples: vals })}
+                      selectedValues={currentDrill.tacticalPrinciples || []}
+                      onDelete={(val) => removeCustomPreset('tacticalPrinciples', val)}
+                      isDeletable={(val) => !val.startsWith('#')}
+                      onAdd={(val) => setPendingObjective({ value: val, field: 'tacticalPrinciples', mode: 'add' })}
+                      onMove={(val) => setPendingObjective({ value: val, field: 'tacticalPrinciples', mode: 'move' })}
+                    />
+                  </div>
+                  <textarea
+                    value={translateContent(currentDrill.tacticalPrinciples)}
+                    onChange={e => setCurrentDrill({ ...currentDrill, tacticalPrinciples: e.target.value.split('\n') })}
+                    className="w-full bg-surface-container border border-black/5 rounded px-3 py-2 text-xs min-h-[40px]"
+                    placeholder={t('objectivePlaceholder')}
+                  />
                 </div>
               </div>
 
@@ -293,8 +348,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       selectedValues={Array.isArray(currentDrill.objective) ? currentDrill.objective : [currentDrill.objective]}
                       multiSelect={true}
                       onDelete={(val) => removeCustomPreset('drillObjectives', val)}
-                      isDeletable={(val) => customPresets.drillObjectives.includes(val)}
-                      onAdd={(val) => addCustomPreset('drillObjectives', val, PRESETS.drills.objectives)}
+                      isDeletable={(val) => !val.startsWith('#')}
+                      onAdd={(val) => setPendingObjective({ value: val, field: 'drillObjectives', mode: 'add' })}
+                      onMove={(val) => setPendingObjective({ value: val, field: 'drillObjectives', mode: 'move' })}
                     />
                   </div>
                   <textarea
@@ -314,8 +370,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       selectedValues={Array.isArray(currentDrill.organization) ? currentDrill.organization : [currentDrill.organization]}
                       multiSelect={true}
                       onDelete={(val) => removeCustomPreset('drillOrganizations', val)}
-                      isDeletable={(val) => customPresets.drillOrganizations.includes(val)}
-                      onAdd={(val) => addCustomPreset('drillOrganizations', val, PRESETS.drills.organizations)}
+                      isDeletable={(val) => !val.startsWith('#')}
+                      onAdd={(val) => setPendingObjective({ value: val, field: 'drillOrganizations', mode: 'add' })}
+                      onMove={(val) => setPendingObjective({ value: val, field: 'drillOrganizations', mode: 'move' })}
                     />
                   </div>
                   <textarea
@@ -336,8 +393,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                     selectedValues={Array.isArray(currentDrill.execution) ? currentDrill.execution : [currentDrill.execution]}
                     multiSelect={true}
                     onDelete={(val) => removeCustomPreset('drillExecutions', val)}
-                    isDeletable={(val) => customPresets.drillExecutions.includes(val)}
-                    onAdd={(val) => addCustomPreset('drillExecutions', val, PRESETS.drills.executions)}
+                    isDeletable={(val) => !val.startsWith('#')}
+                    onAdd={(val) => setPendingObjective({ value: val, field: 'drillExecutions', mode: 'add' })}
+                    onMove={(val) => setPendingObjective({ value: val, field: 'drillExecutions', mode: 'move' })}
                   />
                 </div>
                 <textarea
@@ -358,8 +416,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       selectedValues={Array.isArray(currentDrill.progression) ? currentDrill.progression : [currentDrill.progression]}
                       multiSelect={true}
                       onDelete={(val) => removeCustomPreset('drillProgressions', val)}
-                      isDeletable={(val) => customPresets.drillProgressions.includes(val)}
-                      onAdd={(val) => addCustomPreset('drillProgressions', val, PRESETS.drills.progressions)}
+                      isDeletable={(val) => !val.startsWith('#')}
+                      onAdd={(val) => setPendingObjective({ value: val, field: 'drillProgressions', mode: 'add' })}
+                      onMove={(val) => setPendingObjective({ value: val, field: 'drillProgressions', mode: 'move' })}
                     />
                   </div>
                   <input
@@ -380,8 +439,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       selectedValues={Array.isArray(currentDrill.successCriteria) ? currentDrill.successCriteria : [currentDrill.successCriteria]}
                       multiSelect={true}
                       onDelete={(val) => removeCustomPreset('drillSuccessCriteria', val)}
-                      isDeletable={(val) => customPresets.drillSuccessCriteria.includes(val)}
-                      onAdd={(val) => addCustomPreset('drillSuccessCriteria', val, PRESETS.drills.successCriteria)}
+                      isDeletable={(val) => !val.startsWith('#')}
+                      onAdd={(val) => setPendingObjective({ value: val, field: 'drillSuccessCriteria', mode: 'add' })}
+                      onMove={(val) => setPendingObjective({ value: val, field: 'drillSuccessCriteria', mode: 'move' })}
                     />
                   </div>
                   <input
@@ -406,8 +466,9 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                       selectedValues={Array.isArray(currentDrill.duration) ? currentDrill.duration : [currentDrill.duration]}
                       multiSelect={true}
                       onDelete={(val) => removeCustomPreset('durations', val)}
-                      isDeletable={(val) => customPresets.durations.includes(val)}
+                      isDeletable={(val) => !val.startsWith('#')}
                       onAdd={(val) => addCustomPreset('durations', val, PRESETS.durations)}
+                      onMove={(val) => moveCustomPreset('durations', val, '')}
                     />
                   </div>
                 </div>
@@ -438,7 +499,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                   onClick={() => setIsTacticalBoardOpen(true)}
                   className={cn(
                     "w-full h-32 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all",
-                    currentDrill.diagram ? "border-primary bg-primary/5" : "border-black/10 hover:border-primary/50"
+                    currentDrill.diagram ? "border-primary bg-primary/5" : "border-primary/40 hover:border-primary/50"
                   )}
                 >
                   {currentDrill.diagram ? (
@@ -480,7 +541,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
             </AnimatePresence>
           </div>
 
-          <div className="bg-surface-container-highest p-6 border-t border-black/10 flex justify-between items-center">
+          <div className="bg-surface-container-highest p-6 border-t border-primary/40 flex justify-between items-center">
             <div className="flex gap-2">
               <button
                 type="button"
@@ -520,13 +581,13 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
               value={exerciseSearchTerm}
               onChange={(e) => setExerciseSearchTerm(e.target.value)}
               placeholder={t('searchExercisesPlaceholder')}
-              className="w-full bg-surface-container border border-black/10 rounded-full pl-10 pr-4 py-2 text-sm focus:border-primary transition-all"
+              className="w-full bg-surface-container border border-primary/40 rounded-full pl-10 pr-4 py-2 text-sm focus:border-primary transition-all"
             />
           </div>
 
           <div className="space-y-4">
             {Object.entries(groupedExercises).length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-black/10 rounded-xl">
+              <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-primary/40 rounded-xl">
                 <Target className="w-12 h-12 text-on-surface-variant mb-4" />
                 <h3 className="text-xl font-bold text-on-surface mb-2">{t('libraryIsEmpty')}</h3>
                 <p className="text-on-surface-variant max-w-md mb-6">{t('libraryIsEmptyDescription')}</p>
@@ -578,7 +639,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
                                 key={ex.id}
                                 whileHover={{ y: -4 }}
                                 onClick={() => setSelectedExercise(ex)}
-                                className="bg-surface-container rounded-xl border border-black/10 overflow-hidden group cursor-pointer"
+                                className="bg-surface-container rounded-xl border border-primary/40 overflow-hidden group cursor-pointer"
                               >
                                 {ex.diagram && (
                                   <div className="h-40 bg-black/5 relative overflow-hidden border-b border-black/5">
@@ -646,6 +707,87 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = ({
           </div>
         </div>
       )}
+
+      {/* ===== REPOSITION / CATEGORIZE MODAL ===== */}
+      <AnimatePresence>
+        {pendingObjective && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setPendingObjective(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-surface-container rounded-2xl shadow-2xl overflow-hidden border border-white/10"
+            >
+              <div className="p-6 border-b border-black/5 bg-surface-container-high">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] uppercase font-black tracking-widest text-primary">
+                    {pendingObjective.mode === 'add' ? t('sessionCategorySelect' as any) || 'Selecionar Categoria' : t('moveTo' as any)}
+                  </span>
+                  <button onClick={() => setPendingObjective(null)} className="p-2 hover:bg-black/5 rounded-full"><X className="w-5 h-5 text-on-surface-variant" /></button>
+                </div>
+                <h3 className="text-xl font-bold text-on-surface truncate pr-8">
+                      {pendingObjective.value.replace(/^\[.*?\]/, '')}
+                </h3>
+              </div>
+              
+              <div className="p-6">
+                {(() => {
+                  const field = pendingObjective.field;
+                  let categories: any[] = [...PRESETS.sessionTitles];
+                  
+                  if (field === 'technical' || field === 'drillTitles' || field === 'drillObjectives') {
+                     categories = ['techCategoryHandling', 'techCategoryDiving', 'techCategoryAerial', 'techCategory1v1', 'techCategoryDistribution', 'techCategoryReactions'];
+                  } else if (field === 'tactical' || field === 'tacticalPrinciples' || field === 'gameMoments') {
+                     categories = ['momentOrganizedDefense', 'momentDefensiveTransition', 'momentOrganizedAttack', 'momentOffensiveTransition', 'momentSetPieces'];
+                  } else if (field === 'physical') {
+                     categories = ['physCategoryPower', 'physCategoryAgility', 'physCategoryReactions', 'physCategoryConditioning'];
+                  } else if (field === 'drillOrganizations') {
+                     categories = ['orgCategoryGoals', 'orgCategoryZones', 'orgCategoryEquipment'];
+                  } else if (field === 'drillProgressions') {
+                     categories = ['progCategoryLoad', 'progCategoryPressure', 'progCategoryConstraints'];
+                  } else if (field === 'gameMoments') {
+                     categories = ['momentOrganizedDefense', 'momentDefensiveTransition', 'momentOrganizedAttack', 'momentOffensiveTransition', 'momentSetPieces'];
+                  } else if (field === 'athleteObservations') {
+                     categories = ['# individualFeedback', '# sessionPositives', '# sessionAdjustments'];
+                  }
+
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                      {categories.map((titleKey) => (
+                        <button
+                          key={titleKey}
+                          onClick={() => {
+                            if (pendingObjective.mode === 'add') {
+                               const defaultOpts = (PRESETS.drills as any)[field.replace('drill', '').toLowerCase()] || [];
+                               addCustomPreset(field, pendingObjective.value, defaultOpts, titleKey);
+                            } else {
+                               moveCustomPreset(field, pendingObjective.value, titleKey);
+                            }
+                            setPendingObjective(null);
+                          }}
+                          className="flex items-center gap-3 p-3 bg-surface border border-black/5 rounded-xl hover:border-primary hover:bg-primary/5 transition-all group text-left"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Folder className="w-4 h-4 text-primary" />
+                          </div>
+                          <span className="text-xs font-bold text-on-surface uppercase tracking-tight">{t(titleKey as any)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

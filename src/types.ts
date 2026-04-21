@@ -55,6 +55,10 @@ export interface Exercise {
   successCriteria: string | string[];
   duration: string | string[];
   intensity: 'low' | 'medium' | 'high';
+  gameMoment?: string;
+  tacticalPrinciples?: string[];
+  startingPoint?: string;
+  coachingPoints?: string | string[];
   diagram?: string; // JSON or Base64 image
 }
 
@@ -70,6 +74,8 @@ export interface TrainingSession {
   id: string;
   date: string;
   category: string | string[];
+  gameMoments?: string[];
+  tacticalPrinciples?: string[];
   numAthletes: number;
   duration: string | string[];
   generalObjectives: string[];
@@ -95,6 +101,12 @@ export interface TrainingSession {
     adjustments: string | string[];
     individualEval: string | string[];
   };
+
+  athleteObservations?: {
+    athleteId: string;
+    text: string;
+    interventionType?: 'command' | 'guided' | 'q_a';
+  }[];
 
   // UI metadata
   titles: string[];

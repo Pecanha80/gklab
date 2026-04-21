@@ -239,7 +239,7 @@ export const RPETab: React.FC = () => {
             </section>
           </div>
         ) : (
-          <div className="lg:col-span-12 bg-surface-container rounded-2xl p-12 flex items-center justify-center border border-dashed border-black/10">
+          <div className="lg:col-span-12 bg-surface-container rounded-2xl p-12 flex items-center justify-center border border-dashed border-primary/40">
             <p className="text-on-surface-variant italic">{t('rpeNoLoadData' as any)}</p>
           </div>
         )}

@@ -452,7 +452,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                     required
                     value={formState.name}
                     onChange={(e) => setFormState((s) => ({ ...s, name: e.target.value }))}
-                    className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                    className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                     placeholder={t('goalkeeperName')}
                   />
                 </div>
@@ -471,7 +471,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                           category: e.target.value as Goalkeeper['category'],
                         }))
                       }
-                      className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                     >
                       {gkCategories.map((cat) => (
                         <option key={cat} value={cat}>
@@ -492,7 +492,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                           status: e.target.value as Goalkeeper['status'],
                         }))
                       }
-                      className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                     >
                       {statuses.map((st) => (
                         <option key={st} value={st}>
@@ -513,7 +513,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                           membership: e.target.value as 'permanent' | 'trial',
                         }))
                       }
-                      className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                     >
                       <option value="permanent">{t('permanent' as any)}</option>
                       <option value="trial">{t('trial' as any)}</option>
@@ -533,7 +533,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                           type="date"
                           value={formState.trialStartDate}
                           onChange={(e) => setFormState((s) => ({ ...s, trialStartDate: e.target.value }))}
-                          className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                          className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                         />
                       </div>
                       <div>
@@ -544,7 +544,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                           type="date"
                           value={formState.trialEndDate}
                           onChange={(e) => setFormState((s) => ({ ...s, trialEndDate: e.target.value }))}
-                          className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                          className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                         />
                       </div>
                     </div>
@@ -556,7 +556,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                         value={formState.trialNotes}
                         onChange={(e) => setFormState((s) => ({ ...s, trialNotes: e.target.value }))}
                         rows={3}
-                        className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary resize-none"
+                        className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary resize-none"
                         placeholder={t('trialNotesPlaceholder' as any)}
                       />
                     </div>
@@ -617,7 +617,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                       max={getTodayDateString()}
                       value={formState.birthDate}
                       onChange={(e) => setFormState((s) => ({ ...s, birthDate: e.target.value }))}
-                      className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                     />
                     {formState.birthDate && (
                       <p className="mt-1 font-label text-xs text-primary font-medium">
@@ -635,7 +635,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                       max={220}
                       value={formState.height}
                       onChange={(e) => setFormState((s) => ({ ...s, height: e.target.value === '' ? '' : Number(e.target.value) }))}
-                      className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                       placeholder="185"
                     />
                   </div>
@@ -649,7 +649,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                       max={150}
                       value={formState.weight}
                       onChange={(e) => setFormState((s) => ({ ...s, weight: e.target.value === '' ? '' : Number(e.target.value) }))}
-                      className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                       placeholder="80"
                     />
                   </div>
@@ -661,7 +661,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                     {t('imageUrl')}
                   </label>
                   <div className="flex items-center gap-4">
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-dashed border-black/10 bg-surface-container">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-dashed border-primary/40 bg-surface-container">
                       {formState.imageUrl ? (
                         <img src={formState.imageUrl} alt="Preview" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
@@ -675,7 +675,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         aria-label={t('uploadImage' as any)}
-                        className="flex items-center gap-2 rounded-lg border border-black/10 bg-surface-container px-3 py-2 font-label text-sm text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
+                        className="flex items-center gap-2 rounded-lg border border-primary/40 bg-surface-container px-3 py-2 font-label text-sm text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
                       >
                         <Upload className="h-4 w-4" />
                         {t('uploadImage' as any)}
@@ -712,7 +712,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                         type="text"
                         value={formState.imageUrl.startsWith('data:') ? '' : formState.imageUrl}
                         onChange={(e) => setFormState((s) => ({ ...s, imageUrl: e.target.value }))}
-                        className="w-full rounded-lg border border-black/10 bg-surface-container px-3 py-1.5 font-label text-xs text-on-surface outline-none focus:border-primary"
+                        className="w-full rounded-lg border border-primary/40 bg-surface-container px-3 py-1.5 font-label text-xs text-on-surface outline-none focus:border-primary"
                         placeholder={t('orPasteUrl' as any)}
                       />
                     </div>
@@ -724,7 +724,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = ({
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="rounded-lg border border-black/10 px-4 py-2 font-label text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container-highest"
+                    className="rounded-lg border border-primary/40 px-4 py-2 font-label text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container-highest"
                   >
                     {t('cancel')}
                   </button>

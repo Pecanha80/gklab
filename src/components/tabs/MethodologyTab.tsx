@@ -836,19 +836,19 @@ export const MethodologyTab: React.FC = () => {
                                   value={phaseForm.name}
                                   onChange={e => setPhaseForm(prev => ({ ...prev, name: e.target.value }))}
                                   placeholder={t('methPhaseName' as any)}
-                                  className="bg-surface border border-black/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                  className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                                 <input
                                   value={phaseForm.duration}
                                   onChange={e => setPhaseForm(prev => ({ ...prev, duration: e.target.value }))}
                                   placeholder={t('methPhaseDuration' as any)}
-                                  className="bg-surface border border-black/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                  className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                                 <input
                                   value={phaseForm.intensity}
                                   onChange={e => setPhaseForm(prev => ({ ...prev, intensity: e.target.value }))}
                                   placeholder={t('methPhaseIntensity' as any)}
-                                  className="bg-surface border border-black/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                  className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                               </div>
                               <textarea
@@ -856,7 +856,7 @@ export const MethodologyTab: React.FC = () => {
                                 onChange={e => setPhaseForm(prev => ({ ...prev, objectives: e.target.value }))}
                                 placeholder={t('methPhaseObjectives' as any)}
                                 rows={3}
-                                className="w-full bg-surface border border-black/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                                className="w-full bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                               />
                               <div className="flex justify-end gap-2">
                                 <button onClick={() => setEditingPhaseId(null)} className="px-3 py-1.5 text-sm text-on-surface-variant hover:bg-surface-container-highest rounded-lg transition-colors">
@@ -952,20 +952,20 @@ export const MethodologyTab: React.FC = () => {
                               value={phaseForm.name}
                               onChange={e => setPhaseForm(prev => ({ ...prev, name: e.target.value }))}
                               placeholder={t('methPhaseName' as any)}
-                              className="bg-surface border border-black/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                               autoFocus
                             />
                             <input
                               value={phaseForm.duration}
                               onChange={e => setPhaseForm(prev => ({ ...prev, duration: e.target.value }))}
                               placeholder={t('methPhaseDuration' as any)}
-                              className="bg-surface border border-black/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                             />
                             <input
                               value={phaseForm.intensity}
                               onChange={e => setPhaseForm(prev => ({ ...prev, intensity: e.target.value }))}
                               placeholder={t('methPhaseIntensity' as any)}
-                              className="bg-surface border border-black/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              className="bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                             />
                           </div>
                           <textarea
@@ -973,7 +973,7 @@ export const MethodologyTab: React.FC = () => {
                             onChange={e => setPhaseForm(prev => ({ ...prev, objectives: e.target.value }))}
                             placeholder={t('methPhaseObjectives' as any)}
                             rows={3}
-                            className="w-full bg-surface border border-black/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                            className="w-full bg-surface border border-primary/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                           />
                           <div className="flex justify-end gap-2">
                              <button onClick={() => { setAddingPhase(false); setPhaseForm({ name: '', duration: '', objectives: '', intensity: '' }); }} className="px-3 py-1.5 text-sm text-on-surface-variant hover:bg-surface-container-highest rounded-lg transition-colors">
@@ -987,7 +987,7 @@ export const MethodologyTab: React.FC = () => {
                       ) : (
                         <button
                           onClick={() => setAddingPhase(true)}
-                          className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-black/10 rounded-xl text-sm text-on-surface-variant hover:border-primary/30 hover:text-primary transition-colors"
+                          className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-primary/40 rounded-xl text-sm text-on-surface-variant hover:border-primary/30 hover:text-primary transition-colors"
                         >
                           <Plus className="w-4 h-4" />
                           {t('methAddPhase' as any)}

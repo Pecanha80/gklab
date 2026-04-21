@@ -191,7 +191,7 @@ export const VideosTab: React.FC<VideosTabProps> = ({ videos, addVideo, deleteVi
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none"
             >
-              <div role="dialog" aria-modal="true" aria-label={t('addVideo')} className="bg-surface-container rounded-2xl shadow-2xl border border-black/10 w-full max-w-md pointer-events-auto">
+              <div role="dialog" aria-modal="true" aria-label={t('addVideo')} className="bg-surface-container rounded-2xl shadow-2xl border border-primary/40 w-full max-w-md pointer-events-auto">
                 {/* Modal header */}
                 <div className="flex items-center justify-between p-5 border-b border-black/5">
                   <h3 className="font-headline text-base text-on-surface font-bold">

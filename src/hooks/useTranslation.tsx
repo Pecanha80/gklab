@@ -70,5 +70,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 }
 
 export const useTranslation = (): LanguageContextType => {
-  return useContext(LanguageContext);
+  const context = useContext(LanguageContext);
+  if (!context) {
+    return defaultContext;
+  }
+  return context;
 }

@@ -10,6 +10,8 @@ import { getTodayDateString } from '../lib/utils';
 export const emptySession: Omit<TrainingSession, 'id'> = {
   date: getTodayDateString(),
   category: [],
+  gameMoments: [],
+  tacticalPrinciples: [],
   numAthletes: 3,
   duration: [],
   generalObjectives: [],
@@ -28,6 +30,7 @@ export const emptySession: Omit<TrainingSession, 'id'> = {
     adjustments: [],
     individualEval: [],
   },
+  athleteObservations: [],
   titles: [],
   focus: [],
   time: '',
@@ -45,6 +48,9 @@ export const emptyDrill: Omit<Exercise, 'id'> = {
   successCriteria: [],
   duration: [],
   intensity: 'medium',
+  gameMoment: '',
+  startingPoint: '',
+  coachingPoints: [],
 };
 
 export function useSessionForm(
@@ -508,6 +514,10 @@ export function useSessionForm(
         adjustments: 'improveTimingExits',
         individualEval: 'playerGreatProgress',
       },
+      athleteObservations: [
+        { athleteId: 'gk_1', text: 'Excelente posicionamento em cruzamentos.' },
+        { athleteId: 'gk_2', text: 'Necessita melhorar a comunicação com a defesa.' }
+      ],
       focus: ['Crosses', 'Decision Making'],
       time: '10:00 - 11:30',
       attending: ['MV', 'LS'],

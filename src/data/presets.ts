@@ -242,26 +242,6 @@ export const PRESETS = {
     'recoveryTalkHydration',
     'slowMobilityMovements'
   ],
-  observations: {
-    positives: [
-      'excellentFocusThroughout',
-      'greatImprovementTechnicalExecution',
-      'strongCommunicationTeam',
-      'highIntensityMaintained'
-    ],
-    adjustments: [
-      'needWorkFootworkSpeed',
-      'improveTimingExits',
-      'focusMoreDistributionAccuracy',
-      'adjustPositioningLongShots'
-    ],
-    evaluations: [
-      'playerGreatProgress',
-      'needsMoreConsistencyHandling',
-      'readyHigherIntensity',
-      'focusMentalResilience'
-    ]
-  },
   physicalCapacities: [
     'strength',
     'velocity',
@@ -283,6 +263,80 @@ export const PRESETS = {
   drillTypes: ['analytical', 'decision', 'contextualized'] as const,
   intensities: ['low', 'medium', 'high'] as const,
   durations: ['dur_5min', 'dur_10min', 'dur_15min', 'dur_20min', 'dur_30min'],
+  tacticalPrinciples: [
+    '# momentOrganizedDefense',
+    'principleGoalProtection',
+    'principleSpaceProtection',
+    'principleDepthControl',
+    'principleAerialDominance',
+    'principleCommunication',
+
+    '# momentDefensiveTransition',
+    'principleRePositioning',
+
+    '# momentOrganizedAttack',
+    'principleInitialDistribution',
+    'principleSupportBuildup',
+    'principleOffensiveSupport',
+
+    '# momentOffensiveTransition',
+    'principleCounterAttack',
+
+    '# momentSetPieces',
+    'principleWallOrganization',
+    'principleDefensiveOrganization'
+  ],
+  observations: {
+    positives: [
+      '# sessionPositives',
+      'excellentFocusThroughout',
+      'greatImprovementTechnicalExecution',
+      'strongCommunicationTeam',
+      'highIntensityMaintained',
+      'goodConcentration',
+      'goodSetPieceDef',
+      'excellentShotStopping',
+      'improvedAerialComm'
+    ],
+    adjustments: [
+      '# sessionAdjustments',
+      'needWorkFootworkSpeed',
+      'improveTimingExits',
+      'focusMoreDistributionAccuracy',
+      'adjustPositioningLongShots',
+      'improveFootwork',
+      'focusOnComm',
+      'fasterTransitions',
+      'betterDepthControl'
+    ],
+    individual: [
+      '# individualFeedback',
+      'focusOnTechnique',
+      'increaseIntensity',
+      'improvePositioning',
+      'betterCommunication',
+      'goodEvolution',
+      'playerGreatProgress',
+      'needsMoreConsistencyHandling',
+      'readyHigherIntensity',
+      'focusMentalResilience'
+    ]
+  },
+  mesocycles: [
+    '# mesocycleCategory',
+    'preSeason',
+    'competitivePhase',
+    'transitionPhase',
+    'specialPreparation'
+  ],
+  competitions: [
+    '# competitionCategory',
+    'brasileirao',
+    'copaDoBrasil',
+    'estadual',
+    'libertadores',
+    'friendlyMatch'
+  ]
 } as const;
 
 // Deep freeze to prevent runtime mutations

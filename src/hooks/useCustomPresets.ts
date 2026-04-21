@@ -28,6 +28,12 @@ export interface CustomPresetsState {
   obsPositives: string[];
   obsAdjustments: string[];
   obsEvaluations: string[];
+  obsIndividual: string[];
+  tacticalPrinciples: string[];
+  gameMoments: string[];
+  athleteObservations: string[];
+  mesocycles: string[];
+  competitions: string[];
   deletedDefaults: string[];
 }
 
@@ -57,6 +63,12 @@ const defaultStructure: CustomPresetsState = {
   obsPositives: [],
   obsAdjustments: [],
   obsEvaluations: [],
+  obsIndividual: [],
+  tacticalPrinciples: [],
+  gameMoments: [],
+  athleteObservations: [],
+  mesocycles: [],
+  competitions: [],
   deletedDefaults: [],
 };
 
@@ -139,10 +151,11 @@ export function useCustomPresets() {
     load();
   }, [user]);
 
-  const getOptions = (key: keyof CustomPresetsState, defaultOptions: readonly string[]) => {
+  const getOptions = (key: keyof CustomPresetsState, defaultOptions?: readonly string[]) => {
+    const safDefaults = defaultOptions ?? [];
     const custom = customPresets[key] || [];
     const deleted = customPresets.deletedDefaults || [];
-    return [...defaultOptions.filter(opt => !deleted.includes(opt)), ...custom];
+    return [...safDefaults.filter(opt => !deleted.includes(opt)), ...custom];
   };
 
   const addCustomPreset = (key: keyof CustomPresetsState, value: string | string[], defaultOptions: readonly string[], category?: string) => {

@@ -246,6 +246,26 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               )}
             </div>
 
+            {/* UEFA A GK Parameters */}
+            {(session.gameMoments?.length || session.tacticalPrinciples?.length) ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-primary/5 p-4 rounded-xl border border-primary/10">
+                {session.gameMoments && session.gameMoments.length > 0 && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-primary font-black uppercase tracking-widest">{t('gameMomentsLabel')}</label>
+                    <p className="text-xs text-on-surface font-bold">{session.gameMoments.map(m => t(m as any)).join(' • ')}</p>
+                  </div>
+                )}
+                {session.tacticalPrinciples && session.tacticalPrinciples.length > 0 && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-primary font-black uppercase tracking-widest">{t('tacticalPrinciplesLabel')}</label>
+                    <p className="text-xs text-on-surface font-bold">
+                       {Array.isArray(session.tacticalPrinciples) ? session.tacticalPrinciples.join(', ') : session.tacticalPrinciples}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
             {/* General Objective */}
             {session.generalObjectives && session.generalObjectives.length > 0 && (
               <div className="space-y-3">
@@ -284,6 +304,8 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                       </div>
                       <div className="grid grid-cols-1 gap-3">
                         <Field label={t('objective')} value={drill.objective} />
+                        <Field label={t('startingPoint')} value={drill.startingPoint} />
+                        <Field label={t('coachingPoints')} value={drill.coachingPoints} />
                         <Field label={t('execution')} value={drill.execution} />
                         <Field label={t('duration')} value={drill.duration} />
                         <Field label={t('progression')} value={drill.progression} />
@@ -322,6 +344,9 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                       </div>
                       <div className="grid grid-cols-1 gap-2">
                         <Field label={t('objective')} value={exercise.objective} />
+                        <Field label={t('gameMomentsLabel')} value={exercise.gameMoment ? t(exercise.gameMoment as any) : undefined} />
+                        <Field label={t('startingPoint')} value={exercise.startingPoint} />
+                        <Field label={t('coachingPoints')} value={exercise.coachingPoints} />
                         <Field label={t('organization')} value={exercise.organization} />
                         <Field label={t('execution')} value={exercise.execution} />
                         <Field label={t('progression')} value={exercise.progression} />
@@ -379,14 +404,51 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             )}
 
             {/* Observations */}
-            {hasObservations && (
-              <div className="space-y-3">
+            {(hasObservations || (session.athleteObservations && session.athleteObservations.length > 0)) && (
+              <div className="space-y-6">
                 <SectionHeading title={t('observationsHeading')} icon={Edit3} />
-                <div className="grid grid-cols-1 gap-3">
+                
+                {/* Session-wide Observations */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field label={t('positives')} value={session.observations.positives} />
                   <Field label={t('adjustments')} value={session.observations.adjustments} />
-                  <Field label={t('individualEvaluation')} value={session.observations.individualEval} />
                 </div>
+
+                {/* Individual Athlete Observations */}
+                {session.athleteObservations && session.athleteObservations.length > 0 && (
+                  <div className="space-y-3">
+                    <h5 className="text-[10px] text-on-surface-variant font-black uppercase tracking-widest flex items-center gap-2 mb-2">
+                       {t('athleteObservations')}
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {session.athleteObservations.map((obs) => {
+                        const athlete = eligibleGoalkeepers.find(g => g.id === obs.athleteId);
+                        return (
+                          <div key={obs.athleteId} className="bg-surface rounded-xl border border-black/5 p-4 space-y-2">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/20 overflow-hidden">
+                                {athlete?.imageUrl ? (
+                                  <img src={athlete.imageUrl} alt={athlete.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  athlete?.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                                )}
+                              </div>
+                              <span className="text-xs font-bold text-on-surface">{athlete?.name || t('unknownAthlete')}</span>
+                            </div>
+                            <p className="text-xs text-on-surface-variant leading-relaxed italic">"{obs.text}"</p>
+                            {obs.interventionType && (
+                               <div className="flex items-center gap-1.5 mt-2">
+                                 <span className="text-[9px] bg-secondary/10 text-secondary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                                   {t(`intervention${obs.interventionType.replace('_', '').toUpperCase()}` as any)}
+                                 </span>
+                               </div>
+                             )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

@@ -20,16 +20,14 @@ export const SidebarItem = ({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center w-full py-3 transition-all duration-200 ease-in-out font-label text-sm font-semibold group",
-        isCollapsed ? "justify-center px-0" : "px-6",
-        active
-          ? "text-primary border-r-2 border-primary bg-primary/5"
-          : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+        "sidebar-item mx-3 mb-1",
+        isCollapsed ? "justify-center px-0" : "px-4",
+        active && "sidebar-item-active"
       )}
       title={isCollapsed ? label : undefined}
     >
-      <Icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", !isCollapsed && "mr-3", active ? "text-primary" : "text-on-surface-variant")} />
-      {!isCollapsed && label}
+      <Icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", active ? "text-primary" : "text-on-surface-variant")} />
+      {!isCollapsed && <span className="font-medium text-sm tracking-tight">{label}</span>}
     </button>
   );
 };

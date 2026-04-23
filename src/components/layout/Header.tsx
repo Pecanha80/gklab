@@ -6,28 +6,28 @@ import { useAuth } from '../../hooks/useAuth';
 export const Header: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('gklab-theme');
-    if (savedTheme === 'light') {
-      setIsDarkMode(false);
-      document.documentElement.classList.add('light-mode');
-    } else {
+    if (savedTheme === 'dark') {
       setIsDarkMode(true);
-      document.documentElement.classList.remove('light-mode');
+      document.documentElement.classList.add('dark-mode');
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove('dark-mode');
     }
   }, []);
 
   const toggleTheme = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
-    if (!newMode) {
-      document.documentElement.classList.add('light-mode');
-      localStorage.setItem('gklab-theme', 'light');
-    } else {
-      document.documentElement.classList.remove('light-mode');
+    if (newMode) {
+      document.documentElement.classList.add('dark-mode');
       localStorage.setItem('gklab-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark-mode');
+      localStorage.setItem('gklab-theme', 'light');
     }
   };
 

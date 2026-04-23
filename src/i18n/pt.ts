@@ -993,4 +993,6 @@ export const pt = {
     newCategory: 'Nova categoria...',
     complete: 'completo',
     fieldsMissing: 'campos em falta',
+    coachingPointsPlaceholder: 'Pontos-chave durante a execução...',
+    startingPointPlaceholder: 'ex. GR na linha de golo, bola na entrada da área',
 };

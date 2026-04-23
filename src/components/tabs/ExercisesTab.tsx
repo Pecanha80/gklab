@@ -179,25 +179,28 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-surface p-0 rounded-xl border border-white/[0.06] w-full max-w-[98vw] mx-auto overflow-hidden flex flex-col max-h-[85vh]"
+          className="bg-surface p-0 rounded-xl border border-white/[0.06] w-full max-w-[98vw] mx-auto overflow-hidden flex flex-col max-h-[calc(100vh-8rem)]"
         >
-          <div className="bg-surface-elevated p-6 border-b border-white/[0.06] flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold text-on-surface flex items-center gap-2">
-                <Target className="w-5 h-5 text-primary" />
-                {editingExercise ? t('editExercise') : t('exercisePlannerEditor')}
-              </h3>
-              <p className="text-[10px] text-on-surface-variant uppercase font-label tracking-widest mt-1">{t('designUEFAStandardDrills')}</p>
+          <div className="bg-surface-elevated px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 rounded-full bg-primary shrink-0" />
+              <div>
+                <h3 className="text-base font-bold text-on-surface flex items-center gap-2">
+                  <Target className="w-4 h-4 text-primary" />
+                  {editingExercise ? t('editExercise') : t('exercisePlannerEditor')}
+                </h3>
+                <p className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest mt-0.5">{t('designUEFAStandardDrills')}</p>
+              </div>
             </div>
             <button
               onClick={handleCloseForm}
               className="text-on-surface-variant hover:text-on-surface transition-colors"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-thin scrollbar-thumb-white/10">
+          <div className="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-thin scrollbar-thumb-white/10">
             {validationErrors.length > 0 && (
               <div className="bg-error/10 border border-error/30 rounded-lg p-4">
                 <div className="flex items-start gap-2">
@@ -214,8 +217,8 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
               </div>
             )}
 
-            <div className="bg-surface-elevated p-6 rounded-xl border border-white/[0.08] space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-surface-elevated p-5 rounded-xl border border-white/[0.08] space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="space-y-1 md:col-span-2">
                   <div className="flex justify-between items-center">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('drillTitle')}</label>
@@ -263,7 +266,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('category')}</label>
                   <div className="flex flex-wrap gap-1">
@@ -333,7 +336,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('objective')}</label>
@@ -351,7 +354,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <textarea
                     value={translateContent(currentDrill.objective)}
                     onChange={e => setCurrentDrill({ ...currentDrill, objective: e.target.value.split('\n') })}
-                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[60px]"
+                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[44px]"
                     placeholder={t('objectivePlaceholder')}
                   />
                 </div>
@@ -372,7 +375,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <textarea
                     value={translateContent(currentDrill.organization)}
                     onChange={e => setCurrentDrill({ ...currentDrill, organization: e.target.value.split('\n') })}
-                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[60px]"
+                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[44px]"
                     placeholder={t('organizationPlaceholder')}
                   />
                 </div>
@@ -394,11 +397,11 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                 <textarea
                   value={translateContent(currentDrill.execution)}
                   onChange={e => setCurrentDrill({ ...currentDrill, execution: e.target.value.split('\n') })}
-                  className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[60px]"
+                  className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[44px]"
                   placeholder={t('executionPlaceholder')}
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('progressionVariables')}</label>
@@ -445,7 +448,30 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Coaching Points + Starting Point */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('coachingPoints')}</label>
+                  <textarea
+                    value={translateContent(currentDrill.coachingPoints)}
+                    onChange={e => setCurrentDrill({ ...currentDrill, coachingPoints: e.target.value })}
+                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[44px]"
+                    placeholder={t('coachingPointsPlaceholder')}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('startingPoint')}</label>
+                  <input
+                    type="text"
+                    value={translateContent(currentDrill.startingPoint)}
+                    onChange={e => setCurrentDrill({ ...currentDrill, startingPoint: e.target.value })}
+                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
+                    placeholder={t('startingPointPlaceholder')}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('duration')}</label>
                   <div className="flex gap-2">
@@ -482,13 +508,13 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                 </div>
               </div>
 
-              <div className="space-y-1 mt-4">
+              <div className="space-y-1">
                 <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('diagram')}</label>
                 <button
                   type="button"
                   onClick={() => setIsTacticalBoardOpen(true)}
                   className={cn(
-                    "w-full h-32 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all",
+                    "w-full h-24 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-all",
                     currentDrill.diagram ? "border-primary bg-primary/5" : "border-white/[0.06] hover:border-white/[0.06]"
                   )}
                 >
@@ -503,50 +529,48 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                 </button>
               </div>
             </div>
-          </div>
 
-          <div className="px-8 pb-4">
-            <div className="flex items-center justify-between mb-4">
-              <button
-                type="button"
-                onClick={() => setShowPreview(!showPreview)}
-                className="flex items-center gap-2 text-[9px] text-primary hover:text-primary-dim font-bold uppercase tracking-widest transition-colors"
-              >
-                <Target className="w-3 h-3" />
-                {showPreview ? t('hidePreview') : t('showPreview')}
-              </button>
-            </div>
-
-            <AnimatePresence>
-              {showPreview && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="overflow-hidden"
+              {/* Preview inside scrollable area */}
+              <div className="px-0">
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="flex items-center gap-2 text-[9px] text-primary hover:text-primary-dim font-bold uppercase tracking-widest transition-colors mb-4"
                 >
-                  <ExercisePreview drill={currentDrill} />
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <Target className="w-3 h-3" />
+                  {showPreview ? t('hidePreview') : t('showPreview')}
+                </button>
+
+                <AnimatePresence>
+                  {showPreview && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <ExercisePreview drill={currentDrill} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
           </div>
 
-          <div className="bg-surface-elevated p-6 border-t border-white/[0.06] flex justify-between items-center">
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowPreview(!showPreview)}
-                className="px-4 py-2 rounded-md font-label text-xs font-bold text-on-surface-variant hover:text-on-surface hover:bg-surface transition-all"
-              >
-                {showPreview ? t('hidePreview') : t('preview')}
-              </button>
-            </div>
+          {/* Footer - always visible */}
+          <div className="bg-surface-elevated p-5 border-t border-white/[0.06] flex justify-between items-center shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowPreview(!showPreview)}
+              className="px-4 py-2 rounded-md font-label text-xs font-bold text-on-surface-variant hover:text-on-surface hover:bg-surface transition-all"
+            >
+              {showPreview ? t('hidePreview') : t('preview')}
+            </button>
 
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={handleCloseForm}
-                className="px-6 py-2 rounded-md font-label text-xs font-bold text-on-surface-variant hover:text-on-surface transition-all"
+                className="px-6 py-2.5 rounded-xl font-label text-xs font-bold text-on-surface-variant hover:bg-white/[0.05] transition-all border border-white/[0.06]"
               >
                 {t('discard')}
               </button>
@@ -555,7 +579,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   const success = await handleAddExerciseToLibrary(currentDrill);
                   if (success) handleCloseForm();
                 }}
-                className="bg-primary hover:bg-primary-dim text-on-primary px-8 py-2 rounded-md font-label text-xs font-bold transition-all shadow-lg shadow-primary/20"
+                className="bg-primary hover:bg-primary-dim text-on-primary px-8 py-2.5 rounded-xl font-label text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
               >
                 {editingExercise ? t('saveChanges') : t('saveToLibrary')}
               </button>

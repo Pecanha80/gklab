@@ -962,4 +962,6 @@ export const en = {
     newCategory: 'New category...',
     complete: 'complete',
     fieldsMissing: 'fields missing',
+    coachingPointsPlaceholder: 'Key coaching cues during execution...',
+    startingPointPlaceholder: 'e.g. GK on goal line, ball at edge of box',
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, User, Heart, Activity, Calendar, FileText, Star } from 'lucide-react';
+import { ArrowLeft, User, Heart, Activity, Calendar, FileText, Star, AlertTriangle, Dumbbell } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useWellness } from '../../hooks/useWellness';
@@ -12,6 +12,8 @@ import { AthleteLoad } from './AthleteLoad';
 import { AthleteTrainingHistory } from './AthleteTrainingHistory';
 import { AthleteNotes } from './AthleteNotes';
 import { AthleteAssessment } from './AthleteAssessment';
+import { AthleteInjuries } from './AthleteInjuries';
+import { AthletePhysicalTests } from './AthletePhysicalTests';
 
 interface AthleteProfileProps {
   goalkeeper: Goalkeeper;
@@ -19,7 +21,7 @@ interface AthleteProfileProps {
   onUpdate: (gk: Goalkeeper) => Promise<void>;
 }
 
-type ProfileTab = 'overview' | 'wellness' | 'load' | 'history' | 'notes' | 'assessment';
+type ProfileTab = 'overview' | 'wellness' | 'load' | 'history' | 'notes' | 'assessment' | 'injuries' | 'tests';
 
 export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBack, onUpdate }) => {
   const { t } = useTranslation();
@@ -57,6 +59,8 @@ export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBa
     { key: 'history', label: t('trainingHistory') || 'Histórico', icon: Calendar },
     { key: 'notes', label: t('notes') || 'Notas', icon: FileText },
     { key: 'assessment', label: t('assessment') || 'Avaliação', icon: Star },
+    { key: 'injuries', label: t('injuries') || 'Lesões', icon: AlertTriangle },
+    { key: 'tests', label: t('physicalTests') || 'Testes Físicos', icon: Dumbbell },
   ];
 
   return (
@@ -134,6 +138,12 @@ export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBa
         )}
         {activeTab === 'assessment' && (
           <AthleteAssessment goalkeeper={goalkeeper} />
+        )}
+        {activeTab === 'injuries' && (
+          <AthleteInjuries goalkeeper={goalkeeper} />
+        )}
+        {activeTab === 'tests' && (
+          <AthletePhysicalTests goalkeeper={goalkeeper} />
         )}
       </div>
     </div>

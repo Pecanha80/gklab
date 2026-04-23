@@ -72,6 +72,21 @@ export interface CompetencyAssessment {
   created_at: string;
 }
 
+export interface Injury {
+  id: string;
+  user_id: string;
+  goalkeeper_id: string;
+  startDate: string;
+  endDate?: string;
+  bodyPart: string;
+  injuryType: string;
+  severity: 'mild' | 'moderate' | 'severe';
+  treatment?: string;
+  returnToPlayStatus?: 'not_started' | 'phase_1' | 'phase_2' | 'phase_3' | 'cleared';
+  notes?: string;
+  created_at: string;
+}
+
 export interface Exercise {
   id: string;
   type: 'analytical' | 'decision' | 'contextualized' | 'warmup';

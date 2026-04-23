@@ -1,5 +1,5 @@
 import React from 'react';
-import { Ruler, Weight, Calendar, Shield, Users } from 'lucide-react';
+import { Ruler, Weight, Calendar, Shield, Users, Phone, Mail, UserCheck, Building2, Hash, Hand } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Goalkeeper, Attendance, TrainingSession, WellnessLog } from '../../types';
@@ -55,7 +55,14 @@ export const AthleteOverview: React.FC<AthleteOverviewProps> = ({ goalkeeper, we
               )}
             </div>
             <div>
-              <h3 className="text-lg font-bold text-on-surface">{goalkeeper.name}</h3>
+              <div className="flex items-center gap-2">
+                {goalkeeper.jerseyNumber != null && (
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-primary/10 text-primary text-sm font-bold">
+                    {goalkeeper.jerseyNumber}
+                  </span>
+                )}
+                <h3 className="text-lg font-bold text-on-surface">{goalkeeper.name}</h3>
+              </div>
               <p className="text-sm text-on-surface-variant">{t(goalkeeper.category) || goalkeeper.category}</p>
               {goalkeeper.membership === 'trial' && (
                 <span className="text-[9px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded mt-1 inline-block">TRIAL</span>
@@ -92,7 +99,85 @@ export const AthleteOverview: React.FC<AthleteOverviewProps> = ({ goalkeeper, we
                 {t(goalkeeper.status === 'Ready' ? 'ready' : goalkeeper.status === 'Injured' ? 'injured' : goalkeeper.status === 'Minor Strain' ? 'minorStrain' : 'inTraining')}
               </span>
             </div>
+            {goalkeeper.preferredFoot && (
+              <div className="flex items-center gap-2 text-sm">
+                <Hand className="w-4 h-4 text-on-surface-variant/50" />
+                <span className="text-on-surface-variant">
+                  {t('preferredFoot')}: {t(goalkeeper.preferredFoot === 'left' ? 'leftFoot' : goalkeeper.preferredFoot === 'right' ? 'rightFoot' : 'bothFeet')}
+                </span>
+              </div>
+            )}
+            {goalkeeper.dominantHand && (
+              <div className="flex items-center gap-2 text-sm">
+                <Hand className="w-4 h-4 text-on-surface-variant/50" />
+                <span className="text-on-surface-variant">
+                  {t('dominantHand')}: {t(goalkeeper.dominantHand === 'left' ? 'leftHand' : 'rightHand')}
+                </span>
+              </div>
+            )}
+            {goalkeeper.wingspan && (
+              <div className="flex items-center gap-2 text-sm">
+                <Ruler className="w-4 h-4 text-on-surface-variant/50" />
+                <span className="text-on-surface-variant">{t('wingspan')}: {goalkeeper.wingspan} cm</span>
+              </div>
+            )}
           </div>
+
+          {/* Contact Info */}
+          {(goalkeeper.phone || goalkeeper.email) && (
+            <div className="pt-3 border-t border-black/[0.06] space-y-2">
+              <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">{t('contactInfo')}</p>
+              {goalkeeper.phone && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="w-4 h-4 text-on-surface-variant/50" />
+                  <span className="text-on-surface-variant">{goalkeeper.phone}</span>
+                </div>
+              )}
+              {goalkeeper.email && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="w-4 h-4 text-on-surface-variant/50" />
+                  <span className="text-on-surface-variant">{goalkeeper.email}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Guardian Info */}
+          {(goalkeeper.guardianName || goalkeeper.guardianPhone) && (
+            <div className="pt-3 border-t border-black/[0.06] space-y-2">
+              <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">{t('guardianName')}</p>
+              {goalkeeper.guardianName && (
+                <div className="flex items-center gap-2 text-sm">
+                  <UserCheck className="w-4 h-4 text-on-surface-variant/50" />
+                  <span className="text-on-surface-variant">{goalkeeper.guardianName}</span>
+                </div>
+              )}
+              {goalkeeper.guardianPhone && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="w-4 h-4 text-on-surface-variant/50" />
+                  <span className="text-on-surface-variant">{goalkeeper.guardianPhone}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Club & Registration */}
+          {(goalkeeper.clubAffiliation || goalkeeper.registrationDate) && (
+            <div className="pt-3 border-t border-black/[0.06] space-y-2">
+              {goalkeeper.clubAffiliation && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Building2 className="w-4 h-4 text-on-surface-variant/50" />
+                  <span className="text-on-surface-variant">{goalkeeper.clubAffiliation}</span>
+                </div>
+              )}
+              {goalkeeper.registrationDate && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="w-4 h-4 text-on-surface-variant/50" />
+                  <span className="text-on-surface-variant">{t('registrationDate')}: {new Date(goalkeeper.registrationDate).toLocaleDateString()}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

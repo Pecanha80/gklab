@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Plus, X, Trash2, Edit3, Activity, Upload, Image as ImageIcon, UserCheck, Heart, Moon, Brain, Frown, Zap } from 'lucide-react';
+import { Plus, X, Trash2, Edit3, Activity, Upload, Image as ImageIcon, UserCheck, Heart, Moon, Brain, Frown, Zap, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, getTodayDateString } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -54,6 +54,16 @@ interface FormState {
   trialStartDate: string;
   trialEndDate: string;
   trialNotes: string;
+  preferredFoot: 'left' | 'right' | 'both' | '';
+  dominantHand: 'left' | 'right' | '';
+  wingspan: number | '';
+  phone: string;
+  email: string;
+  guardianName: string;
+  guardianPhone: string;
+  clubAffiliation: string;
+  registrationDate: string;
+  jerseyNumber: number | '';
 }
 
 const defaultForm: FormState = {
@@ -71,6 +81,16 @@ const defaultForm: FormState = {
   trialStartDate: '',
   trialEndDate: '',
   trialNotes: '',
+  preferredFoot: '',
+  dominantHand: '',
+  wingspan: '',
+  phone: '',
+  email: '',
+  guardianName: '',
+  guardianPhone: '',
+  clubAffiliation: '',
+  registrationDate: '',
+  jerseyNumber: '',
 };
 
 function getTrialStatus(gk: Goalkeeper): 'active' | 'expiring' | 'expired' | null {
@@ -145,6 +165,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
   const [editingGoalkeeper, setEditingGoalkeeper] = useState<Goalkeeper | null>(null);
   const [formState, setFormState] = useState<FormState>(defaultForm);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [additionalInfoOpen, setAdditionalInfoOpen] = useState(false);
 
   // Wellness
   const [wellnessModalOpen, setWellnessModalOpen] = useState(false);
@@ -202,6 +223,16 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
       trialStartDate: gk.trialStartDate || '',
       trialEndDate: gk.trialEndDate || '',
       trialNotes: gk.trialNotes || '',
+      preferredFoot: gk.preferredFoot || '',
+      dominantHand: gk.dominantHand || '',
+      wingspan: gk.wingspan || '',
+      phone: gk.phone || '',
+      email: gk.email || '',
+      guardianName: gk.guardianName || '',
+      guardianPhone: gk.guardianPhone || '',
+      clubAffiliation: gk.clubAffiliation || '',
+      registrationDate: gk.registrationDate || '',
+      jerseyNumber: gk.jerseyNumber || '',
     });
     setModalOpen(true);
   };
@@ -231,6 +262,16 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
       trialStartDate: formState.membership === 'trial' ? (formState.trialStartDate || undefined) : undefined,
       trialEndDate: formState.membership === 'trial' ? (formState.trialEndDate || undefined) : undefined,
       trialNotes: formState.membership === 'trial' ? (formState.trialNotes || undefined) : undefined,
+      preferredFoot: formState.preferredFoot || undefined,
+      dominantHand: formState.dominantHand || undefined,
+      wingspan: formState.wingspan === '' ? undefined : Number(formState.wingspan),
+      phone: formState.phone || undefined,
+      email: formState.email || undefined,
+      guardianName: formState.guardianName || undefined,
+      guardianPhone: formState.guardianPhone || undefined,
+      clubAffiliation: formState.clubAffiliation || undefined,
+      registrationDate: formState.registrationDate || undefined,
+      jerseyNumber: formState.jerseyNumber === '' ? undefined : Number(formState.jerseyNumber),
     };
     if (editingGoalkeeper) {
       await updateGoalkeeper({ id: editingGoalkeeper.id, ...data } as Goalkeeper);
@@ -785,6 +826,161 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
                       />
                     </div>
                   </div>
+                </div>
+
+                {/* Additional Info (collapsible) */}
+                <div className="rounded-lg border border-black/[0.1] bg-background">
+                  <button
+                    type="button"
+                    onClick={() => setAdditionalInfoOpen(!additionalInfoOpen)}
+                    className="flex w-full items-center justify-between px-4 py-3 font-label text-sm font-semibold text-on-surface-variant"
+                  >
+                    {t('additionalInfo')}
+                    <ChevronDown className={cn('h-4 w-4 transition-transform', additionalInfoOpen && 'rotate-180')} />
+                  </button>
+                  {additionalInfoOpen && (
+                    <div className="space-y-4 px-4 pb-4">
+                      {/* Jersey Number, Preferred Foot, Dominant Hand */}
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                            {t('jerseyNumber')}
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={99}
+                            value={formState.jerseyNumber}
+                            onChange={(e) => setFormState((s) => ({ ...s, jerseyNumber: e.target.value === '' ? '' : Number(e.target.value) }))}
+                            className="w-full rounded-lg border border-black/[0.1] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                            placeholder="1"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                            {t('preferredFoot')}
+                          </label>
+                          <select
+                            value={formState.preferredFoot}
+                            onChange={(e) => setFormState((s) => ({ ...s, preferredFoot: e.target.value as 'left' | 'right' | 'both' | '' }))}
+                            className="w-full rounded-lg border border-black/[0.1] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                          >
+                            <option value="">—</option>
+                            <option value="left">{t('leftFoot')}</option>
+                            <option value="right">{t('rightFoot')}</option>
+                            <option value="both">{t('bothFeet')}</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                            {t('dominantHand')}
+                          </label>
+                          <select
+                            value={formState.dominantHand}
+                            onChange={(e) => setFormState((s) => ({ ...s, dominantHand: e.target.value as 'left' | 'right' | '' }))}
+                            className="w-full rounded-lg border border-black/[0.1] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                          >
+                            <option value="">—</option>
+                            <option value="left">{t('leftHand')}</option>
+                            <option value="right">{t('rightHand')}</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Wingspan, Club Affiliation, Registration Date */}
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                            {t('wingspan')} (cm)
+                          </label>
+                          <input
+                            type="number"
+                            min={100}
+                            max={250}
+                            value={formState.wingspan}
+                            onChange={(e) => setFormState((s) => ({ ...s, wingspan: e.target.value === '' ? '' : Number(e.target.value) }))}
+                            className="w-full rounded-lg border border-black/[0.1] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                            placeholder="190"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                            {t('clubAffiliation')}
+                          </label>
+                          <input
+                            type="text"
+                            value={formState.clubAffiliation}
+                            onChange={(e) => setFormState((s) => ({ ...s, clubAffiliation: e.target.value }))}
+                            className="w-full rounded-lg border border-black/[0.1] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                            {t('registrationDate')}
+                          </label>
+                          <input
+                            type="date"
+                            value={formState.registrationDate}
+                            onChange={(e) => setFormState((s) => ({ ...s, registrationDate: e.target.value }))}
+                            className="w-full rounded-lg border border-black/[0.1] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Contact Info */}
+                      <div className="space-y-3 rounded-lg border border-black/[0.1] bg-surface p-4">
+                        <p className="font-label text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{t('contactInfo')}</p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                              {t('phone') || 'Phone'}
+                            </label>
+                            <input
+                              type="tel"
+                              value={formState.phone}
+                              onChange={(e) => setFormState((s) => ({ ...s, phone: e.target.value }))}
+                              className="w-full rounded-lg border border-black/[0.1] bg-background px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                              {t('authEmail') || 'Email'}
+                            </label>
+                            <input
+                              type="email"
+                              value={formState.email}
+                              onChange={(e) => setFormState((s) => ({ ...s, email: e.target.value }))}
+                              className="w-full rounded-lg border border-black/[0.1] bg-background px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                              {t('guardianName')}
+                            </label>
+                            <input
+                              type="text"
+                              value={formState.guardianName}
+                              onChange={(e) => setFormState((s) => ({ ...s, guardianName: e.target.value }))}
+                              className="w-full rounded-lg border border-black/[0.1] bg-background px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">
+                              {t('guardianPhone')}
+                            </label>
+                            <input
+                              type="tel"
+                              value={formState.guardianPhone}
+                              onChange={(e) => setFormState((s) => ({ ...s, guardianPhone: e.target.value }))}
+                              className="w-full rounded-lg border border-black/[0.1] bg-background px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Submit */}

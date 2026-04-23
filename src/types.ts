@@ -14,6 +14,16 @@ export interface Goalkeeper {
   trialStartDate?: string;
   trialEndDate?: string;
   trialNotes?: string;
+  preferredFoot?: 'left' | 'right' | 'both';
+  dominantHand?: 'left' | 'right';
+  wingspan?: number;
+  phone?: string;
+  email?: string;
+  guardianName?: string;
+  guardianPhone?: string;
+  clubAffiliation?: string;
+  registrationDate?: string;
+  jerseyNumber?: number;
 }
 
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'justified';

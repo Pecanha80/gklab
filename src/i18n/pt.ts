@@ -1043,4 +1043,21 @@ export const pt = {
     noNotesYet: 'Sem notas ainda.',
     behavioral: 'Comportamental',
     medical: 'Médico',
+
+    // Extended Goalkeeper Profile
+    preferredFoot: 'Pé Preferido',
+    dominantHand: 'Mão Dominante',
+    wingspan: 'Envergadura',
+    guardianName: 'Nome do Responsável',
+    guardianPhone: 'Telefone do Responsável',
+    clubAffiliation: 'Clube/Afiliação',
+    registrationDate: 'Data de Registo',
+    jerseyNumber: 'Nº Camisola',
+    leftFoot: 'Esquerdo',
+    rightFoot: 'Direito',
+    bothFeet: 'Ambos',
+    leftHand: 'Esquerda',
+    rightHand: 'Direita',
+    additionalInfo: 'Informação Adicional',
+    contactInfo: 'Informação de Contacto',
 };

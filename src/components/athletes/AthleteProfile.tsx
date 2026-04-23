@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, User, Heart, Activity, Calendar, FileText } from 'lucide-react';
+import { ArrowLeft, User, Heart, Activity, Calendar, FileText, Star } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useWellness } from '../../hooks/useWellness';
@@ -11,6 +11,7 @@ import { AthleteWellness } from './AthleteWellness';
 import { AthleteLoad } from './AthleteLoad';
 import { AthleteTrainingHistory } from './AthleteTrainingHistory';
 import { AthleteNotes } from './AthleteNotes';
+import { AthleteAssessment } from './AthleteAssessment';
 
 interface AthleteProfileProps {
   goalkeeper: Goalkeeper;
@@ -18,7 +19,7 @@ interface AthleteProfileProps {
   onUpdate: (gk: Goalkeeper) => Promise<void>;
 }
 
-type ProfileTab = 'overview' | 'wellness' | 'load' | 'history' | 'notes';
+type ProfileTab = 'overview' | 'wellness' | 'load' | 'history' | 'notes' | 'assessment';
 
 export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBack, onUpdate }) => {
   const { t } = useTranslation();
@@ -55,6 +56,7 @@ export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBa
     { key: 'load', label: t('trainingLoad') || 'Carga', icon: Activity },
     { key: 'history', label: t('trainingHistory') || 'Histórico', icon: Calendar },
     { key: 'notes', label: t('notes') || 'Notas', icon: FileText },
+    { key: 'assessment', label: t('assessment') || 'Avaliação', icon: Star },
   ];
 
   return (
@@ -129,6 +131,9 @@ export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBa
         )}
         {activeTab === 'notes' && (
           <AthleteNotes goalkeeper={goalkeeper} sessions={sessions} />
+        )}
+        {activeTab === 'assessment' && (
+          <AthleteAssessment goalkeeper={goalkeeper} />
         )}
       </div>
     </div>

@@ -62,6 +62,16 @@ export interface GoalkeeperNote {
   created_at: string;
 }
 
+export interface CompetencyAssessment {
+  id: string;
+  user_id: string;
+  goalkeeper_id: string;
+  date: string;
+  assessments: { category: string; score: number }[];
+  notes?: string;
+  created_at: string;
+}
+
 export interface Exercise {
   id: string;
   type: 'analytical' | 'decision' | 'contextualized' | 'warmup';

@@ -189,7 +189,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <Target className="w-4 h-4 text-primary" />
                   {editingExercise ? t('editExercise') : t('exercisePlannerEditor')}
                 </h3>
-                <p className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest mt-0.5">{t('designUEFAStandardDrills')}</p>
+                <p className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide tracking-widest mt-0.5">{t('designUEFAStandardDrills')}</p>
               </div>
             </div>
             <button
@@ -217,77 +217,66 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
               </div>
             )}
 
-            <div className="bg-surface-elevated p-5 rounded-xl border border-white/[0.08] space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="space-y-1 md:col-span-2">
-                  <div className="flex justify-between items-center">
-                    <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('drillTitle')}</label>
-                    <QuickSelect
-                      options={getOptions('drillTitles', PRESETS.drills.titles)}
-                      onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
-                      selectedValues={currentDrill.title ? [currentDrill.title] : []}
-                      onDelete={(val) => removeCustomPreset('drillTitles', val)}
-                      isDeletable={(val) => !val.startsWith('#')}
-                      onAdd={(val) => addCustomPreset('drillTitles', val, [])}
-                      onMove={(val) => moveCustomPreset('drillTitles', val, '')}
+            {/* ── Card 1: Identification ── */}
+            <div className="bg-surface rounded-xl border border-black/[0.08] overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3 bg-black/[0.02] border-b border-black/[0.06]">
+                <div className="w-1 h-5 rounded-full bg-blue-500" />
+                <span className="text-[10px] font-bold text-on-surface uppercase tracking-wider">1. {t('identification') || 'Identificação'}</span>
+              </div>
+              <div className="p-5 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="space-y-1 md:col-span-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('drillTitle')}</label>
+                      <QuickSelect
+                        options={getOptions('drillTitles', PRESETS.drills.titles)}
+                        onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
+                        selectedValues={currentDrill.title ? [currentDrill.title] : []}
+                        onDelete={(val) => removeCustomPreset('drillTitles', val)}
+                        isDeletable={(val) => !val.startsWith('#')}
+                        onAdd={(val) => addCustomPreset('drillTitles', val, [])}
+                        onMove={(val) => moveCustomPreset('drillTitles', val, '')}
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      value={currentDrill.title}
+                      onChange={e => {
+                        applyDrillTemplate(e.target.value);
+                        setValidationErrors([]);
+                      }}
+                      className={cn(
+                        "w-full bg-background border rounded-lg px-3 py-2.5 text-sm transition-colors",
+                        validationErrors.some(e => e.includes('title')) ? "border-error/50 bg-error/5" : "border-black/[0.1]"
+                      )}
+                      placeholder={t('drillTitlePlaceholder')}
                     />
                   </div>
-                  <input
-                    type="text"
-                    value={currentDrill.title}
-                    onChange={e => {
-                      applyDrillTemplate(e.target.value);
-                      setValidationErrors([]);
-                    }}
-                    className={cn(
-                      "w-full bg-surface border rounded px-3 py-2 text-xs transition-colors",
-                      validationErrors.some(e => e.includes('title')) ? "border-error/50 bg-error/5" : "border-white/[0.04]"
-                    )}
-                    placeholder={t('drillTitlePlaceholder')}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('type')}</label>
-                  <div className="flex gap-1">
-                    {PRESETS.drillTypes.map(dtype => (
-                      <button
-                        key={dtype}
-                        type="button"
-                        onClick={() => setCurrentDrill({ ...currentDrill, type: dtype as Exercise['type'] })}
-                        className={cn(
-                          "flex-1 py-1.5 rounded text-[8px] font-bold border transition-all",
-                          currentDrill.type === dtype ? "bg-primary/20 border-primary text-primary" : "bg-surface border-white/[0.04] text-on-surface-variant"
-                        )}
-                      >
-                        {t(dtype)}
-                      </button>
-                    ))}
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('type')}</label>
+                    <div className="flex gap-1">
+                      {PRESETS.drillTypes.map(dtype => (
+                        <button
+                          key={dtype}
+                          type="button"
+                          onClick={() => setCurrentDrill({ ...currentDrill, type: dtype as Exercise['type'] })}
+                          className={cn(
+                            "flex-1 py-2 rounded-lg text-[9px] font-bold border transition-all",
+                            currentDrill.type === dtype ? "bg-accent text-white border-accent shadow-sm" : "bg-background border-black/[0.08] text-on-surface-variant hover:border-black/[0.15]"
+                          )}
+                        >
+                          {t(dtype)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('category')}</label>
-                  <div className="flex flex-wrap gap-1">
-                    {PRESETS.drillCategories.map(cap => (
-                      <button
-                        key={cap}
-                        type="button"
-                        onClick={() => setCurrentDrill({ ...currentDrill, category: cap })}
-                        className={cn(
-                          "px-3 py-1.5 rounded text-[8px] font-bold border transition-all",
-                          currentDrill.category === cap ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface border-white/[0.04] text-on-surface-variant"
-                        )}
-                      >
-                        {t(cap)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center">
-                    <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('gameMomentsLabel')}</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* Game Moment */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('gameMomentsLabel')}</label>
                     <QuickSelect
                       multiSelect={false}
                       options={getOptions('gameMoments', [
@@ -309,13 +298,14 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                     type="text"
                     readOnly
                     value={currentDrill.gameMoment ? t(currentDrill.gameMoment) : ''}
-                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
+                    className="w-full bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm"
                     placeholder={t('select')}
                   />
                 </div>
+                {/* Tactical Principles */}
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('tacticalPrinciplesLabel')}</label>
+                    <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('tacticalPrinciplesLabel')}</label>
                     <QuickSelect
                       multiSelect={true}
                       options={getOptions('tacticalPrinciples', PRESETS.tacticalPrinciples)}
@@ -330,16 +320,25 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <textarea
                     value={translateContent(currentDrill.tacticalPrinciples)}
                     onChange={e => setCurrentDrill({ ...currentDrill, tacticalPrinciples: e.target.value.split('\n') })}
-                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[40px]"
+                    className="w-full bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm min-h-[40px]"
                     placeholder={t('objectivePlaceholder')}
                   />
                 </div>
               </div>
+              </div>
+            </div>
 
+            {/* ── Card 2: Content ── */}
+            <div className="bg-surface rounded-xl border border-black/[0.08] overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3 bg-black/[0.02] border-b border-black/[0.06]">
+                <div className="w-1 h-5 rounded-full bg-green-500" />
+                <span className="text-[10px] font-bold text-on-surface uppercase tracking-wider">2. {t('content') || 'Conteúdo'}</span>
+              </div>
+              <div className="p-5 space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('objective')}</label>
+                    <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('objective')}</label>
                     <QuickSelect
                       options={getOptions('drillObjectives', PRESETS.drills.objectives)}
                       onSelect={(val) => setCurrentDrill({ ...currentDrill, objective: val })}
@@ -354,13 +353,13 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <textarea
                     value={translateContent(currentDrill.objective)}
                     onChange={e => setCurrentDrill({ ...currentDrill, objective: e.target.value.split('\n') })}
-                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[44px]"
+                    className="w-full bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm min-h-[44px]"
                     placeholder={t('objectivePlaceholder')}
                   />
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('organization')}</label>
+                    <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('organization')}</label>
                     <QuickSelect
                       options={getOptions('drillOrganizations', PRESETS.drills.organizations)}
                       onSelect={(val) => setCurrentDrill({ ...currentDrill, organization: val })}
@@ -375,14 +374,14 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <textarea
                     value={translateContent(currentDrill.organization)}
                     onChange={e => setCurrentDrill({ ...currentDrill, organization: e.target.value.split('\n') })}
-                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[44px]"
+                    className="w-full bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm min-h-[44px]"
                     placeholder={t('organizationPlaceholder')}
                   />
                 </div>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('execution')}</label>
+                  <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('execution')}</label>
                   <QuickSelect
                     options={getOptions('drillExecutions', PRESETS.drills.executions)}
                     onSelect={(val) => setCurrentDrill({ ...currentDrill, execution: val })}
@@ -397,14 +396,14 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                 <textarea
                   value={translateContent(currentDrill.execution)}
                   onChange={e => setCurrentDrill({ ...currentDrill, execution: e.target.value.split('\n') })}
-                  className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[44px]"
+                  className="w-full bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm min-h-[44px]"
                   placeholder={t('executionPlaceholder')}
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('progressionVariables')}</label>
+                    <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('progressionVariables')}</label>
                     <QuickSelect
                       options={getOptions('drillProgressions', PRESETS.drills.progressions)}
                       onSelect={(val) => setCurrentDrill({ ...currentDrill, progression: val })}
@@ -420,13 +419,13 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                     type="text"
                     value={translateContent(currentDrill.progression)}
                     onChange={e => setCurrentDrill({ ...currentDrill, progression: e.target.value.split(',') })}
-                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
+                    className="w-full bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm"
                     placeholder={t('progressionPlaceholder')}
                   />
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('successCriteria')}</label>
+                    <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('successCriteria')}</label>
                     <QuickSelect
                       options={getOptions('drillSuccessCriteria', PRESETS.drills.successCriteria)}
                       onSelect={(val) => setCurrentDrill({ ...currentDrill, successCriteria: val })}
@@ -442,40 +441,40 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                     type="text"
                     value={translateContent(currentDrill.successCriteria)}
                     onChange={e => setCurrentDrill({ ...currentDrill, successCriteria: e.target.value.split(',') })}
-                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
+                    className="w-full bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm"
                     placeholder={t('successCriteriaPlaceholder')}
                   />
                 </div>
               </div>
 
+              </div>
+            </div>
+
+            {/* ── Card 3: Coaching & Setup ── */}
+            <div className="bg-surface rounded-xl border border-black/[0.08] overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3 bg-black/[0.02] border-b border-black/[0.06]">
+                <div className="w-1 h-5 rounded-full bg-orange-500" />
+                <span className="text-[10px] font-bold text-on-surface uppercase tracking-wider">3. {t('coachingSetup') || 'Coaching & Configuração'}</span>
+              </div>
+              <div className="p-5 space-y-3">
               {/* Coaching Points + Starting Point */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('coachingPoints')}</label>
+                  <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('coachingPoints')}</label>
                   <textarea
                     value={translateContent(currentDrill.coachingPoints)}
                     onChange={e => setCurrentDrill({ ...currentDrill, coachingPoints: e.target.value })}
-                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[44px]"
+                    className="w-full bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm min-h-[44px]"
                     placeholder={t('coachingPointsPlaceholder')}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('startingPoint')}</label>
-                  <input
-                    type="text"
-                    value={translateContent(currentDrill.startingPoint)}
-                    onChange={e => setCurrentDrill({ ...currentDrill, startingPoint: e.target.value })}
-                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
-                    placeholder={t('startingPointPlaceholder')}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('duration')}</label>
+                  <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('duration')}</label>
                   <div className="flex gap-2">
-                    <input type="text" value={currentDrill.duration} onChange={e => setCurrentDrill({ ...currentDrill, duration: e.target.value })} className="flex-1 bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs" />
+                    <input type="text" value={currentDrill.duration} onChange={e => setCurrentDrill({ ...currentDrill, duration: e.target.value })} className="flex-1 bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm" />
                     <QuickSelect
                       options={getOptions('durations', PRESETS.durations)}
                       onSelect={(val) => setCurrentDrill({ ...currentDrill, duration: val })}
@@ -489,7 +488,17 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('intensity')}</label>
+                  <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('repetitions')}</label>
+                  <input
+                    type="text"
+                    value={(currentDrill as any).repetitions || ''}
+                    onChange={e => setCurrentDrill({ ...currentDrill, repetitions: e.target.value } as any)}
+                    className="w-full bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm"
+                    placeholder="ex. 3x8"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('intensity')}</label>
                   <div className="flex gap-2">
                     {PRESETS.intensities.map(intens => (
                       <button
@@ -509,13 +518,13 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('diagram')}</label>
+                <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('diagram')}</label>
                 <button
                   type="button"
                   onClick={() => setIsTacticalBoardOpen(true)}
                   className={cn(
                     "w-full h-24 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-all",
-                    currentDrill.diagram ? "border-primary bg-primary/5" : "border-white/[0.06] hover:border-white/[0.06]"
+                    currentDrill.diagram ? "border-accent bg-accent/5" : "border-black/[0.1] hover:border-black/[0.15]"
                   )}
                 >
                   {currentDrill.diagram ? (
@@ -527,6 +536,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                     </>
                   )}
                 </button>
+              </div>
               </div>
             </div>
 

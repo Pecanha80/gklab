@@ -964,4 +964,8 @@ export const en = {
     fieldsMissing: 'fields missing',
     coachingPointsPlaceholder: 'Key coaching cues during execution...',
     startingPointPlaceholder: 'e.g. GK on goal line, ball at edge of box',
+    identification: 'Identification',
+    content: 'Content',
+    coachingSetup: 'Coaching & Setup',
+    repetitions: 'Repetitions',
 };

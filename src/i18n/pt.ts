@@ -995,4 +995,8 @@ export const pt = {
     fieldsMissing: 'campos em falta',
     coachingPointsPlaceholder: 'Pontos-chave durante a execução...',
     startingPointPlaceholder: 'ex. GR na linha de golo, bola na entrada da área',
+    identification: 'Identificação',
+    content: 'Conteúdo',
+    coachingSetup: 'Coaching & Configuração',
+    repetitions: 'Repetições',
 };

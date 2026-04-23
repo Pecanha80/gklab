@@ -160,19 +160,16 @@ export function useAppData() {
 
       if (gkRes.data) setGoalkeepers(gkRes.data.map((row: Record<string, unknown>) => ({
         ...row,
-        birthDate: row.birth_date,
-        imageUrl: row.image_url,
-        trialStartDate: row.trial_start_date,
-        trialEndDate: row.trial_end_date,
-        trialNotes: row.trial_notes,
-        preferredFoot: row.preferred_foot,
-        dominantHand: row.dominant_hand,
-        guardianName: row.guardian_name,
-        guardianPhone: row.guardian_phone,
-        clubAffiliation: row.club_affiliation,
-        registrationDate: row.registration_date,
-        jerseyNumber: row.jersey_number,
-        displayOrder: row.display_order,
+        // Map snake_case DB columns to camelCase (only for new extended fields)
+        // Note: original fields (imageUrl, birthDate, etc.) are stored as camelCase in DB with quoted identifiers
+        preferredFoot: row.preferred_foot ?? row.preferredFoot,
+        dominantHand: row.dominant_hand ?? row.dominantHand,
+        guardianName: row.guardian_name ?? row.guardianName,
+        guardianPhone: row.guardian_phone ?? row.guardianPhone,
+        clubAffiliation: row.club_affiliation ?? row.clubAffiliation,
+        registrationDate: row.registration_date ?? row.registrationDate,
+        jerseyNumber: row.jersey_number ?? row.jerseyNumber,
+        displayOrder: row.display_order ?? row.displayOrder,
       })) as unknown as Goalkeeper[]);
       if (sessRes.data) setSessions(sessRes.data.map(mapSessionFromDB));
       if (vidRes.data) setVideos(vidRes.data);
@@ -278,12 +275,9 @@ export function useAppData() {
   /** Maps a Goalkeeper (camelCase) to a Supabase row (snake_case) for insert/update. */
   const mapGoalkeeperToDB = (gk: Record<string, unknown>) => {
     const mapped: Record<string, unknown> = {};
+    // Only the NEW extended fields use snake_case in DB
+    // Original fields (imageUrl, birthDate, etc.) use quoted camelCase in DB
     const keyMap: Record<string, string> = {
-      birthDate: 'birth_date',
-      imageUrl: 'image_url',
-      trialStartDate: 'trial_start_date',
-      trialEndDate: 'trial_end_date',
-      trialNotes: 'trial_notes',
       preferredFoot: 'preferred_foot',
       dominantHand: 'dominant_hand',
       guardianName: 'guardian_name',
@@ -291,7 +285,6 @@ export function useAppData() {
       clubAffiliation: 'club_affiliation',
       registrationDate: 'registration_date',
       jerseyNumber: 'jersey_number',
-      displayOrder: 'display_order',
     };
     for (const [key, value] of Object.entries(gk)) {
       if (key === 'id') continue;

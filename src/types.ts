@@ -42,6 +42,15 @@ export interface WellnessLog {
   created_at: string;
 }
 
+export interface GoalkeeperNote {
+  id: string;
+  user_id: string;
+  goalkeeper_id: string;
+  date: string;
+  category: 'technical' | 'tactical' | 'behavioral' | 'medical';
+  text: string;
+  created_at: string;
+}
 
 export interface Exercise {
   id: string;

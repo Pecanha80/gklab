@@ -1032,4 +1032,15 @@ export const pt = {
     noTrainingHistory: 'Sem histórico de treino',
     avgForm: 'Forma Média',
     avgRecovery: 'Recuperação Média',
+
+    // Coach Notes
+    notes: 'Notas',
+    addNote: 'Adicionar Nota',
+    notePlaceholder: 'Escrever nota...',
+    coachNote: 'Nota do Treinador',
+    sessionObservation: 'Observação de Sessão',
+    deleteNoteConfirm: 'Tem a certeza que quer apagar esta nota?',
+    noNotesYet: 'Sem notas ainda.',
+    behavioral: 'Comportamental',
+    medical: 'Médico',
 };

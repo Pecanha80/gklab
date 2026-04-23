@@ -1001,4 +1001,15 @@ export const en = {
     noTrainingHistory: 'No training history',
     avgForm: 'Avg Form',
     avgRecovery: 'Avg Recovery',
+
+    // Coach Notes
+    notes: 'Notes',
+    addNote: 'Add Note',
+    notePlaceholder: 'Write a note...',
+    coachNote: 'Coach Note',
+    sessionObservation: 'Session Observation',
+    deleteNoteConfirm: 'Are you sure you want to delete this note?',
+    noNotesYet: 'No notes yet.',
+    behavioral: 'Behavioral',
+    medical: 'Medical',
 };

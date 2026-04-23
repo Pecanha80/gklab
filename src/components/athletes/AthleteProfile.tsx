@@ -10,6 +10,7 @@ import { AthleteOverview } from './AthleteOverview';
 import { AthleteWellness } from './AthleteWellness';
 import { AthleteLoad } from './AthleteLoad';
 import { AthleteTrainingHistory } from './AthleteTrainingHistory';
+import { AthleteNotes } from './AthleteNotes';
 
 interface AthleteProfileProps {
   goalkeeper: Goalkeeper;
@@ -17,7 +18,7 @@ interface AthleteProfileProps {
   onUpdate: (gk: Goalkeeper) => Promise<void>;
 }
 
-type ProfileTab = 'overview' | 'wellness' | 'load' | 'history';
+type ProfileTab = 'overview' | 'wellness' | 'load' | 'history' | 'notes';
 
 export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBack, onUpdate }) => {
   const { t } = useTranslation();
@@ -53,6 +54,7 @@ export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBa
     { key: 'wellness', label: t('wellness') || 'Bem-estar', icon: Heart },
     { key: 'load', label: t('trainingLoad') || 'Carga', icon: Activity },
     { key: 'history', label: t('trainingHistory') || 'Histórico', icon: Calendar },
+    { key: 'notes', label: t('notes') || 'Notas', icon: FileText },
   ];
 
   return (
@@ -124,6 +126,9 @@ export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBa
         )}
         {activeTab === 'history' && (
           <AthleteTrainingHistory goalkeeper={goalkeeper} attendance={attendance} sessions={sessions} />
+        )}
+        {activeTab === 'notes' && (
+          <AthleteNotes goalkeeper={goalkeeper} sessions={sessions} />
         )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 export interface Goalkeeper {
   id: string;
   name: string;
-  category: 'firstTeam' | 'u23' | 'u21' | 'u18' | 'u16' | 'academy';
+  category: string;
   status: 'Ready' | 'Minor Strain' | 'In Training' | 'Injured';
   form: number;
   recovery: number;

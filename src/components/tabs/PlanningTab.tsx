@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, getTodayDateString, toDateString } from '../../lib/utils';
+import { parseCategory } from '../../lib/dashboard';
 import { TrainingSession } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { QuickSelect } from '../ui/QuickSelect';
@@ -381,7 +382,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                 {daySessions.map(session => (
                   <div key={session.id} onClick={() => setViewingSession(session)} className="bg-surface-elevated p-3 rounded-lg border border-white/[0.06] group cursor-pointer hover:border-primary transition-all">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[8px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">{Array.isArray(session.category) ? session.category.map(c => t(c)).join(', ') : t(session.category)}</span>
+                      <span className="text-[8px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">{parseCategory(session.category).map(c => t(c)).join(', ')}</span>
                       <Clock className="w-3 h-3 text-on-surface-variant" />
                     </div>
                     <h4 className="text-xs font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2">{session.titles?.map(t_ => t(t_)).join(' & ')}</h4>

@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Clock, Users, Target, Dumbbell, Trophy, Wind, Edit3, Download, Calendar, CheckCircle2, XCircle, AlertCircle, MessageSquare, Trash2, Activity } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
+import { parseCategory } from '../lib/dashboard';
 import { useTranslation } from '../hooks/useTranslation';
 import { useToast } from '../hooks/useToast';
 import { useAttendance } from '../hooks/useAttendance';
@@ -231,7 +232,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               {session.category && (
                 <div className="flex items-center gap-1.5 text-on-surface/60 text-xs">
                   <Trophy className="w-3.5 h-3.5" />
-                  <span>{Array.isArray(session.category) ? session.category.map(c => t(c)).join(', ') : t(session.category)}</span>
+                  <span>{parseCategory(session.category).map(c => t(c)).join(', ')}</span>
                 </div>
               )}
               {session.duration && (

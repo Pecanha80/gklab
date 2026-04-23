@@ -18,9 +18,10 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
-import { TrainingSession, Exercise } from '../../types';
+import { TrainingSession, Exercise, SavedMicrocycle } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { PRESETS } from '../../data/presets';
+import { getSessionCompleteness, resolveSessionMicrocycle } from '../../lib/dashboard';
 import { Section } from '../ui/Section';
 import { QuickSelect } from '../ui/QuickSelect';
 import { DrillForm } from './DrillForm';
@@ -32,6 +33,7 @@ export interface SessionFormProps {
   setNewSession: React.Dispatch<React.SetStateAction<Omit<TrainingSession, 'id'>>>;
   editingSessionId: string | null;
   goalkeepers: import('../../types').Goalkeeper[];
+  savedMicrocycles?: SavedMicrocycle[];
   exercisesLibrary: Exercise[];
   filteredGeneralObjectives: string[];
   // Custom presets
@@ -69,6 +71,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
   setNewSession,
   editingSessionId,
   goalkeepers,
+  savedMicrocycles = [],
   filteredGeneralObjectives,
   customPresets,
   getOptions,
@@ -102,33 +105,65 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
   const tField = (value: string | string[]): string =>
     Array.isArray(value) ? value.map(v => t(v)).join(', ') : t(value);
 
+  // Session completeness for progress bar
+  const completeness = getSessionCompleteness(newSession as TrainingSession);
+
+  // Auto-detect microcycle
+  const resolvedMc = resolveSessionMicrocycle(newSession.date, savedMicrocycles);
+
   return (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="bg-surface p-0 rounded-2xl border border-white/[0.06] w-full max-w-[98vw] mx-auto overflow-hidden flex flex-col max-h-[calc(95vh-4rem)] md:max-h-[95vh]"
         >
-          <div className="bg-surface-elevated p-6 border-b border-white/[0.06] flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
-                <FileText className="w-5 h-5 text-accent" />
-                {editingSessionId ? t('editSession') : t('professionalTrainingSheet')}
-              </h3>
-              <p className="text-xs text-on-surface-variant mt-1">{t('structuredMethodology')}</p>
+          <div className="bg-surface-elevated border-b border-white/[0.06]">
+            <div className="p-6 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-accent" />
+                  {editingSessionId ? t('editSession') : t('professionalTrainingSheet')}
+                </h3>
+                <div className="flex items-center gap-3 mt-1">
+                  <p className="text-xs text-on-surface-variant">{t('structuredMethodology')}</p>
+                  {resolvedMc && (
+                    <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/10">
+                      {resolvedMc.name}
+                      {resolvedMc.mesocycle ? ` · ${resolvedMc.mesocycle}` : ''}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={cn(
+                  "text-[10px] font-bold px-2 py-1 rounded",
+                  completeness.isComplete ? "bg-tertiary/10 text-tertiary" : "bg-yellow-500/10 text-yellow-600"
+                )}>
+                  {completeness.percentage}%
+                </span>
+                <button
+                  onClick={loadExample}
+                  className="text-[10px] bg-secondary/10 text-secondary border border-secondary/20 px-3 py-1.5 rounded hover:bg-secondary/20 transition-all font-bold"
+                >
+                  {t('loadExampleCrosses')}
+                </button>
+                <button
+                  onClick={() => setIsAddingSession(false)}
+                  className="text-on-surface-variant hover:text-on-surface transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
-            <div className="flex gap-3">
-              <button
-                onClick={loadExample}
-                className="text-[10px] bg-secondary/10 text-secondary border border-secondary/20 px-3 py-1.5 rounded hover:bg-secondary/20 transition-all font-bold"
-              >
-                {t('loadExampleCrosses')}
-              </button>
-              <button
-                onClick={() => setIsAddingSession(false)}
-                className="text-on-surface-variant hover:text-on-surface transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
+            {/* Progress bar */}
+            <div className="h-1 bg-white/[0.03]">
+              <div
+                className={cn(
+                  "h-full transition-all duration-500",
+                  completeness.isComplete ? "bg-tertiary" : "bg-accent"
+                )}
+                style={{ width: `${completeness.percentage}%` }}
+              />
             </div>
           </div>
 
@@ -136,7 +171,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
             <form id="sessionForm" onSubmit={handleAddSession} className="space-y-8">
 
               {/* 1. Identification */}
-               <Section title={t('sessionIdentification')} icon={Users}>
+               <Section title={t('sessionIdentification')} icon={Users} accentColor="bg-blue-500">
 
                  <div className="flex flex-wrap items-start gap-2">
 
@@ -248,16 +283,29 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                      />
                    </div>
 
+                   {/* Nº Atletas */}
+                   <div className="w-[70px] shrink-0 space-y-1">
+                     <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('athletes')}</label>
+                     <input
+                       type="number"
+                       min={1}
+                       max={20}
+                       value={newSession.numAthletes || ''}
+                       onChange={e => setNewSession({ ...newSession, numAthletes: parseInt(e.target.value) || 0 })}
+                       className="w-full bg-surface-elevated border border-white/[0.06] rounded px-2 py-1.5 text-[12px] font-bold text-primary h-[44px] outline-none text-center"
+                       placeholder="3"
+                     />
+                   </div>
+
                  </div>
 
- 
                 </Section>
 
 
 
 
               {/* 2. Specific Objectives */}
-              <Section title={t('sectionObjectives')} icon={Target}>
+              <Section title={t('sectionObjectives')} icon={Target} accentColor="bg-green-500">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {(['technical', 'tactical', 'physical', 'cognitive'] as const).map((objKey) => (
                     <div key={objKey} className="space-y-1">
@@ -292,7 +340,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
               </Section>
 
               {/* 3. Warm-up */}
-              <Section title={t('sectionWarmUp')} icon={Clock}>
+              <Section title={t('sectionWarmUp')} icon={Clock} accentColor="bg-orange-500">
                 <div className="space-y-4">
                   {newSession.warmup.map((drill, idx) => (
                     <div key={drill.id} className="bg-surface-elevated p-4 rounded-lg border border-white/[0.06] relative group">
@@ -366,7 +414,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
               </Section>
 
               {/* 4. Main Part */}
-              <Section title={t('mainPartExercises')} icon={Dumbbell}>
+              <Section title={t('mainPartExercises')} icon={Dumbbell} accentColor="bg-red-500">
                 <div className="space-y-4">
                   {newSession.exercises.map((drill, idx) => (
                     <div key={drill.id} className="bg-surface-elevated p-4 rounded-lg border border-white/[0.06] relative group">
@@ -440,7 +488,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
               </Section>
 
               {/* 5. Integrated with Team */}
-              <Section title={t('sectionIntegrated')} icon={Trophy}>
+              <Section title={t('sectionIntegrated')} icon={Trophy} accentColor="bg-yellow-500">
                 <div className="space-y-4">
                   {newSession.integratedWithTeam?.map((integrated) => (
                     <div key={integrated.id} className="bg-surface-elevated p-4 rounded-lg border border-white/[0.06] relative group">
@@ -548,7 +596,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
               </Section>
 
               {/* 6. Cool Down */}
-              <Section title={t('sectionCoolDown')} icon={Wind}>
+              <Section title={t('sectionCoolDown')} icon={Wind} accentColor="bg-cyan-500">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('coolDownExercises')}</label>
@@ -571,7 +619,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
               </Section>
 
               {/* 7. Observations */}
-              <Section title={t('coachObservations')} icon={Edit3}>
+              <Section title={t('coachObservations')} icon={Edit3} accentColor="bg-purple-500">
                 <div className="space-y-8">
                   {/* Session Observations */}
                   <div className="space-y-4">
@@ -769,21 +817,48 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
             </form>
           </div>
 
-          <div className="bg-surface-elevated p-6 border-t border-white/[0.06] flex justify-end gap-3">
-             <button
-              type="button"
-              onClick={() => setIsAddingSession(false)}
-              className="px-6 py-2 rounded-md font-label text-xs font-bold text-on-surface-variant hover:bg-white/[0.03] transition-all"
-            >
-              {t('cancel')}
-            </button>
-            <button
-              type="submit"
-              form="sessionForm"
-              className="bg-primary text-on-primary px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
-            >
-              {editingSessionId ? t('updateSession') : t('saveSession')}
-            </button>
+          <div className="bg-surface-elevated border-t border-white/[0.06]">
+            {/* Mini progress bar */}
+            <div className="h-0.5 bg-white/[0.03]">
+              <div
+                className={cn(
+                  "h-full transition-all duration-500",
+                  completeness.isComplete ? "bg-tertiary" : "bg-accent"
+                )}
+                style={{ width: `${completeness.percentage}%` }}
+              />
+            </div>
+            <div className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className={cn(
+                  "text-[10px] font-bold",
+                  completeness.isComplete ? "text-tertiary" : "text-on-surface-variant/50"
+                )}>
+                  {completeness.percentage}% {completeness.isComplete ? t('complete') : ''}
+                </span>
+                {!completeness.isComplete && completeness.missing.length > 0 && (
+                  <span className="text-[9px] text-on-surface-variant/30">
+                    {completeness.missing.length} {t('fieldsMissing')}
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAddingSession(false)}
+                  className="px-6 py-2.5 rounded-xl font-label text-xs font-bold text-on-surface-variant hover:bg-white/[0.05] transition-all border border-white/[0.06]"
+                >
+                  {t('cancel')}
+                </button>
+                <button
+                  type="submit"
+                  form="sessionForm"
+                  className="bg-primary text-on-primary px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+                >
+                  {editingSessionId ? t('updateSession') : t('saveSession')}
+                </button>
+              </div>
+            </div>
           </div>
         </motion.div>
   );

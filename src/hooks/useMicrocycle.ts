@@ -138,12 +138,14 @@ export function useMicrocycle(
     setShowMicrocycleHistory(false);
   };
 
-  // Auto-load the most recent microcycle when data is fetched from Supabase
+  // Auto-load the most recent microcycle when data is fetched from Supabase (only once)
+  const [hasAutoLoaded, setHasAutoLoaded] = useState(false);
   useEffect(() => {
-    if (externalSavedMicrocycles.length > 0 && !microcycleName) {
+    if (externalSavedMicrocycles.length > 0 && !hasAutoLoaded) {
       loadMicrocycle(externalSavedMicrocycles[0]);
+      setHasAutoLoaded(true);
     }
-  }, [externalSavedMicrocycles, microcycleName]);
+  }, [externalSavedMicrocycles]);
 
   const deleteMicrocycle = async (id: string) => {
     await onDelete(id);

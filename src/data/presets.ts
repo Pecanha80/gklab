@@ -8,7 +8,7 @@ export const PRESETS = {
     'sessionCategorySetPieces',
     'sessionCategoryOther'
   ],
-  categories: ['firstTeam', 'u23', 'u21', 'u18', 'u16', 'academy'],
+  categories: ['firstTeam'],
   objectives: {
     general: [
       '# sessionCategoryGoalDefense',

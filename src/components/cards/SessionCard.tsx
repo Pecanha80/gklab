@@ -5,7 +5,7 @@ import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { handleExportSession } from '../../lib/exportSession';
 import { parseDate } from '../../lib/utils';
-import { extractSessionPillars, getSessionCompleteness, getSessionIntensityLevel } from '../../lib/dashboard';
+import { extractSessionPillars, getSessionCompleteness, getSessionIntensityLevel, parseCategory } from '../../lib/dashboard';
 import type { TrainingSession, Goalkeeper } from '../../types';
 
 interface SessionCardProps {
@@ -91,7 +91,7 @@ export const SessionCard = React.memo(function SessionCard({
         {/* Badges: category + duration + intensity */}
         <div className="flex flex-wrap gap-1.5">
           <span className="px-2 py-0.5 bg-accent/10 text-accent text-[9px] font-bold uppercase rounded tracking-wider">
-            {Array.isArray(session.category) ? session.category.map(c => t(c)).join(', ') : t(session.category)}
+            {parseCategory(session.category).map(c => t(c)).join(', ')}
           </span>
           <span className="px-2 py-0.5 bg-white/[0.04] text-on-surface-variant text-[9px] font-bold uppercase rounded tracking-wider">
             {session.duration}

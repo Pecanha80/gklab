@@ -19,7 +19,7 @@ import { TrainingSession, PerformanceVideo, Goalkeeper, Attendance } from '../..
 import { useTranslation } from '../../hooks/useTranslation';
 import { GoalkeeperCard } from '../cards/GoalkeeperCard';
 import { VideoCard } from '../cards/VideoCard';
-import { getMatchDayLabel, extractSessionPillars, getGoalkeeperDetailedStatus } from '../../lib/dashboard';
+import { getMatchDayLabel, extractSessionPillars, getGoalkeeperDetailedStatus, parseCategory } from '../../lib/dashboard';
 import type { DayKey } from '../../hooks/useMicrocycle';
 
 interface DashboardTabProps {
@@ -308,7 +308,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
                           const sessionDuration = Array.isArray(s.duration)
                             ? s.duration.map(d => t(d)).join(', ')
                             : t(s.duration) !== s.duration ? t(s.duration) : s.duration;
-                          const sessionCategories = Array.isArray(s.category) ? s.category : [s.category];
+                          const sessionCategories = parseCategory(s.category);
 
                           return (
                             <div

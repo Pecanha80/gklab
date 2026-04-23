@@ -313,7 +313,7 @@ export function filterSessions(
   return sessions.filter(session => {
     // Category filter
     if (filter.category) {
-      const cats = Array.isArray(session.category) ? session.category : [session.category];
+      const cats = parseCategory(session.category);
       if (!cats.includes(filter.category)) return false;
     }
 
@@ -325,12 +325,60 @@ export function filterSessions(
     if (filter.searchTerm) {
       const term = filter.searchTerm.toLowerCase();
       const titles = (session.titles || []).join(' ').toLowerCase();
-      const cats = (Array.isArray(session.category) ? session.category : [session.category]).join(' ').toLowerCase();
+      const cats = parseCategory(session.category).join(' ').toLowerCase();
       if (!titles.includes(term) && !cats.includes(term)) return false;
     }
 
     return true;
   });
+}
+
+// ──────────────────────────────────────────────
+// 10. Format Microcycle Label
+// ──────────────────────────────────────────────
+
+/**
+ * Formats a microcycle for display in dropdowns: "Name (DD/MM - DD/MM)"
+ */
+export function formatMicrocycleLabel(mc: SavedMicrocycle): string {
+  const start = parseDate(mc.startDate);
+  const end = parseDate(mc.endDate);
+  const fmt = (d: Date) =>
+    `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+  return `${mc.name} (${fmt(start)} - ${fmt(end)})`;
+}
+
+// ──────────────────────────────────────────────
+// 11. Parse Category
+// ──────────────────────────────────────────────
+
+/**
+ * Normalizes a category field that may be a string, JSON string, or array
+ * into a clean string array.
+ */
+export function parseCategory(category: string | string[]): string[] {
+  if (Array.isArray(category)) return category.filter(Boolean);
+  if (!category || category.trim() === '') return [];
+
+  // Try JSON parse (handles '["firstTeam"]' and '"["firstTeam"]"')
+  let cleaned = category.trim();
+  // Strip outer quotes if double-stringified
+  if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+    cleaned = cleaned.slice(1, -1);
+  }
+  if (cleaned.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(cleaned);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    } catch { /* fall through */ }
+  }
+
+  // Comma-separated
+  if (cleaned.includes(',')) {
+    return cleaned.split(',').map(s => s.trim()).filter(Boolean);
+  }
+
+  return [cleaned];
 }
 
 // ──────────────────────────────────────────────

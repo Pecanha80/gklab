@@ -588,7 +588,7 @@ export const pt = {
     noMatch: 'Sem Jogo',
     matchDayLabel: 'JOGO',
     rest: 'Folga',
-    md: 'DJ',
+    md: 'MD',
     mdMinus: 'DJ',
     save: 'Salvar',
     saving: 'Salvando...',
@@ -988,4 +988,9 @@ export const pt = {
     allCategories: 'Todas as Categorias',
     clearFilters: 'Limpar',
     otherSessions: 'Outras Sessões',
+
+    // Category management
+    newCategory: 'Nova categoria...',
+    complete: 'completo',
+    fieldsMissing: 'campos em falta',
 };

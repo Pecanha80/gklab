@@ -10,6 +10,8 @@ import {
   resolveSessionMicrocycle,
   groupSessionsByMicrocycle,
   filterSessions,
+  formatMicrocycleLabel,
+  parseCategory,
 } from './dashboard';
 import type { TrainingSession, Goalkeeper, Attendance, SavedMicrocycle } from '../types';
 
@@ -501,5 +503,61 @@ describe('filterSessions', () => {
     const result = filterSessions(sessions, { category: 'footwork', dateFrom: '2026-04-10', dateTo: '2026-04-20' });
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe('s1');
+  });
+});
+
+// ──────────────────────────────────────────────
+// 11. Format Microcycle Label (for dropdowns)
+// ──────────────────────────────────────────────
+describe('formatMicrocycleLabel', () => {
+  it('appends date range to the name', () => {
+    const mc: SavedMicrocycle = {
+      id: '1', name: 'Teste', startDate: '2026-04-14', endDate: '2026-04-20', matchDay: null,
+    };
+    expect(formatMicrocycleLabel(mc)).toBe('Teste (14/04 - 20/04)');
+  });
+
+  it('handles different months', () => {
+    const mc: SavedMicrocycle = {
+      id: '2', name: 'Semana 5', startDate: '2026-03-30', endDate: '2026-04-05', matchDay: null,
+    };
+    expect(formatMicrocycleLabel(mc)).toBe('Semana 5 (30/03 - 05/04)');
+  });
+
+  it('works with unique names too', () => {
+    const mc: SavedMicrocycle = {
+      id: '3', name: 'Competition Week', startDate: '2026-05-01', endDate: '2026-05-07', matchDay: null,
+    };
+    expect(formatMicrocycleLabel(mc)).toBe('Competition Week (01/05 - 07/05)');
+  });
+});
+
+// ──────────────────────────────────────────────
+// 12. Parse Category (handles JSON strings)
+// ──────────────────────────────────────────────
+describe('parseCategory', () => {
+  it('returns array as-is', () => {
+    expect(parseCategory(['firstTeam', 'u23'])).toEqual(['firstTeam', 'u23']);
+  });
+
+  it('parses JSON string array', () => {
+    expect(parseCategory('["firstTeam"]')).toEqual(['firstTeam']);
+  });
+
+  it('parses double-stringified JSON', () => {
+    expect(parseCategory('"["firstTeam"]"')).toEqual(['firstTeam']);
+  });
+
+  it('wraps plain string in array', () => {
+    expect(parseCategory('firstTeam')).toEqual(['firstTeam']);
+  });
+
+  it('handles comma-separated string', () => {
+    expect(parseCategory('firstTeam, u23')).toEqual(['firstTeam', 'u23']);
+  });
+
+  it('returns empty array for empty input', () => {
+    expect(parseCategory('')).toEqual([]);
+    expect(parseCategory([])).toEqual([]);
   });
 });

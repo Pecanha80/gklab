@@ -14,7 +14,7 @@ import { TrainingSession, Exercise, Goalkeeper, SavedMicrocycle } from '../../ty
 import { useTranslation } from '../../hooks/useTranslation';
 import { useCustomPresets } from '../../hooks/useCustomPresets';
 import { PRESETS } from '../../data/presets';
-import { resolveSessionMicrocycle, getMatchDayLabel, groupSessionsByMicrocycle, filterSessions } from '../../lib/dashboard';
+import { resolveSessionMicrocycle, getMatchDayLabel, groupSessionsByMicrocycle, filterSessions, formatMicrocycleLabel } from '../../lib/dashboard';
 import { DrillForm } from '../forms/DrillForm';
 import { SessionForm } from '../forms/SessionForm';
 import { LibraryPickerModal } from '../forms/LibraryPickerModal';
@@ -87,8 +87,15 @@ export const TrainingTab: React.FC<TrainingTabProps> = React.memo(({
   const allCategories = useMemo(() => {
     const cats = new Set<string>();
     sessions.forEach(s => {
-      const sessionCats = Array.isArray(s.category) ? s.category : [s.category];
-      sessionCats.forEach(c => cats.add(c));
+      let sessionCats: string[];
+      if (Array.isArray(s.category)) {
+        sessionCats = s.category;
+      } else if (typeof s.category === 'string' && s.category.startsWith('[')) {
+        try { sessionCats = JSON.parse(s.category); } catch { sessionCats = [s.category]; }
+      } else {
+        sessionCats = [s.category];
+      }
+      sessionCats.forEach(c => { if (c) cats.add(c); });
     });
     return Array.from(cats).sort();
   }, [sessions]);
@@ -245,6 +252,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = React.memo(({
           setNewSession={setNewSession}
           editingSessionId={editingSessionId}
           goalkeepers={goalkeepers}
+          savedMicrocycles={savedMicrocycles}
           exercisesLibrary={exercisesLibrary}
           filteredGeneralObjectives={filteredGeneralObjectives}
           customPresets={customPresets}
@@ -305,7 +313,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = React.memo(({
                     >
                       <option value="">{t('allMicrocycles') || 'Todos os Microciclos'}</option>
                       {savedMicrocycles.map(mc => (
-                        <option key={mc.id} value={mc.id}>{mc.name}</option>
+                        <option key={mc.id} value={mc.id}>{formatMicrocycleLabel(mc)}</option>
                       ))}
                     </select>
                   )}

@@ -957,4 +957,9 @@ export const en = {
     allCategories: 'All Categories',
     clearFilters: 'Clear',
     otherSessions: 'Other Sessions',
+
+    // Category management
+    newCategory: 'New category...',
+    complete: 'complete',
+    fieldsMissing: 'fields missing',
 };

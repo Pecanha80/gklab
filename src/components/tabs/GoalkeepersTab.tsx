@@ -1,9 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Plus, X, Trash2, Edit3, Activity, Upload, Image as ImageIcon, UserCheck, Heart, Moon, Brain, Frown, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, getTodayDateString } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useWellness } from '../../hooks/useWellness';
+import { useCustomPresets } from '../../hooks/useCustomPresets';
+import { PRESETS } from '../../data/presets';
 import { WellnessModal } from '../WellnessModal';
 import type { Goalkeeper } from '../../types';
 import { useGoalkeeperMetrics } from '../../hooks/useGoalkeeperMetrics';
@@ -15,14 +17,11 @@ interface GoalkeepersTabProps {
   deleteGoalkeeper: (id: string) => Promise<void>;
 }
 
-type Category = 'All' | 'firstTeam' | 'u23' | 'u21' | 'u18' | 'u16' | 'academy';
 type MembershipFilter = 'All' | 'permanent' | 'trial';
 
 const DEFAULT_IMAGE_URL =
-  'https://images.unsplash.com/photo-1518331647614-7a1f04cd34cf?q=80&w=256&h=256&auto=format&fit=crop'; // Generic silhouette/sporty placeholder
+  'https://images.unsplash.com/photo-1518331647614-7a1f04cd34cf?q=80&w=256&h=256&auto=format&fit=crop';
 
-const categories: Category[] = ['All', 'firstTeam', 'u23', 'u21', 'u18', 'u16', 'academy'];
-const gkCategories: Goalkeeper['category'][] = ['firstTeam', 'u23', 'u21', 'u18', 'u16', 'academy'];
 const statuses: Goalkeeper['status'][] = ['Ready', 'Minor Strain', 'In Training', 'Injured'];
 
 function getStatusClasses(status: Goalkeeper['status']): string {
@@ -102,6 +101,33 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
   const { t } = useTranslation();
   const { saveWellnessLog, fetchLogs } = useWellness();
   const { recalculateMetrics, recalculateAll } = useGoalkeeperMetrics(updateGoalkeeper);
+  const { getOptions, addCustomPreset, removeCustomPreset } = useCustomPresets();
+
+  // Dynamic categories from presets + custom
+  const gkCategories = useMemo(() => getOptions('categories', PRESETS.categories), [getOptions]);
+  const allFilterCategories = useMemo(() => ['All', ...gkCategories], [gkCategories]);
+
+  // State for adding new category
+  const [newCategoryInput, setNewCategoryInput] = useState('');
+
+  const getCategoryLabel = (cat: string): string => {
+    const translated = t(cat);
+    return translated !== cat ? translated : cat;
+  };
+
+  const handleAddCategory = () => {
+    const val = newCategoryInput.trim();
+    if (!val) return;
+    addCustomPreset('categories', val, PRESETS.categories);
+    setNewCategoryInput('');
+  };
+
+  const handleRemoveCategory = (cat: string) => {
+    if (cat === 'firstTeam') return; // Never remove default
+    removeCustomPreset('categories', cat);
+    // If filtering by this category, reset
+    if (activeCategory === cat) setActiveCategory('All');
+  };
 
   // Recalculate metrics when tab opens to pick up any wellness/RPE changes
   const [hasRecalculated, setHasRecalculated] = useState(false);
@@ -110,7 +136,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
       recalculateAll(goalkeepers).then(() => setHasRecalculated(true));
     }
   }, [goalkeepers.length]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [activeCategory, setActiveCategory] = useState<Category>('All');
+  const [activeCategory, setActiveCategory] = useState<string>('All');
   const [activeMembership, setActiveMembership] = useState<MembershipFilter>('All');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingGoalkeeper, setEditingGoalkeeper] = useState<Goalkeeper | null>(null);
@@ -129,16 +155,6 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
   const closeWellnessModal = () => {
     setWellnessModalOpen(false);
     setWellnessGk(null);
-  };
-
-  const categoryLabels: Record<Category, string> = {
-    'All': t('all'),
-    'firstTeam': t('firstTeam'),
-    'u23': t('u23'),
-    'u21': t('u21'),
-    'u18': t('u18'),
-    'u16': t('u16'),
-    'academy': t('academy'),
   };
 
   const statusLabels: Record<Goalkeeper['status'], string> = {
@@ -227,8 +243,8 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="font-headline text-2xl font-bold text-on-surface">{t('goalkeepersTitle')}</h1>
         <div className="flex items-center gap-3">
-          <div className="flex gap-1 rounded-lg bg-surface p-1">
-            {categories.map((cat) => (
+          <div className="flex gap-1 rounded-lg bg-surface p-1 flex-wrap">
+            {allFilterCategories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -239,7 +255,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
                     : 'text-on-surface-variant hover:bg-surface-elevated'
                 )}
               >
-                {categoryLabels[cat]}
+                {getCategoryLabel(cat)}
               </button>
             ))}
           </div>
@@ -330,7 +346,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
                   <h3 className="font-headline text-base font-semibold text-on-surface">
                     {gk.name}
                   </h3>
-                  <p className="font-label text-sm text-on-surface-variant">{categoryLabels[gk.category]}</p>
+                  <p className="font-label text-sm text-on-surface-variant">{getCategoryLabel(gk.category)}</p>
                   <div className="mt-1 flex flex-wrap gap-1">
                     <span
                       className={cn(
@@ -468,17 +484,51 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
                       onChange={(e) =>
                         setFormState((s) => ({
                           ...s,
-                          category: e.target.value as Goalkeeper['category'],
+                          category: e.target.value,
                         }))
                       }
                       className="w-full rounded-lg border border-white/[0.06] bg-surface px-3 py-2 font-label text-sm text-on-surface outline-none focus:border-primary"
                     >
                       {gkCategories.map((cat) => (
                         <option key={cat} value={cat}>
-                          {categoryLabels[cat]}
+                          {getCategoryLabel(cat)}
                         </option>
                       ))}
                     </select>
+                    {/* Add/remove custom categories */}
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={newCategoryInput}
+                        onChange={(e) => setNewCategoryInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+                        placeholder={t('newCategory') || 'Nova categoria...'}
+                        className="flex-1 rounded-md border border-white/[0.06] bg-surface px-2 py-1 text-xs text-on-surface outline-none focus:border-primary"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddCategory}
+                        className="rounded-md bg-primary/10 p-1 text-primary hover:bg-primary/20 transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    {gkCategories.filter(c => c !== 'firstTeam').length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {gkCategories.filter(c => c !== 'firstTeam').map(cat => (
+                          <span key={cat} className="inline-flex items-center gap-1 rounded-md bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-on-surface-variant">
+                            {getCategoryLabel(cat)}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCategory(cat)}
+                              className="text-error/60 hover:text-error"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="mb-1 block font-label text-sm font-medium text-on-surface-variant">

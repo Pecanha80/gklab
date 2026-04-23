@@ -145,7 +145,6 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                      <div className="flex items-center gap-2">
                        <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('sessionTitle')}</label>
                        <QuickSelect
-                         label="Presets"
                          multiSelect
                          selectedValues={newSession.titles}
                          options={getOptions('sessionTitles', PRESETS.sessionTitles)}
@@ -174,7 +173,6 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                      <div className="flex items-center gap-2">
                        <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('generalObjective')}</label>
                        <QuickSelect
-                         label="Presets"
                          multiSelect
                          selectedValues={newSession.generalObjectives}
                          options={filteredGeneralObjectives}
@@ -198,7 +196,6 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                      <div className="flex items-center gap-2">
                        <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('category')}</label>
                        <QuickSelect
-                         label="Presets"
                          options={getOptions('categories', PRESETS.categories)}
                          onSelect={(vals) => setNewSession({ ...newSession, category: vals })}
                          selectedValues={typeof newSession.category === 'string' ? newSession.category.split(', ') : newSession.category}
@@ -233,7 +230,6 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                      <div className="flex items-center gap-2">
                        <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">DUR.</label>
                        <QuickSelect
-                         label=""
                          options={getOptions('durations', PRESETS.durations)}
                          onSelect={(vals) => setNewSession({ ...newSession, duration: vals.map(v => t(v)).join(' + ') })}
                          selectedValues={typeof newSession.duration === 'string' ? newSession.duration.split(' + ') : newSession.duration}
@@ -254,66 +250,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
 
                  </div>
 
-                 {/* UEFA A Parameters Divider */}
-                 <div className="border-t border-white/[0.06] pt-4 mt-2">
-                     <p className="text-[9px] text-primary/50 font-black uppercase tracking-[0.2em] mb-3">{t('uefaAParameters')}</p>
-                   </div>
-
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     {/* Momentos do Jogo */}
-                     <div className="space-y-1">
-                       <div className="flex items-center gap-2">
-                         <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('gameMomentsLabel')}</label>
-                         <QuickSelect
-                           label="Presets"
-                           multiSelect
-                           selectedValues={newSession.gameMoments || []}
-                           options={getOptions('gameMoments', ['momentOrganizedDefense','momentDefensiveTransition','momentOrganizedAttack','momentOffensiveTransition','momentSetPieces'])}
-                           onSelect={(val) => setNewSession({ ...newSession, gameMoments: val })}
-                           onDelete={(val) => removeCustomPreset('gameMoments', val)}
-                           isDeletable={(val) => !val.startsWith('#')}
-                           onAdd={(val) => addCustomPreset('gameMoments', val, [])}
-                           onMove={(val) => moveCustomPreset('gameMoments', val, '')}
-                         />
-                       </div>
-                       <div className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 min-h-[44px] flex flex-wrap gap-1.5 transition-all">
-                         {(newSession.gameMoments || []).length === 0 && (
-                           <span className="text-[11px] text-on-surface-variant/40 py-0.5">{t('all')}</span>
-                         )}
-                         {(newSession.gameMoments || []).map(moment => (
-                           <span key={moment} className="inline-flex items-center gap-1 bg-secondary/10 text-secondary text-[10px] font-bold px-2 py-0.5 rounded-full">
-                             {t(moment)}
-                             <button type="button" onClick={() => setNewSession({ ...newSession, gameMoments: newSession.gameMoments?.filter(m => m !== moment) })} className="hover:text-error transition-colors"><X className="w-3 h-3" /></button>
-                           </span>
-                         ))}
-                       </div>
-                     </div>
-
-                     {/* Princípios Táticos */}
-                     <div className="space-y-1">
-                       <div className="flex items-center gap-2">
-                         <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('tacticalPrinciplesLabel')}</label>
-                         <QuickSelect
-                           label="Presets"
-                           multiSelect
-                           selectedValues={newSession.tacticalPrinciples || []}
-                           options={getOptions('tacticalPrinciples', PRESETS.tacticalPrinciples || [])}
-                           onSelect={(val) => setNewSession({ ...newSession, tacticalPrinciples: val })}
-                           onDelete={(val) => removeCustomPreset('tacticalPrinciples', val)}
-                           isDeletable={(val) => !val.startsWith('#')}
-                           onAdd={(val) => addCustomPreset('tacticalPrinciples', val, [])}
-                           onMove={(val) => moveCustomPreset('tacticalPrinciples', val, '')}
-                         />
-                       </div>
-                       <textarea
-                         value={(newSession.tacticalPrinciples || []).map(o => t(o)).join(', ')}
-                         onChange={e => setNewSession({ ...newSession, tacticalPrinciples: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                         className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-[11px] min-h-[44px] outline-none resize-none leading-tight font-medium"
-                         placeholder="Ex: Proteção do gol, controle de profundidade..."
-                       />
-                     </div>
-                   </div>
-
+ 
                 </Section>
 
 
@@ -327,7 +264,6 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                       <div className="flex items-center gap-2">
                         <label className="text-[9px] text-on-surface-variant uppercase font-label">{t(objKey)}</label>
                         <QuickSelect
-                          label="Presets"
                           options={getOptions(objKey, PRESETS.objectives[objKey])}
                           onSelect={(val) => setNewSession({
                             ...newSession,
@@ -520,8 +456,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                             <div className="flex items-center gap-2">
                               <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('format')}</label>
                               <QuickSelect
-                                label="Presets"
-                                options={getOptions('integratedFormats', PRESETS.integrated.formats)}
+                                      options={getOptions('integratedFormats', PRESETS.integrated.formats)}
                                 onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, format: vals.map(v => t(v)).join(', ') } : i) }))}
                                 selectedValues={integrated.format ? (typeof integrated.format === 'string' ? integrated.format.split(', ') : integrated.format) : []}
                                 onDelete={(val) => removeCustomPreset('integratedFormats', val)}
@@ -541,8 +476,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                           <div className="flex items-center gap-2">
                             <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('number')}</label>
                             <QuickSelect
-                              label="Presets"
-                              options={getOptions('integratedNumbers', PRESETS.integrated.numbers)}
+                                  options={getOptions('integratedNumbers', PRESETS.integrated.numbers)}
                               onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, number: vals.map(v => t(v)).join(', ') } : i) }))}
                               selectedValues={integrated.number ? (typeof integrated.number === 'string' ? integrated.number.split(', ') : integrated.number) : []}
                               onDelete={(val) => removeCustomPreset('integratedNumbers', val)}
@@ -562,8 +496,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                           <div className="flex items-center gap-2">
                             <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('space')}</label>
                             <QuickSelect
-                              label="Presets"
-                              options={getOptions('integratedSpaces', PRESETS.integrated.spaces)}
+                                  options={getOptions('integratedSpaces', PRESETS.integrated.spaces)}
                               onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, space: vals.map(v => t(v)).join(', ') } : i) }))}
                               selectedValues={integrated.space ? (typeof integrated.space === 'string' ? integrated.space.split(', ') : integrated.space) : []}
                               onDelete={(val) => removeCustomPreset('integratedSpaces', val)}
@@ -584,8 +517,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                           <div className="flex items-center gap-2">
                             <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('time')}</label>
                             <QuickSelect
-                              label="Presets"
-                              options={getOptions('integratedTimes', PRESETS.integrated.times)}
+                                  options={getOptions('integratedTimes', PRESETS.integrated.times)}
                               onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, time: vals.map(v => t(v)).join(', ') } : i) }))}
                               selectedValues={integrated.time ? (typeof integrated.time === 'string' ? integrated.time.split(', ') : integrated.time) : []}
                               onDelete={(val) => removeCustomPreset('integratedTimes', val)}
@@ -621,7 +553,6 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                   <div className="flex items-center gap-2">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('coolDownExercises')}</label>
                     <QuickSelect
-                      label="Presets"
                       options={getOptions('coolDowns', PRESETS.coolDowns)}
                       onSelect={(vals) => setNewSession({ ...newSession, coolDown: vals.map(v => t(v)).join('\n') })}
                       selectedValues={typeof newSession.coolDown === 'string' ? newSession.coolDown.split('\n') : newSession.coolDown}
@@ -652,8 +583,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                         <div className="flex items-center gap-2">
                           <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('positivePoints')}</label>
                           <QuickSelect
-                            label="Presets"
-                            options={getOptions('obsPositives', PRESETS.observations.positives)}
+                              options={getOptions('obsPositives', PRESETS.observations.positives)}
                             onSelect={(vals) => setNewSession({ ...newSession, observations: { ...newSession.observations, positives: vals.map(v => t(v)).join('\n') } })}
                             selectedValues={typeof newSession.observations.positives === 'string' ? newSession.observations.positives.split('\n') : newSession.observations.positives}
                             multiSelect={true}
@@ -676,8 +606,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                         <div className="flex items-center gap-2">
                           <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('adjustmentsForNext')}</label>
                           <QuickSelect
-                            label="Presets"
-                            options={getOptions('obsAdjustments', PRESETS.observations.adjustments)}
+                              options={getOptions('obsAdjustments', PRESETS.observations.adjustments)}
                             onSelect={(vals) => setNewSession({ ...newSession, observations: { ...newSession.observations, adjustments: vals.map(v => t(v)).join('\n') } })}
                             selectedValues={typeof newSession.observations.adjustments === 'string' ? newSession.observations.adjustments.split('\n') : newSession.observations.adjustments}
                             multiSelect={true}
@@ -801,7 +730,6 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                           {t('individualNotes')}
                         </label>
                         <QuickSelect
-                          label="Presets"
                           options={getOptions('obsIndividual', PRESETS.observations.individual)}
                           onSelect={(vals) => {
                             const text = vals.map(v => t(v)).join('\n');

@@ -10,7 +10,6 @@ export type QuickSelectOption = string | { value: string; label: string };
 export const QuickSelect = ({
   options,
   onSelect,
-  label,
   onDelete,
   isDeletable,
   onAdd,
@@ -20,7 +19,6 @@ export const QuickSelect = ({
 }: {
   options: QuickSelectOption[],
   onSelect: (val: string[]) => void,
-  label: string,
   onDelete?: (val: string) => void,
   isDeletable?: (val: string) => boolean,
   onAdd?: (val: string) => void,
@@ -152,7 +150,7 @@ export const QuickSelect = ({
         }}
         className="flex items-center text-[9px] text-accent hover:text-accent/80 font-bold uppercase tracking-widest transition-colors"
       >
-        {label} <ChevronDown className={cn("w-3 h-3 ml-1 transition-transform", isOpen && "rotate-180")} />
+        <ChevronDown className={cn("w-3 h-3 transition-transform", isOpen && "rotate-180")} />
       </button>
       {createPortal(
         <AnimatePresence>

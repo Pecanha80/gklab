@@ -248,25 +248,6 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               )}
             </div>
 
-            {/* UEFA A GK Parameters */}
-            {(session.gameMoments?.length || session.tacticalPrinciples?.length) ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-primary/5 p-4 rounded-xl border border-primary/10">
-                {session.gameMoments && session.gameMoments.length > 0 && (
-                  <div className="space-y-1">
-                    <label className="text-[10px] text-primary font-black uppercase tracking-widest">{t('gameMomentsLabel')}</label>
-                    <p className="text-xs text-on-surface font-bold">{session.gameMoments.map(m => t(m)).join(' • ')}</p>
-                  </div>
-                )}
-                {session.tacticalPrinciples && session.tacticalPrinciples.length > 0 && (
-                  <div className="space-y-1">
-                    <label className="text-[10px] text-primary font-black uppercase tracking-widest">{t('tacticalPrinciplesLabel')}</label>
-                    <p className="text-xs text-on-surface font-bold">
-                       {Array.isArray(session.tacticalPrinciples) ? session.tacticalPrinciples.join(', ') : session.tacticalPrinciples}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : null}
 
             {/* General Objective */}
             {session.generalObjectives && session.generalObjectives.length > 0 && (

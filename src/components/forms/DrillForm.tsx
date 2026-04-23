@@ -55,7 +55,6 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                 <div className="flex justify-between items-center">
                   <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('drillTitle')}</label>
                   <QuickSelect
-                    label="Presets"
                     options={getOptions('drillTitles', PRESETS.drills.titles)}
                     onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
                     selectedValues={currentDrill.title ? [currentDrill.title] : []}
@@ -95,7 +94,6 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                 <div className="flex justify-between items-center">
                   <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('drillTitle')}</label>
                   <QuickSelect
-                    label="Presets"
                     options={getOptions('drillTitles', PRESETS.drills.titles)}
                     onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
                     selectedValues={currentDrill.title ? [currentDrill.title] : []}
@@ -139,7 +137,6 @@ export const DrillForm: React.FC<DrillFormProps> = ({
             <div className="flex justify-between items-center">
               <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('objective')}</label>
               <QuickSelect
-                label="Presets"
                 options={getOptions('drillObjectives', PRESETS.drills.objectives)}
                 onSelect={(vals) => setCurrentDrill({ ...currentDrill, objective: vals.map(v => t(v)).join('\n') })}
                 selectedValues={typeof currentDrill.objective === 'string' ? currentDrill.objective.split('\n') : currentDrill.objective}
@@ -177,7 +174,6 @@ export const DrillForm: React.FC<DrillFormProps> = ({
               <div className="flex gap-2">
                 <input type="text" value={translateContent(currentDrill.duration)} onChange={e => setCurrentDrill({ ...currentDrill, duration: e.target.value })} className="flex-1 bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs" />
                 <QuickSelect
-                  label="Presets"
                   options={getOptions('durations', PRESETS.durations)}
                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, duration: vals.map(v => t(v)).join(' + ') })}
                   selectedValues={typeof currentDrill.duration === 'string' ? currentDrill.duration.split(' + ') : currentDrill.duration}
@@ -203,7 +199,6 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                <div className="flex justify-between items-center">
                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('gameMomentsLabel')}</label>
                  <QuickSelect
-                   label="Presets"
                    multiSelect={false}
                    selectedValues={currentDrill.gameMoment ? [currentDrill.gameMoment] : []}
                    options={getOptions('gameMoments', [
@@ -232,7 +227,6 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                <div className="flex justify-between items-center">
                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('tacticalPrinciplesLabel')}</label>
                  <QuickSelect
-                   label="Presets"
                    multiSelect={true}
                    options={getOptions('tacticalPrinciples', PRESETS.tacticalPrinciples)}
                    onSelect={(vals) => setCurrentDrill({ ...currentDrill, tacticalPrinciples: vals })}
@@ -325,7 +319,6 @@ export const DrillForm: React.FC<DrillFormProps> = ({
             <div className="flex justify-between items-center">
               <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('organization')}</label>
               <QuickSelect
-                label="Presets"
                 options={getOptions('drillOrganizations', PRESETS.drills.organizations)}
                 onSelect={(vals) => setCurrentDrill({ ...currentDrill, organization: vals.map(v => t(v)).join('\n') })}
                 selectedValues={typeof currentDrill.organization === 'string' ? currentDrill.organization.split('\n') : currentDrill.organization}
@@ -346,7 +339,6 @@ export const DrillForm: React.FC<DrillFormProps> = ({
             <div className="flex justify-between items-center">
               <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('execution')}</label>
               <QuickSelect
-                label="Presets"
                 options={getOptions('drillExecutions', PRESETS.drills.executions)}
                 onSelect={(vals) => setCurrentDrill({ ...currentDrill, execution: vals.map(v => t(v)).join('\n') })}
                 multiSelect={true}
@@ -371,7 +363,6 @@ export const DrillForm: React.FC<DrillFormProps> = ({
               <div className="flex justify-between items-center">
                 <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('progression')}</label>
                 <QuickSelect
-                  label="Presets"
                   options={getOptions('drillProgressions', PRESETS.drills.progressions)}
                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, progression: vals.map(v => t(v)).join('\n') })}
                   selectedValues={typeof currentDrill.progression === 'string' ? currentDrill.progression.split('\n') : currentDrill.progression}
@@ -392,7 +383,6 @@ export const DrillForm: React.FC<DrillFormProps> = ({
               <div className="flex justify-between items-center">
                 <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('successCriteria')}</label>
                 <QuickSelect
-                  label="Presets"
                   options={getOptions('drillSuccessCriteria', PRESETS.drills.successCriteria)}
                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, successCriteria: vals.map(v => t(v)).join('\n') })}
                   selectedValues={typeof currentDrill.successCriteria === 'string' ? currentDrill.successCriteria.split('\n') : currentDrill.successCriteria}

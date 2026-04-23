@@ -202,7 +202,6 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                 className="flex-1 bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
               />
               <QuickSelect
-                label="Presets"
                 options={getOptions('mesocycles', PRESETS.mesocycles)}
                 onSelect={(vals) => setMesocycle(vals.map(v => t(v)).join(', '))}
                 selectedValues={mesocycle.split(', ').filter(Boolean)}
@@ -318,7 +317,6 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                   className="flex-1 bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
                 />
                 <QuickSelect
-                  label="Presets"
                   options={getOptions('competitions', PRESETS.competitions)}
                   onSelect={(vals) => setMatchCompetition(vals.map(v => t(v)).join(', '))}
                   selectedValues={matchCompetition.split(', ').filter(Boolean)}

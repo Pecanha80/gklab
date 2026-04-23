@@ -937,4 +937,24 @@ export const en = {
     authPasswordMismatch: 'Passwords do not match.',
     authCheckEmail: 'Check your email to confirm your account.',
     authFooter: 'Powered by Supabase Authentication',
+
+    // Dashboard enhancements
+    weeklyLoad: 'Weekly Load',
+    weeklyLoadUnit: 'A.U.',
+    psychological: 'Psychological',
+    weeklyMinutes: 'Weekly Minutes',
+    lastRPELabel: 'Last RPE',
+    addSessionQuick: 'Add Session',
+    noSessionPlanned: 'No session planned',
+    microcyclePriorities: 'Microcycle Priorities',
+    defensiveFocus: 'Defensive Focus',
+    offensiveFocus: 'Offensive Focus',
+    individualIndicators: 'Individual Indicators',
+
+    // Session list filters
+    filter: 'Filter',
+    allMicrocycles: 'All Microcycles',
+    allCategories: 'All Categories',
+    clearFilters: 'Clear',
+    otherSessions: 'Other Sessions',
 };

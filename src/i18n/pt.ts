@@ -969,4 +969,23 @@ export const pt = {
     edit: 'Editar',
     notesPlaceholder: 'Notas/Justificativa...',
 
+    // Dashboard enhancements
+    weeklyLoad: 'Carga Semanal',
+    weeklyLoadUnit: 'U.A.',
+    psychological: 'Psicológico',
+    weeklyMinutes: 'Min. Semanal',
+    lastRPELabel: 'Último PSE',
+    addSessionQuick: 'Adicionar Sessão',
+    noSessionPlanned: 'Sem sessão planeada',
+    microcyclePriorities: 'Prioridades do Microciclo',
+    defensiveFocus: 'Foco Defensivo',
+    offensiveFocus: 'Foco Ofensivo',
+    individualIndicators: 'Indicadores Individuais',
+
+    // Session list filters
+    filter: 'Filtrar',
+    allMicrocycles: 'Todos os Microciclos',
+    allCategories: 'Todas as Categorias',
+    clearFilters: 'Limpar',
+    otherSessions: 'Outras Sessões',
 };

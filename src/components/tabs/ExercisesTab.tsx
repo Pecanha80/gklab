@@ -220,7 +220,6 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <div className="flex justify-between items-center">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('drillTitle')}</label>
                     <QuickSelect
-                      label={t('presets')}
                       options={getOptions('drillTitles', PRESETS.drills.titles)}
                       onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
                       selectedValues={currentDrill.title ? [currentDrill.title] : []}
@@ -287,7 +286,6 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <div className="flex justify-between items-center">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('gameMomentsLabel')}</label>
                     <QuickSelect
-                      label={t('presets')}
                       multiSelect={false}
                       options={getOptions('gameMoments', [
                         'momentOrganizedDefense',
@@ -316,7 +314,6 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <div className="flex justify-between items-center">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('tacticalPrinciplesLabel')}</label>
                     <QuickSelect
-                      label="Presets"
                       multiSelect={true}
                       options={getOptions('tacticalPrinciples', PRESETS.tacticalPrinciples)}
                       onSelect={(vals) => setCurrentDrill({ ...currentDrill, tacticalPrinciples: vals })}
@@ -341,7 +338,6 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <div className="flex justify-between items-center">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('objective')}</label>
                     <QuickSelect
-                      label={t('presets')}
                       options={getOptions('drillObjectives', PRESETS.drills.objectives)}
                       onSelect={(val) => setCurrentDrill({ ...currentDrill, objective: val })}
                       selectedValues={Array.isArray(currentDrill.objective) ? currentDrill.objective : [currentDrill.objective]}
@@ -363,7 +359,6 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <div className="flex justify-between items-center">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('organization')}</label>
                     <QuickSelect
-                      label={t('presets')}
                       options={getOptions('drillOrganizations', PRESETS.drills.organizations)}
                       onSelect={(val) => setCurrentDrill({ ...currentDrill, organization: val })}
                       selectedValues={Array.isArray(currentDrill.organization) ? currentDrill.organization : [currentDrill.organization]}
@@ -386,7 +381,6 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                 <div className="flex justify-between items-center">
                   <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('execution')}</label>
                   <QuickSelect
-                    label={t('presets')}
                     options={getOptions('drillExecutions', PRESETS.drills.executions)}
                     onSelect={(val) => setCurrentDrill({ ...currentDrill, execution: val })}
                     selectedValues={Array.isArray(currentDrill.execution) ? currentDrill.execution : [currentDrill.execution]}
@@ -409,7 +403,6 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <div className="flex justify-between items-center">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('progressionVariables')}</label>
                     <QuickSelect
-                      label={t('presets')}
                       options={getOptions('drillProgressions', PRESETS.drills.progressions)}
                       onSelect={(val) => setCurrentDrill({ ...currentDrill, progression: val })}
                       selectedValues={Array.isArray(currentDrill.progression) ? currentDrill.progression : [currentDrill.progression]}
@@ -432,7 +425,6 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <div className="flex justify-between items-center">
                     <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('successCriteria')}</label>
                     <QuickSelect
-                      label={t('presets')}
                       options={getOptions('drillSuccessCriteria', PRESETS.drills.successCriteria)}
                       onSelect={(val) => setCurrentDrill({ ...currentDrill, successCriteria: val })}
                       selectedValues={Array.isArray(currentDrill.successCriteria) ? currentDrill.successCriteria : [currentDrill.successCriteria]}
@@ -459,7 +451,6 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   <div className="flex gap-2">
                     <input type="text" value={currentDrill.duration} onChange={e => setCurrentDrill({ ...currentDrill, duration: e.target.value })} className="flex-1 bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs" />
                     <QuickSelect
-                      label={t('presets')}
                       options={getOptions('durations', PRESETS.durations)}
                       onSelect={(val) => setCurrentDrill({ ...currentDrill, duration: val })}
                       selectedValues={Array.isArray(currentDrill.duration) ? currentDrill.duration : [currentDrill.duration]}

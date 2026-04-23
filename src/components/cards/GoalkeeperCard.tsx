@@ -2,7 +2,13 @@ import { cn, CATEGORY_LABEL_KEYS, STATUS_LABEL_KEYS } from '../../lib/utils';
 import { Goalkeeper } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 
-export const GoalkeeperCard = ({ keeper }: { keeper: Goalkeeper }) => {
+interface GoalkeeperCardProps {
+  keeper: Goalkeeper;
+  weeklyMinutes?: number;
+  lastRPE?: number | null;
+}
+
+export const GoalkeeperCard = ({ keeper, weeklyMinutes, lastRPE }: GoalkeeperCardProps) => {
   const { t } = useTranslation();
 
   const categoryLabel = CATEGORY_LABEL_KEYS[keeper.category]
@@ -39,15 +45,35 @@ export const GoalkeeperCard = ({ keeper }: { keeper: Goalkeeper }) => {
         </div>
       </div>
       
-      <div className="text-right">
-        <p className={cn(
-          "text-sm font-black tracking-tight",
-          keeper.status === 'Ready' ? "text-tertiary" :
-          keeper.status === 'Minor Strain' ? "text-error" : "text-secondary"
-        )}>{keeper.status === 'Minor Strain' ? keeper.recovery : keeper.form}%</p>
-        <p className="text-[8px] font-black uppercase tracking-widest text-on-surface-variant/40 mt-0.5">
-          {keeper.status === 'Minor Strain' ? t('recovery') : t('formLabel')}
-        </p>
+      <div className="text-right space-y-1">
+        <div>
+          <p className={cn(
+            "text-sm font-black tracking-tight",
+            keeper.status === 'Ready' ? "text-tertiary" :
+            keeper.status === 'Minor Strain' ? "text-error" : "text-secondary"
+          )}>{keeper.status === 'Minor Strain' ? keeper.recovery : keeper.form}%</p>
+          <p className="text-[8px] font-black uppercase tracking-widest text-on-surface-variant/40 mt-0.5">
+            {keeper.status === 'Minor Strain' ? t('recovery') : t('formLabel')}
+          </p>
+        </div>
+        {(weeklyMinutes != null || lastRPE != null) && (
+          <div className="flex items-center gap-2 justify-end">
+            {weeklyMinutes != null && (
+              <span className="text-[8px] font-bold text-on-surface-variant/50" title={t('weeklyMinutes')}>
+                {weeklyMinutes}min
+              </span>
+            )}
+            {lastRPE != null && (
+              <span className={cn(
+                "text-[8px] font-bold px-1 py-0.5 rounded",
+                lastRPE >= 8 ? "bg-error/10 text-error" :
+                lastRPE >= 6 ? "bg-yellow-500/10 text-yellow-600" : "bg-tertiary/10 text-tertiary"
+              )} title={t('lastRPELabel')}>
+                PSE {lastRPE}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

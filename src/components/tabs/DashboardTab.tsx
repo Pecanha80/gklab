@@ -10,19 +10,23 @@ import {
   Trophy,
   Target,
   Zap,
+  Plus,
+  Activity,
 } from 'lucide-react';
 import { motion, Reorder } from 'motion/react';
 import { cn, getTodayDateString, toDateString } from '../../lib/utils';
-import { TrainingSession, PerformanceVideo, Goalkeeper } from '../../types';
+import { TrainingSession, PerformanceVideo, Goalkeeper, Attendance } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { GoalkeeperCard } from '../cards/GoalkeeperCard';
 import { VideoCard } from '../cards/VideoCard';
+import { getMatchDayLabel, extractSessionPillars, getGoalkeeperDetailedStatus } from '../../lib/dashboard';
 import type { DayKey } from '../../hooks/useMicrocycle';
 
 interface DashboardTabProps {
   sessions: TrainingSession[];
   goalkeepers: Goalkeeper[];
   videos: PerformanceVideo[];
+  attendance?: Attendance[];
   microcycleName: string;
   matchDay: string | null;
   matchOpponent?: string;
@@ -42,6 +46,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
   sessions,
   goalkeepers,
   videos,
+  attendance = [],
   microcycleName,
   matchDay,
   matchOpponent,
@@ -220,7 +225,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
                     <div
                       key={day}
                       className={cn(
-                        "p-5 rounded-2xl transition-all duration-300 w-[200px] flex flex-col relative group shrink-0",
+                        "p-5 rounded-2xl transition-all duration-300 w-[240px] min-h-[260px] flex flex-col relative group shrink-0",
                         isMatch
                           ? "bg-yellow-500/10 border border-yellow-500/30 shadow-[0_0_20px_rgba(234,179,8,0.1)]"
                           : isRestDay
@@ -234,7 +239,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
                         <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-accent animate-pulse" />
                       )}
 
-                      {/* Date header */}
+                      {/* Date header with MD-X label */}
                       <div className="flex items-end justify-between mb-3">
                         <div className="flex flex-col">
                           <span className={cn(
@@ -250,9 +255,22 @@ export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
                             {dayDate.getDate()}
                           </span>
                         </div>
-                        <span className="text-[9px] text-on-surface-variant/40 font-medium">
-                          {new Intl.DateTimeFormat(undefined, { month: 'short' }).format(dayDate)}
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-[9px] text-on-surface-variant/40 font-medium">
+                            {new Intl.DateTimeFormat(undefined, { month: 'short' }).format(dayDate)}
+                          </span>
+                          {(() => {
+                            const mdLabel = getMatchDayLabel(dateStr, matchDay, getMicrocycleDays());
+                            return mdLabel ? (
+                              <span className={cn(
+                                "text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded",
+                                mdLabel === 'MD' ? "bg-yellow-500/20 text-yellow-500" : "bg-white/5 text-on-surface-variant/60"
+                              )}>
+                                {mdLabel}
+                              </span>
+                            ) : null;
+                          })()}
+                        </div>
                       </div>
 
                       {/* Events */}
@@ -330,7 +348,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
                               {s.generalObjectives?.length > 0 && (
                                 <div className="flex items-start gap-1 mt-0.5">
                                   <Target className="w-3 h-3 text-success/60 mt-0.5 shrink-0" />
-                                  <p className="text-[9px] text-on-surface-variant leading-tight line-clamp-2">
+                                  <p className="text-[9px] text-on-surface-variant leading-tight">
                                     {s.generalObjectives.slice(0, 2).map(o => t(o)).join(', ')}
                                   </p>
                                 </div>
@@ -343,6 +361,33 @@ export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
                                   {(s.warmup?.length || 0) + (s.exercises?.length || 0)} {t('exercises')}
                                 </div>
                               )}
+
+                              {/* Pillar indicators (T/T/F/P) */}
+                              {(() => {
+                                const pillars = extractSessionPillars(s);
+                                const pillarConfig = [
+                                  { key: 'technical', label: 'T', color: 'bg-blue-500', active: pillars.technical },
+                                  { key: 'tactical', label: 'T', color: 'bg-green-500', active: pillars.tactical },
+                                  { key: 'physical', label: 'F', color: 'bg-orange-500', active: pillars.physical },
+                                  { key: 'psychological', label: 'P', color: 'bg-purple-500', active: pillars.psychological },
+                                ];
+                                return (
+                                  <div className="flex gap-1 mt-0.5">
+                                    {pillarConfig.map(p => (
+                                      <span
+                                        key={p.key}
+                                        title={t(p.key)}
+                                        className={cn(
+                                          "w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-black text-white transition-opacity",
+                                          p.active ? p.color : "bg-white/10 text-on-surface-variant/20"
+                                        )}
+                                      >
+                                        {p.label}
+                                      </span>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           );
                         })}
@@ -354,11 +399,17 @@ export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
                           </div>
                         )}
 
-                        {/* Empty day */}
+                        {/* Empty day — quick add session */}
                         {!isRestDay && !isMatch && daySessions.length === 0 && (
-                          <div className="flex items-center justify-center py-4">
-                            <span className="text-[10px] text-on-surface-variant/20">—</span>
-                          </div>
+                          <button
+                            onClick={() => setActiveTab('Training')}
+                            className="flex flex-col items-center justify-center py-4 gap-1.5 w-full rounded-xl hover:bg-white/[0.03] transition-colors group/add"
+                          >
+                            <Plus className="w-5 h-5 text-on-surface-variant/20 group-hover/add:text-accent/60 transition-colors" />
+                            <span className="text-[9px] text-on-surface-variant/20 group-hover/add:text-accent/60 font-medium transition-colors">
+                              {t('addSessionQuick')}
+                            </span>
+                          </button>
                         )}
                       </div>
                     </div>
@@ -503,15 +554,22 @@ export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
             onReorder={onReorderGoalkeepers}
             className="space-y-4"
           >
-            {goalkeepers.map(keeper => (
-              <Reorder.Item
-                key={keeper.id}
-                value={keeper}
-                className="select-none cursor-grab active:cursor-grabbing transform transition-transform hover:scale-[1.02]"
-              >
-                <GoalkeeperCard keeper={keeper} />
-              </Reorder.Item>
-            ))}
+            {goalkeepers.map(keeper => {
+              const detail = getGoalkeeperDetailedStatus(keeper, sessions, attendance);
+              return (
+                <Reorder.Item
+                  key={keeper.id}
+                  value={keeper}
+                  className="select-none cursor-grab active:cursor-grabbing transform transition-transform hover:scale-[1.02]"
+                >
+                  <GoalkeeperCard
+                    keeper={keeper}
+                    weeklyMinutes={detail.weeklyMinutes > 0 ? detail.weeklyMinutes : undefined}
+                    lastRPE={detail.lastRPE}
+                  />
+                </Reorder.Item>
+              );
+            })}
             {goalkeepers.length === 0 && (
               <div className="glass-card rounded-2xl p-8 text-center border-dashed border-white/5">
                 <Users className="w-8 h-8 text-on-surface-variant/20 mx-auto mb-3" />
@@ -555,22 +613,22 @@ export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
         </div>
       </section>
 
-      <section className="space-y-8">
-        <div className="flex items-center justify-between px-2">
-          <div className="flex items-center gap-4">
-            <h3 className="text-2xl font-black text-on-surface tracking-tight">{t('recentAnalysis')}</h3>
-            <span className="px-3 py-1 rounded-lg bg-secondary/10 text-secondary text-[10px] font-black uppercase tracking-widest border border-secondary/20">{t('videoCenter')}</span>
+      {videos.length > 0 && (
+        <section className="space-y-8">
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-4">
+              <h3 className="text-2xl font-black text-on-surface tracking-tight">{t('recentAnalysis')}</h3>
+              <span className="px-3 py-1 rounded-lg bg-secondary/10 text-secondary text-[10px] font-black uppercase tracking-widest border border-secondary/20">{t('videoCenter')}</span>
+            </div>
+            <button
+              onClick={() => setActiveTab('Videos')}
+              className="flex items-center gap-1 text-on-surface-variant/60 hover:text-primary text-[11px] font-black uppercase tracking-[0.1em] transition-colors group"
+            >
+              {t('viewAllFootage')}
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
-          <button 
-            onClick={() => setActiveTab('Videos')} 
-            className="flex items-center gap-1 text-on-surface-variant/60 hover:text-primary text-[11px] font-black uppercase tracking-[0.1em] transition-colors group"
-          >
-            {t('viewAllFootage')}
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
-        
-        {videos.length > 0 ? (
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {videos.slice(0, 4).map(video => (
               <div key={video.id} className="transform transition-all hover:scale-[1.05]">
@@ -578,16 +636,8 @@ export const DashboardTab: React.FC<DashboardTabProps> = React.memo(({
               </div>
             ))}
           </div>
-        ) : (
-          <div className="glass-card rounded-2xl p-16 text-center border-dashed border-white/5">
-            <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <Video className="w-8 h-8 text-on-surface-variant/20" />
-            </div>
-            <p className="text-base text-on-surface-variant/60 font-medium">{t('noVideosYetDashboard')}</p>
-            <p className="text-xs text-on-surface-variant/30 mt-2 max-w-[200px] mx-auto uppercase tracking-widest font-bold">{t('trainingFootageHint')}</p>
-          </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   );
 });

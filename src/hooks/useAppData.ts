@@ -158,7 +158,22 @@ export function useAppData() {
         supabase.from('microcycles').select('*').order('created_at', { ascending: false }).limit(50),
       ]);
 
-      if (gkRes.data) setGoalkeepers(gkRes.data);
+      if (gkRes.data) setGoalkeepers(gkRes.data.map((row: Record<string, unknown>) => ({
+        ...row,
+        birthDate: row.birth_date,
+        imageUrl: row.image_url,
+        trialStartDate: row.trial_start_date,
+        trialEndDate: row.trial_end_date,
+        trialNotes: row.trial_notes,
+        preferredFoot: row.preferred_foot,
+        dominantHand: row.dominant_hand,
+        guardianName: row.guardian_name,
+        guardianPhone: row.guardian_phone,
+        clubAffiliation: row.club_affiliation,
+        registrationDate: row.registration_date,
+        jerseyNumber: row.jersey_number,
+        displayOrder: row.display_order,
+      })) as unknown as Goalkeeper[]);
       if (sessRes.data) setSessions(sessRes.data.map(mapSessionFromDB));
       if (vidRes.data) setVideos(vidRes.data);
       if (exRes.data) setExercisesLibrary(exRes.data.map(normalizeExercise));
@@ -260,11 +275,37 @@ export function useAppData() {
 
   // --- Goalkeepers CRUD ---
 
+  /** Maps a Goalkeeper (camelCase) to a Supabase row (snake_case) for insert/update. */
+  const mapGoalkeeperToDB = (gk: Record<string, unknown>) => {
+    const mapped: Record<string, unknown> = {};
+    const keyMap: Record<string, string> = {
+      birthDate: 'birth_date',
+      imageUrl: 'image_url',
+      trialStartDate: 'trial_start_date',
+      trialEndDate: 'trial_end_date',
+      trialNotes: 'trial_notes',
+      preferredFoot: 'preferred_foot',
+      dominantHand: 'dominant_hand',
+      guardianName: 'guardian_name',
+      guardianPhone: 'guardian_phone',
+      clubAffiliation: 'club_affiliation',
+      registrationDate: 'registration_date',
+      jerseyNumber: 'jersey_number',
+      displayOrder: 'display_order',
+    };
+    for (const [key, value] of Object.entries(gk)) {
+      if (key === 'id') continue;
+      mapped[keyMap[key] || key] = value;
+    }
+    return mapped;
+  };
+
   const addGoalkeeper = async (gk: Omit<Goalkeeper, 'id'>) => {
     if (!user) return;
+    const row = mapGoalkeeperToDB(gk as Record<string, unknown>);
     const { data, error } = await supabase
       .from('goalkeepers')
-      .insert([{ ...gk, user_id: user.id }])
+      .insert([{ ...row, user_id: user.id }])
       .select();
 
     if (error) {
@@ -278,7 +319,8 @@ export function useAppData() {
 
   const updateGoalkeeper = async (gk: Goalkeeper) => {
     const { id, ...rest } = gk;
-    const { error } = await supabase.from('goalkeepers').update(rest).eq('id', id);
+    const row = mapGoalkeeperToDB(rest as Record<string, unknown>);
+    const { error } = await supabase.from('goalkeepers').update(row).eq('id', id);
     if (error) {
       showError(`Erro ao atualizar goleiro: ${error.message}`);
       return;

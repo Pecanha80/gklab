@@ -9,6 +9,8 @@ import { PRESETS } from '../../data/presets';
 import { WellnessModal } from '../WellnessModal';
 import type { Goalkeeper } from '../../types';
 import { useGoalkeeperMetrics } from '../../hooks/useGoalkeeperMetrics';
+import { AthleteProfile } from '../athletes/AthleteProfile';
+import { SquadSummary } from '../athletes/SquadSummary';
 
 interface GoalkeepersTabProps {
   goalkeepers: Goalkeeper[];
@@ -136,6 +138,7 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
       recalculateAll(goalkeepers).then(() => setHasRecalculated(true));
     }
   }, [goalkeepers.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [selectedAthlete, setSelectedAthlete] = useState<Goalkeeper | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [activeMembership, setActiveMembership] = useState<MembershipFilter>('All');
   const [modalOpen, setModalOpen] = useState(false);
@@ -237,8 +240,22 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
     closeModal();
   };
 
+  // If an athlete is selected, show their profile
+  if (selectedAthlete) {
+    return (
+      <AthleteProfile
+        goalkeeper={selectedAthlete}
+        onBack={() => setSelectedAthlete(null)}
+        onUpdate={async (gk) => { await updateGoalkeeper(gk); setSelectedAthlete(gk); }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Squad Summary */}
+      <SquadSummary goalkeepers={goalkeepers} />
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="font-headline text-2xl font-bold text-on-surface">{t('goalkeepersTitle')}</h1>
@@ -296,10 +313,11 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
           {filteredGoalkeepers.map((gk) => (
             <div
               key={gk.id}
-              className="group relative rounded-xl border border-white/[0.04] bg-surface p-5 transition-shadow hover:shadow-md"
+              className="group relative rounded-xl border border-black/[0.08] bg-surface p-5 transition-all hover:shadow-md cursor-pointer"
+              onClick={() => setSelectedAthlete(gk)}
             >
               {/* Hover actions */}
-              <div className="absolute right-3 top-3 flex gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
+              <div className="absolute right-3 top-3 flex gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100" onClick={e => e.stopPropagation()}>
                 <button
                   onClick={() => openWellnessModal(gk)}
                   className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 p-1.5 text-emerald-700 transition-colors hover:bg-emerald-500 hover:text-white"

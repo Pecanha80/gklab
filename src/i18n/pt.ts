@@ -601,6 +601,16 @@ export const pt = {
     noSavedMicrocycles: 'Nenhum microciclo salvo ainda.',
     noMicrocycleYet: 'Nenhum microciclo planejado. Vá ao Planejamento para criar.',
     createFirstMicrocycle: 'Criar Microciclo',
+    removeRestDay: 'Remover Folga',
+    markRestDay: 'Marcar Folga',
+    weeklySummary: 'Resumo Semanal',
+    totalSessions: 'Sessões',
+    totalRestDays: 'Dias de Folga',
+    totalTrainingDays: 'Dias de Treino',
+    mesocyclePlaceholder: 'ex. Pré-Temporada',
+    opponentPlaceholder: 'ex. Flamengo',
+    locationPlaceholder: 'ex. Maracanã',
+    competitionPlaceholder: 'ex. Brasileirão',
 
     // Goalkeepers page
     goalkeepersTitle: 'Goleiros',

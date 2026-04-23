@@ -7,6 +7,8 @@ import {
   Trophy,
   Moon,
   X,
+  CalendarDays,
+  Dumbbell,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, getTodayDateString, toDateString } from '../../lib/utils';
@@ -127,7 +129,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
             onClick={() => setShowMicrocycleHistory(!showMicrocycleHistory)}
             className={cn(
               "px-4 py-2 rounded-md font-label text-xs font-bold transition-all active:scale-95 flex items-center border",
-              showMicrocycleHistory ? "bg-primary/10 border-primary text-primary" : "border-white/[0.06] text-on-surface-variant hover:border-primary hover:text-primary"
+              showMicrocycleHistory ? "bg-primary/10 border-primary text-primary" : "border-black/[0.08] text-on-surface-variant hover:border-primary hover:text-primary"
             )}
           >
             <Clock className="w-4 h-4 mr-2" />
@@ -149,7 +151,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-surface rounded-xl border border-white/[0.06] p-5 space-y-3">
+            <div className="bg-surface rounded-xl border border-black/[0.08] p-5 space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">{t('savedMicrocycles')}</h3>
               {savedMicrocycles.length === 0 ? (
                 <p className="text-xs text-on-surface-variant italic">{t('noSavedMicrocycles')}</p>
@@ -158,7 +160,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                   {savedMicrocycles.map(mc => {
                     const startDate = new Date(mc.startDate);
                     return (
-                      <div key={mc.id} className="bg-surface-elevated p-3 rounded-lg border border-white/[0.06] flex items-center justify-between group hover:border-primary transition-all">
+                      <div key={mc.id} className="bg-surface-elevated p-3 rounded-lg border border-black/[0.08] flex items-center justify-between group hover:border-primary transition-all">
                         <button onClick={() => loadMicrocycle(mc)} className="flex-1 text-left">
                           <div className="text-xs font-bold text-on-surface">{mc.name}</div>
                           <div className="text-[10px] text-on-surface-variant mt-0.5">
@@ -180,7 +182,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
       </AnimatePresence>
 
       {/* Microcycle Config */}
-      <div className="bg-surface rounded-xl border border-white/[0.06] p-5">
+      <div className="bg-surface rounded-xl border border-black/[0.08] p-5">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="space-y-1">
             <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('microcycleName')}</label>
@@ -189,7 +191,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
               value={microcycleName}
               onChange={e => setMicrocycleName(e.target.value)}
               placeholder={t('microcycleNamePlaceholder')}
-              className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
+              className="w-full bg-surface-elevated border border-black/[0.08] rounded px-3 py-2 text-xs"
             />
           </div>
           <div className="space-y-1">
@@ -199,8 +201,8 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                 type="text"
                 value={mesocycle}
                 onChange={e => setMesocycle(e.target.value)}
-                placeholder="ex. Pré-Temporada"
-                className="flex-1 bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
+                placeholder={t('mesocyclePlaceholder')}
+                className="flex-1 bg-surface-elevated border border-black/[0.08] rounded px-3 py-2 text-xs"
               />
               <QuickSelect
                 options={getOptions('mesocycles', PRESETS.mesocycles)}
@@ -221,7 +223,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
               onChange={e => {
                 setMicrocycleStartDate(e.target.value);
               }}
-              className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
+              className="w-full bg-surface-elevated border border-black/[0.08] rounded px-3 py-2 text-xs"
             />
           </div>
           <div className="space-y-1">
@@ -230,7 +232,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
               type="date"
               value={microcycleEndDate}
               onChange={e => setMicrocycleEndDate(e.target.value)}
-              className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
+              className="w-full bg-surface-elevated border border-black/[0.08] rounded px-3 py-2 text-xs"
             />
           </div>
           <div className="space-y-1">
@@ -239,7 +241,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
               <select
                 value={matchDay || ''}
                 onChange={e => setMatchDay(e.target.value || null)}
-                className="flex-1 bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
+                className="flex-1 bg-surface-elevated border border-black/[0.08] rounded px-3 py-2 text-xs"
               >
                 <option value="">{t('noMatch')}</option>
                 {getMicrocycleDays().map(dateStr => (
@@ -258,7 +260,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                 "w-full px-3 py-2 rounded font-label text-xs font-bold transition-all flex items-center justify-center gap-2",
                 microcycleName.trim() && !isSaving
                   ? "bg-primary hover:bg-primary-dim text-on-primary active:scale-95"
-                  : "bg-white/[0.03] text-on-surface-variant cursor-not-allowed"
+                  : "bg-black/[0.02] text-on-surface-variant cursor-not-allowed"
               )}
             >
               {isSaving ? (
@@ -276,7 +278,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
           <motion.div 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-4 pt-4 border-t border-white/[0.04] grid grid-cols-1 sm:grid-cols-4 gap-4"
+            className="mt-4 pt-4 border-t border-black/[0.06] grid grid-cols-1 sm:grid-cols-4 gap-4"
           >
             <div className="space-y-1">
               <label className="text-[9px] text-on-surface-variant uppercase font-label tracking-widest">{t('opponent')}</label>
@@ -284,8 +286,8 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                 type="text"
                 value={matchOpponent}
                 onChange={e => setMatchOpponent(e.target.value)}
-                placeholder="ex. Flamengo"
-                className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
+                placeholder={t('opponentPlaceholder')}
+                className="w-full bg-surface-elevated border border-black/[0.08] rounded px-3 py-2 text-xs"
               />
             </div>
             <div className="space-y-1">
@@ -294,8 +296,8 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                 type="text"
                 value={matchLocation}
                 onChange={e => setMatchLocation(e.target.value)}
-                placeholder="ex. Maracanã"
-                className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
+                placeholder={t('locationPlaceholder')}
+                className="w-full bg-surface-elevated border border-black/[0.08] rounded px-3 py-2 text-xs"
               />
             </div>
             <div className="space-y-1">
@@ -304,7 +306,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                 type="time"
                 value={matchTime}
                 onChange={e => setMatchTime(e.target.value)}
-                className="w-full bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
+                className="w-full bg-surface-elevated border border-black/[0.08] rounded px-3 py-2 text-xs"
               />
             </div>
             <div className="space-y-1">
@@ -314,8 +316,8 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                   type="text"
                   value={matchCompetition}
                   onChange={e => setMatchCompetition(e.target.value)}
-                  placeholder="ex. Brasileirão"
-                  className="flex-1 bg-surface-elevated border border-white/[0.06] rounded px-3 py-2 text-xs"
+                  placeholder={t('competitionPlaceholder')}
+                  className="flex-1 bg-surface-elevated border border-black/[0.08] rounded px-3 py-2 text-xs"
                 />
                 <QuickSelect
                   options={getOptions('competitions', PRESETS.competitions)}
@@ -331,6 +333,36 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
           </motion.div>
         )}
       </div>
+
+      {/* Weekly Summary */}
+      {(() => {
+        const days = getMicrocycleDays();
+        const totalDays = days.length;
+        const restCount = days.filter(d => restDays.includes(d)).length;
+        const matchCount = matchDay && days.includes(matchDay) ? 1 : 0;
+        const sessionCount = sessions.filter(s => days.includes(s.date)).length;
+        const trainingDays = totalDays - restCount - matchCount;
+        return totalDays > 0 ? (
+          <div className="flex items-center gap-6 bg-surface rounded-xl border border-black/[0.08] px-5 py-3">
+            <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">{t('weeklySummary')}</span>
+            <div className="flex items-center gap-1.5">
+              <Dumbbell className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-bold text-on-surface">{trainingDays}</span>
+              <span className="text-[9px] text-on-surface-variant">{t('totalTrainingDays')}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <CalendarDays className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-bold text-on-surface">{sessionCount}</span>
+              <span className="text-[9px] text-on-surface-variant">{t('totalSessions')}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Moon className="w-3.5 h-3.5 text-blue-500" />
+              <span className="text-xs font-bold text-on-surface">{restCount}</span>
+              <span className="text-[9px] text-on-surface-variant">{t('totalRestDays')}</span>
+            </div>
+          </div>
+        ) : null;
+      })()}
 
       <div className="overflow-x-auto -mx-2 px-2 pb-4">
       <div className="grid grid-cols-1 gap-4" style={{ gridTemplateColumns: `repeat(${getMicrocycleDays().length}, minmax(200px, 1fr))` }}>
@@ -353,7 +385,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                     ? "bg-blue-500/10 border-blue-400" 
                     : isToday 
                       ? "bg-primary/10 border-primary" 
-                      : "bg-surface-elevated border-white/[0.06]"
+                      : "bg-surface-elevated border-black/[0.08]"
               )}>
                 <span className={cn(
                   "text-[10px] font-black uppercase tracking-widest",
@@ -376,22 +408,20 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                 )}
               </div>
               <div className={cn(
-                "rounded-b-xl border border-white/[0.04] min-h-[300px] p-3 space-y-3 transition-colors",
+                "rounded-b-xl border border-black/[0.06] min-h-[300px] p-3 space-y-3 transition-colors",
                 isMatch ? "bg-yellow-500/5" : isRestDay ? "bg-blue-500/5" : "bg-surface"
               )}>
                 {daySessions.map(session => (
-                  <div key={session.id} onClick={() => setViewingSession(session)} className="bg-surface-elevated p-3 rounded-lg border border-white/[0.06] group cursor-pointer hover:border-primary transition-all">
+                  <div key={session.id} onClick={() => setViewingSession(session)} className="bg-surface-elevated p-3 rounded-lg border border-black/[0.08] group cursor-pointer hover:border-primary transition-all">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[8px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">{parseCategory(session.category).map(c => t(c)).join(', ')}</span>
-                      <Clock className="w-3 h-3 text-on-surface-variant" />
+                      <span className="flex items-center gap-1 text-[9px] text-on-surface-variant">
+                        {session.duration && <span>{session.duration}</span>}
+                        <Clock className="w-3 h-3" />
+                      </span>
                     </div>
                     <h4 className="text-xs font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2">{session.titles?.map(t_ => t(t_)).join(' & ')}</h4>
-                    <div className="flex items-center gap-2 mt-2">
-                      <div className="flex -space-x-1">
-                        {[1, 2, 3].map(i => (
-                          <div key={i} className="w-4 h-4 rounded-full border border-surface-container bg-surface-variant text-[6px] flex items-center justify-center font-bold">GK</div>
-                        ))}
-                      </div>
+                    <div className="flex items-center gap-1.5 mt-2">
                       <span className="text-[9px] text-on-surface-variant">{session.numAthletes} {t('gks')}</span>
                     </div>
                   </div>
@@ -431,7 +461,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                           setActiveTab('Training'); 
                           setIsAddingSession(true); 
                         }} 
-                        className="w-full py-4 border border-dashed border-white/[0.06] rounded-xl text-on-surface-variant hover:border-primary hover:text-primary transition-all flex flex-col items-center justify-center gap-1 group bg-white/[0.03]"
+                        className="w-full py-4 border border-dashed border-black/[0.08] rounded-xl text-on-surface-variant hover:border-primary hover:text-primary transition-all flex flex-col items-center justify-center gap-1 group bg-black/[0.02]"
                       >
                         <Plus className="w-4 h-4" />
                         <span className="text-[8px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">{t('newSession')}</span>
@@ -444,10 +474,10 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                         "w-full py-2 rounded-lg text-[8px] font-bold uppercase tracking-widest transition-all border",
                         isRestDay 
                           ? "bg-blue-500 text-white border-blue-500 hover:bg-blue-600" 
-                          : "bg-surface-elevated text-on-surface-variant border-white/[0.04] hover:bg-blue-500/10 hover:text-blue-600 hover:border-blue-500/20"
+                          : "bg-surface-elevated text-on-surface-variant border-black/[0.06] hover:bg-blue-500/10 hover:text-blue-600 hover:border-blue-500/20"
                       )}
                     >
-                      {isRestDay ? 'Remover Folga' : 'Marcar Folga'}
+                      {isRestDay ? t('removeRestDay') : t('markRestDay')}
                     </button>
                   </div>
                 )}

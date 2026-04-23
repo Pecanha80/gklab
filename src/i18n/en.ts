@@ -615,6 +615,16 @@ export const en = {
     noSavedMicrocycles: 'No saved microcycles yet.',
     noMicrocycleYet: 'No microcycle planned yet. Go to Planning to create one.',
     createFirstMicrocycle: 'Create Microcycle',
+    removeRestDay: 'Remove Rest',
+    markRestDay: 'Mark Rest',
+    weeklySummary: 'Weekly Summary',
+    totalSessions: 'Sessions',
+    totalRestDays: 'Rest Days',
+    totalTrainingDays: 'Training Days',
+    mesocyclePlaceholder: 'e.g. Pre-Season',
+    opponentPlaceholder: 'e.g. Opponent',
+    locationPlaceholder: 'e.g. Stadium',
+    competitionPlaceholder: 'e.g. League',
 
     // Goalkeepers page
     goalkeepersTitle: 'Goalkeepers',

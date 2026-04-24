@@ -32,8 +32,9 @@ export const QuickSelect = ({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [hoveredItem, setHoveredItem] = useState<{ label: string; top: number; right: boolean } | null>(null);
-  // Category picker state for new items
+  // Category picker state for new items and move
   const [pendingNewValue, setPendingNewValue] = useState<string | null>(null);
+  const [pendingMoveValue, setPendingMoveValue] = useState<string | null>(null);
 
   const headers = options.filter(opt => {
     const value = typeof opt === 'string' ? opt : opt.value;
@@ -131,6 +132,15 @@ export const QuickSelect = ({
     setIsOpen(false);
   };
 
+  const handleMoveCategorySelect = (category: string | null) => {
+    if (!pendingMoveValue || !onMove) return;
+    onMove(pendingMoveValue, category || '');
+    setPendingMoveValue(null);
+  };
+
+  const activePicker = pendingNewValue ? 'add' : pendingMoveValue ? 'move' : null;
+  const pickerValue = pendingNewValue || pendingMoveValue;
+
   return (
     <div className="relative">
       <button
@@ -141,6 +151,7 @@ export const QuickSelect = ({
           setSearchTerm('');
           setHoveredItem(null);
           setPendingNewValue(null);
+          setPendingMoveValue(null);
         }}
         className="flex items-center text-[9px] text-accent hover:text-accent/80 font-bold uppercase tracking-widest transition-colors"
       >
@@ -156,6 +167,7 @@ export const QuickSelect = ({
                     setIsOpen(false);
                     setHoveredItem(null);
                     setPendingNewValue(null);
+                    setPendingMoveValue(null);
                   }}
                 />
                 <AnimatePresence>
@@ -195,15 +207,15 @@ export const QuickSelect = ({
                   maxHeight: 'calc(100vh - 40px)'
                 }}
               >
-                {/* Category picker for new value */}
-                {pendingNewValue ? (
+                {/* Category picker for new value or move */}
+                {activePicker ? (
                   <div className="flex flex-col" onClick={(e) => e.stopPropagation()}>
                     <div className="p-3 border-b border-white/[0.04] bg-accent/5">
                       <p className="text-[10px] font-bold text-on-surface mb-1">
-                        {t('selectCategory') || 'Escolher área'}
+                        {activePicker === 'move' ? (t('moveTo') || 'Mover para') : (t('selectCategory') || 'Escolher área')}
                       </p>
                       <p className="text-[9px] text-on-surface-variant truncate">
-                        "{pendingNewValue}"
+                        "{pickerValue}"
                       </p>
                     </div>
                     <div className="overflow-y-auto max-h-[300px]">
@@ -213,7 +225,10 @@ export const QuickSelect = ({
                           <button
                             key={header}
                             type="button"
-                            onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCategorySelect(groupKey); }}
+                            onClick={(e) => {
+                              e.stopPropagation(); e.preventDefault();
+                              activePicker === 'move' ? handleMoveCategorySelect(groupKey) : handleCategorySelect(groupKey);
+                            }}
                             className="w-full text-left px-4 py-2.5 text-[10px] font-bold text-on-surface hover:bg-accent/10 transition-colors flex items-center gap-2 border-b border-white/[0.02]"
                           >
                             <div className="w-1.5 h-1.5 rounded-full bg-accent/50" />
@@ -223,14 +238,17 @@ export const QuickSelect = ({
                       })}
                       <button
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCategorySelect(null); }}
+                        onClick={(e) => {
+                          e.stopPropagation(); e.preventDefault();
+                          activePicker === 'move' ? handleMoveCategorySelect(null) : handleCategorySelect(null);
+                        }}
                         className="w-full text-left px-4 py-2.5 text-[10px] font-medium text-on-surface-variant hover:bg-white/[0.04] transition-colors border-t border-white/[0.04]"
                       >
                         {t('noCategorySpecial') || 'Sem categoria'}
                       </button>
                       <button
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setPendingNewValue(null); }}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setPendingNewValue(null); setPendingMoveValue(null); }}
                         className="w-full text-center px-4 py-2 text-[10px] font-medium text-on-surface-variant/50 hover:text-on-surface-variant transition-colors"
                       >
                         {t('cancel')}
@@ -336,13 +354,14 @@ export const QuickSelect = ({
                                   </button>
 
                                   <div className="flex items-center gap-0.5 pr-1 shrink-0 bg-transparent">
-                                    {onMove && !isHeader && (
+                                    {onMove && !isHeader && hasCategories && (
                                       <button
                                         type="button"
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
-                                          onMove(value, '');
+                                          setPendingMoveValue(value);
+                                          setPendingNewValue(null);
                                         }}
                                         className="p-2 -m-1 text-accent/30 hover:text-accent hover:bg-accent/10 rounded-full transition-all"
                                         title={t('moveTo') || 'Mover para'}

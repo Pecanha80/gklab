@@ -321,8 +321,8 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                           selectedValues={Array.isArray(newSession.objectives[objKey]) ? newSession.objectives[objKey] as string[] : [newSession.objectives[objKey] as string]}
                           onDelete={(val) => removeCustomPreset(objKey, val)}
                           isDeletable={(val) => !val.startsWith('#')}
-                          onAdd={(val) => addCustomPreset(objKey, val, [])}
-                          onMove={(val) => moveCustomPreset(objKey, val, '')}
+                          onAdd={(val) => addCustomPreset(objKey, val, PRESETS.objectives[objKey])}
+                          onMove={(val, cat) => moveCustomPreset(objKey, val, cat)}
                         />
                       </div>
                       <textarea

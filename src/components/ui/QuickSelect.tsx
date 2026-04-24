@@ -44,30 +44,24 @@ export const QuickSelect = ({
     const updatePosition = () => {
       if (isOpen && buttonRef.current) {
         const rect = buttonRef.current.getBoundingClientRect();
-        const dropdownWidth = 288; // w-72
-        const dropdownHeight = 400; // Expected max height
+        const dropdownWidth = Math.min(288, window.innerWidth - 32); // w-72 or viewport - 32px
+        const dropdownHeight = 400;
         const padding = 16;
-        const scrollY = window.scrollY;
 
-        let left = rect.left + window.scrollX;
-        // Check right boundary (viewport)
+        // Fixed positioning — use viewport coords directly
+        let left = rect.left;
         if (rect.left + dropdownWidth > window.innerWidth - padding) {
-          left = window.innerWidth + window.scrollX - dropdownWidth - padding;
+          left = window.innerWidth - dropdownWidth - padding;
         }
-        // Check left boundary (viewport)
-        if (left < window.scrollX + padding) {
-          left = window.scrollX + padding;
+        if (left < padding) {
+          left = padding;
         }
 
-        // Vertical positioning
-        let top = rect.bottom + scrollY + 4;
-
-        // If dropdown would overflow bottom, open upwards
+        let top = rect.bottom + 4;
         if (rect.bottom + dropdownHeight > window.innerHeight - padding) {
-          top = rect.top + scrollY - dropdownHeight - 4;
-          // Ensure it doesn't go off the top of the body
-          if (top < scrollY + padding) {
-            top = scrollY + padding;
+          top = rect.top - dropdownHeight - 4;
+          if (top < padding) {
+            top = padding;
           }
         }
 
@@ -77,10 +71,10 @@ export const QuickSelect = ({
 
     updatePosition();
     window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
     return () => {
       window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
     };
   }, [isOpen]);
 
@@ -171,12 +165,14 @@ export const QuickSelect = ({
                       animate={{ opacity: 1, x: 0, scale: 1 }}
                       exit={{ opacity: 0, x: hoveredItem.right ? 10 : -10, scale: 0.95 }}
                       className={cn(
-                        "fixed z-[10000] w-64 p-3 bg-surface-elevated border border-white/[0.06] rounded-lg shadow-2xl pointer-events-none",
+                        "fixed z-[10000] max-w-64 p-3 bg-surface-elevated border border-white/[0.06] rounded-lg shadow-2xl pointer-events-none",
                         "text-[10px] leading-relaxed text-on-surface font-medium"
                       )}
                       style={{
                         top: hoveredItem.top,
-                        left: hoveredItem.right ? dropdownPos.left + 300 : dropdownPos.left - 268
+                        left: hoveredItem.right
+                          ? Math.min(dropdownPos.left + 300, window.innerWidth - 272)
+                          : Math.max(dropdownPos.left - 268, 8)
                       }}
                     >
                       <div className="absolute top-4 w-2 h-2 bg-surface-elevated border-l border-t border-white/[0.06] rotate-45"
@@ -190,7 +186,7 @@ export const QuickSelect = ({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
-                className="absolute w-72 bg-surface-elevated border border-white/[0.06] rounded-xl shadow-2xl z-[9999] overflow-hidden flex flex-col"
+                className="fixed w-72 max-w-[calc(100vw-2rem)] bg-surface-elevated border border-white/[0.06] rounded-xl shadow-2xl z-[9999] overflow-hidden flex flex-col"
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
                 style={{
@@ -253,7 +249,7 @@ export const QuickSelect = ({
                         autoFocus
                       />
                     </div>
-                    <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 min-h-0">
+                    <div className="overflow-y-auto min-h-0">
                       {showAddButton && (
                         <button
                           type="button"

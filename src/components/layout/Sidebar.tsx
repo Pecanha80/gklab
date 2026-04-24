@@ -43,7 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       isSidebarCollapsed ? "w-20" : "w-64"
     )}>
       {/* Logo */}
-      <div className={cn("py-8 flex items-center", isSidebarCollapsed ? "px-0 justify-center" : "px-7 justify-between")}>
+      <div className={cn("sidebar-logo flex items-center shrink-0", isSidebarCollapsed ? "px-0 justify-center" : "px-7 justify-between")}>
         {!isSidebarCollapsed ? (
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center shadow-[0_0_16px_rgba(124,92,252,0.2)]">
@@ -62,34 +62,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-0.5 px-3">
+      <nav className="flex-1 min-h-0 overflow-y-auto space-y-0.5 px-3 sidebar-nav-scroll">
         <SidebarItem icon={LayoutDashboard} labelKey="dashboard" active={activeTab === 'Dashboard'} onClick={() => setActiveTab('Dashboard')} isCollapsed={isSidebarCollapsed} t={t} />
         <SidebarItem icon={DumbbellIcon} labelKey="sessions" active={activeTab === 'Training'} onClick={() => setActiveTab('Training')} isCollapsed={isSidebarCollapsed} t={t} />
         <SidebarItem icon={Library} labelKey="exerciseLibrary" active={activeTab === 'Exercises'} onClick={() => setActiveTab('Exercises')} isCollapsed={isSidebarCollapsed} t={t} />
         <SidebarItem icon={Users} labelKey="athletes" active={activeTab === 'Goalkeepers'} onClick={() => setActiveTab('Goalkeepers')} isCollapsed={isSidebarCollapsed} t={t} />
 
         {!isSidebarCollapsed && (
-          <p className="px-4 pt-6 pb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">
+          <p className="sidebar-section-label px-4 text-[9px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">
             {t('monitoring')}
           </p>
         )}
-        {isSidebarCollapsed && <div className="h-4" />}
+        {isSidebarCollapsed && <div className="sidebar-section-spacer" />}
         <SidebarItem icon={Heart} labelKey="wellnessTab" active={activeTab === 'Wellness'} onClick={() => setActiveTab('Wellness')} isCollapsed={isSidebarCollapsed} t={t} />
         <SidebarItem icon={Activity} labelKey="rpeTab" active={activeTab === 'RPE'} onClick={() => setActiveTab('RPE')} isCollapsed={isSidebarCollapsed} t={t} />
 
         {!isSidebarCollapsed && (
-          <p className="px-4 pt-6 pb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">
+          <p className="sidebar-section-label px-4 text-[9px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">
             STRATEGY
           </p>
         )}
-        {isSidebarCollapsed && <div className="h-4" />}
+        {isSidebarCollapsed && <div className="sidebar-section-spacer" />}
         <SidebarItem icon={Calendar} labelKey="planning" active={activeTab === 'Planning'} onClick={() => setActiveTab('Planning')} isCollapsed={isSidebarCollapsed} t={t} />
         <SidebarItem icon={BookOpen} labelKey="methodology" active={activeTab === 'Methodology'} onClick={() => setActiveTab('Methodology')} isCollapsed={isSidebarCollapsed} t={t} />
         <SidebarItem icon={Video} labelKey="videos" active={activeTab === 'Videos'} onClick={() => setActiveTab('Videos')} isCollapsed={isSidebarCollapsed} t={t} />
       </nav>
 
       {/* Footer actions */}
-      <div className="mt-auto py-5 border-t border-white/[0.04] space-y-0.5 px-3">
+      <div className="sidebar-footer mt-auto border-t border-white/[0.04] space-y-0.5 px-3 shrink-0">
         <button
           onClick={() => changeLanguage(isPortuguese ? 'en' : 'pt')}
           className={cn(

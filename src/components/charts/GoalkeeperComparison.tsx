@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import { Users, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { parseDuration } from '../../lib/rpe';
 import type { Attendance, Goalkeeper, TrainingSession, WellnessLog } from '../../types';
 
 const GK_COLORS = [
@@ -19,13 +20,6 @@ interface Props {
   allAttendance: Attendance[];
   allWellness: WellnessLog[];
   t: (key: string) => string;
-}
-
-function parseDuration(dur: unknown): number {
-  if (!dur) return 0;
-  const str = Array.isArray(dur) ? dur[0] : String(dur);
-  const match = String(str).match(/(\d+)/);
-  return match ? parseInt(match[1], 10) : 0;
 }
 
 export const GoalkeeperComparison: React.FC<Props> = ({
@@ -156,7 +150,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
 
   if (!hasAnyData) {
     return (
-      <div className="bg-slate-50 rounded-2xl border border-dashed border-white/[0.06] p-12 text-center shadow-md">
+      <div className="bg-surface-container-low rounded-2xl border border-dashed border-white/[0.06] p-12 text-center shadow-md">
         <Users className="w-10 h-10 text-on-surface-variant/20 mx-auto mb-3" />
         <p className="text-on-surface-variant italic">{t('compNoData')}</p>
       </div>
@@ -166,7 +160,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
   return (
     <div className="space-y-8">
       {/* GK Selector */}
-      <div className="bg-slate-50 rounded-2xl border border-white/[0.06] p-5 shadow-md">
+      <div className="bg-surface-container-low rounded-2xl border border-white/[0.06] p-5 shadow-md">
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
             {t('compSelectGk')}
@@ -260,7 +254,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
         {/* Attendance detail cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-6">
           {attendanceData.map((gk, i) => (
-            <div key={i} className="bg-white rounded-xl border border-white/[0.06] p-4 space-y-2 shadow-sm">
+            <div key={i} className="bg-surface rounded-xl border border-white/[0.06] p-4 space-y-2 shadow-sm">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: GK_COLORS[i % GK_COLORS.length] }} />
                 <span className="text-sm font-bold text-on-surface">{gk.name}</span>
@@ -348,7 +342,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
 };
 
 const ChartSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <section className="bg-slate-50 rounded-2xl border border-white/[0.06] p-6 shadow-md">
+  <section className="bg-surface-container-low rounded-2xl border border-white/[0.06] p-6 shadow-md">
     <h3 className="font-headline font-bold text-lg mb-6">{title}</h3>
     {children}
   </section>

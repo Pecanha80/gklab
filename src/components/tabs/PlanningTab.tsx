@@ -13,6 +13,8 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, getTodayDateString, toDateString } from '../../lib/utils';
 import { parseCategory } from '../../lib/dashboard';
+import { computeMdDiff, suggestIntensity, computeMicrocycleSummary } from '../../lib/microcycle';
+import type { IntensityLevel } from '../../lib/microcycle';
 import { TrainingSession } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { QuickSelect } from '../ui/QuickSelect';
@@ -61,6 +63,7 @@ interface PlanningTabProps {
   // Navigation
   setActiveTab: (tab: string) => void;
   setIsAddingSession: (v: boolean) => void;
+  setNewSession: (updater: (prev: Omit<TrainingSession, 'id'>) => Omit<TrainingSession, 'id'>) => void;
   setViewingSession: (session: TrainingSession | null) => void;
   // Preset management
   customPresets: CustomPresetsState;
@@ -108,6 +111,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
   ALL_DAYS,
   setActiveTab,
   setIsAddingSession,
+  setNewSession,
   setViewingSession,
   customPresets,
   addCustomPreset,
@@ -337,29 +341,32 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
       {/* Weekly Summary */}
       {(() => {
         const days = getMicrocycleDays();
-        const totalDays = days.length;
-        const restCount = days.filter(d => restDays.includes(d)).length;
-        const matchCount = matchDay && days.includes(matchDay) ? 1 : 0;
-        const sessionCount = sessions.filter(s => days.includes(s.date)).length;
-        const trainingDays = totalDays - restCount - matchCount;
-        return totalDays > 0 ? (
+        const summary = computeMicrocycleSummary(days, restDays, matchDay, sessions);
+        return summary.totalDays > 0 ? (
           <div className="flex items-center gap-6 bg-surface rounded-xl border border-black/[0.08] px-5 py-3">
             <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">{t('weeklySummary')}</span>
             <div className="flex items-center gap-1.5">
               <Dumbbell className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-bold text-on-surface">{trainingDays}</span>
+              <span className="text-xs font-bold text-on-surface">{summary.trainingDays}</span>
               <span className="text-[9px] text-on-surface-variant">{t('totalTrainingDays')}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CalendarDays className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-bold text-on-surface">{sessionCount}</span>
+              <span className="text-xs font-bold text-on-surface">{summary.sessionsPlanned}</span>
               <span className="text-[9px] text-on-surface-variant">{t('totalSessions')}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Moon className="w-3.5 h-3.5 text-blue-500" />
-              <span className="text-xs font-bold text-on-surface">{restCount}</span>
+              <span className="text-xs font-bold text-on-surface">{summary.restDays}</span>
               <span className="text-[9px] text-on-surface-variant">{t('totalRestDays')}</span>
             </div>
+            {summary.emptyTrainingDays > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Plus className="w-3.5 h-3.5 text-amber-500" />
+                <span className="text-xs font-bold text-amber-600">{summary.emptyTrainingDays}</span>
+                <span className="text-[9px] text-on-surface-variant">{t('emptyDays') || 'sem sessão'}</span>
+              </div>
+            )}
           </div>
         ) : null;
       })()}
@@ -367,6 +374,7 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
       <div className="overflow-x-auto -mx-2 px-2 pb-4">
       <div className="grid grid-cols-1 gap-4" style={{ gridTemplateColumns: `repeat(${getMicrocycleDays().length}, minmax(200px, 1fr))` }}>
         {getMicrocycleDays().map((dateStr) => {
+          const allDays = getMicrocycleDays();
           const isMatch = dateStr === matchDay;
           const mdLabel = getMatchDayLabel(dateStr);
           const dayDate = getDayDate(dateStr);
@@ -374,6 +382,8 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
           const isToday = dateStr === getTodayDateString();
           const isRestDay = restDays.includes(dateStr);
           const daySessions = sessions.filter(s => s.date === dateStr);
+          const mdDiff = computeMdDiff(dateStr, matchDay, allDays);
+          const intensity = suggestIntensity(mdDiff, isRestDay);
           
           return (
             <div key={dateStr} className="space-y-0">
@@ -405,6 +415,9 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                   )}>
                     {mdLabel}
                   </div>
+                )}
+                {matchDay && (
+                  <IntensityBar level={intensity} />
                 )}
               </div>
               <div className={cn(
@@ -455,11 +468,12 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
                         <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">{t('rest')}</span>
                       </div>
                     ) : (
-                      <button 
-                        aria-label={t('newSession')} 
-                        onClick={() => { 
-                          setActiveTab('Training'); 
-                          setIsAddingSession(true); 
+                      <button
+                        aria-label={t('newSession')}
+                        onClick={() => {
+                          setNewSession(prev => ({ ...prev, date: dateStr }));
+                          setActiveTab('Training');
+                          setIsAddingSession(true);
                         }} 
                         className="w-full py-4 border border-dashed border-black/[0.08] rounded-xl text-on-surface-variant hover:border-primary hover:text-primary transition-all flex flex-col items-center justify-center gap-1 group bg-black/[0.02]"
                       >
@@ -492,3 +506,25 @@ export const PlanningTab: React.FC<PlanningTabProps> = React.memo(({
   );
 });
 PlanningTab.displayName = 'PlanningTab';
+
+const INTENSITY_CONFIG: Record<IntensityLevel, { color: string; label: string; width: string }> = {
+  recovery: { color: 'bg-blue-400', label: 'Recovery', width: 'w-1/5' },
+  low: { color: 'bg-emerald-400', label: 'Low', width: 'w-2/5' },
+  medium: { color: 'bg-amber-400', label: 'Medium', width: 'w-3/5' },
+  high: { color: 'bg-red-400', label: 'High', width: 'w-4/5' },
+  match: { color: 'bg-yellow-500', label: 'Match', width: 'w-full' },
+  rest: { color: 'bg-blue-200', label: 'Rest', width: 'w-0' },
+};
+
+const IntensityBar: React.FC<{ level: IntensityLevel }> = ({ level }) => {
+  const config = INTENSITY_CONFIG[level];
+  if (level === 'rest') return null;
+  return (
+    <div className="mt-1.5 flex items-center gap-1.5 justify-center">
+      <div className="w-12 h-1.5 bg-black/[0.04] rounded-full overflow-hidden">
+        <div className={cn("h-full rounded-full transition-all", config.color, config.width)} />
+      </div>
+      <span className="text-[7px] font-bold uppercase tracking-widest text-on-surface-variant">{config.label}</span>
+    </div>
+  );
+};

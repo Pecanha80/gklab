@@ -249,6 +249,7 @@ export default function App() {
               ALL_DAYS={microcycle.ALL_DAYS}
               setActiveTab={setActiveTab}
               setIsAddingSession={sessionForm.setIsAddingSession}
+              setNewSession={sessionForm.setNewSession}
               setViewingSession={setViewingSession}
               customPresets={customPresets}
               addCustomPreset={addCustomPreset}

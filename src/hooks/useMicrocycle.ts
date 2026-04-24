@@ -13,7 +13,7 @@ export function useMicrocycle(
   onDelete: (id: string) => Promise<void>
 ) {
   const { t, isPortuguese } = useTranslation();
-  const { showError } = useToast();
+  const { showSuccess, showError } = useToast();
 
   const [microcycleName, setMicrocycleName] = useState('');
   const [microcycleStartDate, setMicrocycleStartDate] = useState(() => {
@@ -116,7 +116,7 @@ export function useMicrocycle(
         restDays,
         mesocycle,
       });
-      alert(isPortuguese ? 'Microciclo salvo com sucesso!' : 'Microcycle saved successfully!');
+      showSuccess(isPortuguese ? 'Microciclo salvo com sucesso!' : 'Microcycle saved successfully!');
     } catch (err: any) {
       showError(isPortuguese ? 'Erro ao salvar microciclo' : 'Error saving microcycle');
     } finally {
@@ -148,6 +148,8 @@ export function useMicrocycle(
   }, [externalSavedMicrocycles]);
 
   const deleteMicrocycle = async (id: string) => {
+    const msg = isPortuguese ? 'Tem certeza que deseja excluir este microciclo?' : 'Are you sure you want to delete this microcycle?';
+    if (!window.confirm(msg)) return;
     await onDelete(id);
   };
 

@@ -6,15 +6,15 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useToast } from '../../hooks/useToast';
 import { supabase } from '../../lib/supabase';
 import { GoalkeeperComparison } from '../charts/GoalkeeperComparison';
+import {
+  buildSessionsWithLoad,
+  computeRpeStats,
+  computeIntensityDistribution,
+  computeWeeklyLoads,
+  getTeamStatusLevel,
+} from '../../lib/rpe';
+import type { SessionWithLoad } from '../../lib/rpe';
 import type { TrainingSession, Attendance, Goalkeeper, WellnessLog } from '../../types';
-
-interface SessionWithLoad {
-  session: TrainingSession;
-  avgRpe: number;
-  durationMin: number;
-  load: number;
-  attendanceCount: number;
-}
 
 export const RPETab: React.FC = () => {
   const { t } = useTranslation();
@@ -42,7 +42,7 @@ export const RPETab: React.FC = () => {
       setAllAttendance(attRes.data || []);
       setAllWellness(wellRes.data || []);
     } catch (err) {
-      showError('Erro ao carregar dados de PSE');
+      showError(t('rpeLoadError'));
     } finally {
       setLoading(false);
     }
@@ -50,89 +50,58 @@ export const RPETab: React.FC = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const parseDuration = (dur: unknown): number => {
-    if (!dur) return 0;
-    const str = Array.isArray(dur) ? dur[0] : String(dur);
-    const match = String(str).match(/(\d+)/);
-    return match ? parseInt(match[1], 10) : 0;
-  };
+  const sessionsWithLoad = useMemo(
+    () => buildSessionsWithLoad(sessions, allAttendance),
+    [sessions, allAttendance]
+  );
 
-  const sessionsWithLoad: SessionWithLoad[] = useMemo(() => {
-    return sessions.map(session => {
-      const sessionAtt = allAttendance.filter(
-        a => a.session_id === session.id && a.rpe != null && a.rpe > 0
-      );
-      const rpeValues = sessionAtt.map(a => a.rpe!);
-      const avgRpe = rpeValues.length > 0
-        ? rpeValues.reduce((sum, v) => sum + v, 0) / rpeValues.length
-        : 0;
-      const durationMin = parseDuration(session.duration);
-      const load = Math.round(avgRpe * durationMin);
+  const stats = useMemo(
+    () => computeRpeStats(sessionsWithLoad, allAttendance),
+    [sessionsWithLoad, allAttendance]
+  );
 
-      return { session, avgRpe, durationMin, load, attendanceCount: sessionAtt.length };
-    });
-  }, [sessions, allAttendance]);
+  const rpeValues = useMemo(
+    () => allAttendance.filter(a => a.rpe != null && a.rpe > 0).map(a => a.rpe!),
+    [allAttendance]
+  );
 
-  const stats = useMemo(() => {
-    const withData = sessionsWithLoad.filter(s => s.avgRpe > 0);
-    if (withData.length === 0) {
-      return { avgIntensity: 0, totalLoad: 0, weeklyTrend: '0%' };
-    }
+  const intensityDistribution = useMemo(
+    () => computeIntensityDistribution(rpeValues),
+    [rpeValues]
+  );
 
-    const allRpeRecords = allAttendance.filter(a => a.rpe != null && a.rpe > 0);
-    const avgIntensity = allRpeRecords.length > 0
-      ? allRpeRecords.reduce((sum, a) => sum + a.rpe!, 0) / allRpeRecords.length
-      : 0;
-    const totalLoad = withData.reduce((sum, s) => sum + s.load, 0);
+  // Get current week start (Monday)
+  const currentWeekStart = useMemo(() => {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = day === 0 ? -6 : 1 - day; // Monday
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diff);
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  }, []);
 
-    return { avgIntensity, totalLoad, weeklyTrend: '—' };
-  }, [sessionsWithLoad, allAttendance]);
+  const weeklyLoads = useMemo(
+    () => computeWeeklyLoads(sessionsWithLoad, currentWeekStart),
+    [sessionsWithLoad, currentWeekStart]
+  );
 
-  const intensityDistribution = useMemo(() => {
-    const rpeRecords = allAttendance.filter(a => a.rpe != null && a.rpe > 0);
-    const total = rpeRecords.length;
-    if (total === 0) return { veryHigh: 0, high: 0, moderate: 0, recovery: 0 };
-
-    const veryHigh = rpeRecords.filter(a => a.rpe! >= 9).length;
-    const high = rpeRecords.filter(a => a.rpe! >= 7 && a.rpe! <= 8).length;
-    const moderate = rpeRecords.filter(a => a.rpe! >= 5 && a.rpe! <= 6).length;
-    const recovery = rpeRecords.filter(a => a.rpe! <= 4).length;
-
-    return {
-      veryHigh: Math.round((veryHigh / total) * 100),
-      high: Math.round((high / total) * 100),
-      moderate: Math.round((moderate / total) * 100),
-      recovery: Math.round((recovery / total) * 100),
-    };
+  const athletesWithRpe = useMemo(() => {
+    const gkIds = new Set(allAttendance.filter(a => a.rpe != null && a.rpe > 0).map(a => a.goalkeeper_id));
+    return gkIds.size;
   }, [allAttendance]);
 
-  const weeklyLoads = useMemo(() => {
-    const dayLabels = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-    const loads = new Array(7).fill(0);
+  const teamStatusLevel = getTeamStatusLevel(stats.avgIntensity);
 
-    sessionsWithLoad.forEach(sw => {
-      if (!sw.session.date || sw.load === 0) return;
-      const date = new Date(sw.session.date + 'T12:00:00');
-      if (!isNaN(date.getTime())) {
-        const dayOfWeek = date.getDay();
-        loads[dayOfWeek] += sw.load;
-      }
-    });
-
-    const maxLoad = Math.max(...loads, 1);
-    return loads.map((load, i) => ({
-      label: dayLabels[i],
-      load,
-      pct: (load / maxLoad) * 100,
-    }));
-  }, [sessionsWithLoad]);
-
-  const getTeamStatus = (): { label: string; color: string } => {
-    if (stats.avgIntensity === 0) return { label: '—', color: 'text-on-surface-variant' };
-    if (stats.avgIntensity <= 4) return { label: t('rpeIdealReady'), color: 'text-emerald-600' };
-    if (stats.avgIntensity <= 7) return { label: t('rpeIdealReady'), color: 'text-emerald-600' };
-    return { label: t('high'), color: 'text-amber-600' };
+  const teamStatusConfig: Record<string, { label: string; color: string; ringColor: string }> = {
+    none: { label: '—', color: 'text-on-surface-variant', ringColor: 'border-on-surface/20' },
+    fresh: { label: t('rpeFreshReady'), color: 'text-blue-500', ringColor: 'border-blue-500' },
+    ideal: { label: t('rpeIdealReady'), color: 'text-emerald-600', ringColor: 'border-emerald-500' },
+    moderate: { label: t('rpeModFatigue'), color: 'text-amber-600', ringColor: 'border-amber-500' },
+    high: { label: t('rpeHighFatigue'), color: 'text-red-600', ringColor: 'border-red-500' },
   };
+
+  const teamStatus = teamStatusConfig[teamStatusLevel];
 
   if (loading) {
     return (
@@ -159,7 +128,6 @@ export const RPETab: React.FC = () => {
     );
   }
 
-  const teamStatus = getTeamStatus();
   const hasLoad = stats.totalLoad > 0;
 
   return (
@@ -191,11 +159,10 @@ export const RPETab: React.FC = () => {
             icon={TrendingUp}
             color="text-secondary"
             bg="bg-secondary/10"
-            trend={stats.weeklyTrend}
           />
           <StatCard
             label={t('athletes')}
-            value={goalkeepers.length.toString()}
+            value={athletesWithRpe.toString()}
             icon={Users}
             color="text-emerald-500"
             bg="bg-emerald-500/10"
@@ -224,7 +191,7 @@ export const RPETab: React.FC = () => {
                   <div key={i} className="group relative flex flex-col items-center">
                     <motion.div
                       initial={{ height: 0 }}
-                      animate={{ height: `${Math.max(day.pct * 2, day.load > 0 ? 8 : 0)}px` }}
+                      animate={{ height: `${Math.max((day.pct / 100) * 220, day.load > 0 ? 8 : 0)}px` }}
                       transition={{ delay: i * 0.1, type: 'spring' }}
                       className={cn(
                         "w-full rounded-t-xl transition-all duration-500 group-hover:opacity-80 shadow-lg",
@@ -250,11 +217,10 @@ export const RPETab: React.FC = () => {
           <section className="space-y-4">
             <div className="flex items-center justify-between px-2">
               <h3 className="font-headline font-bold text-lg">{t('rpeRecentSessions')}</h3>
-              <button className="text-xs text-primary font-bold hover:underline">{t('viewAll')}</button>
             </div>
             <div className="space-y-3">
-              {sessionsWithLoad.slice(0, 4).map((sw, i) => (
-                <SessionExertionRow key={sw.session.id} sw={sw} idx={i} t={t} />
+              {sessionsWithLoad.slice(0, 4).map((sw) => (
+                <SessionExertionRow key={sw.session.id} sw={sw} t={t} />
               ))}
               {sessions.length === 0 && (
                 <p className="text-xs text-on-surface-variant px-2 italic">{t('rpeAwaitingData')}</p>
@@ -281,7 +247,21 @@ export const RPETab: React.FC = () => {
                 <p className={cn("text-sm font-bold", teamStatus.color)}>{teamStatus.label}</p>
               </div>
               {hasLoad && (
-                <div className="w-12 h-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-500 animate-spin transition-all" style={{ animationDuration: '3s' }} />
+                <div className={cn(
+                  "w-12 h-12 rounded-full border-4 border-t-transparent",
+                  teamStatus.ringColor.replace('border-', 'border-') + '/20',
+                  teamStatus.ringColor.replace('border-', 'border-t-')
+                )}
+                  style={{
+                    background: `conic-gradient(${
+                      teamStatusLevel === 'fresh' ? '#3b82f6' :
+                      teamStatusLevel === 'ideal' ? '#10b981' :
+                      teamStatusLevel === 'moderate' ? '#f59e0b' :
+                      teamStatusLevel === 'high' ? '#ef4444' : '#888'
+                    } ${Math.min(stats.avgIntensity * 10, 100)}%, transparent 0)`,
+                    borderRadius: '50%',
+                  }}
+                />
               )}
             </div>
           </section>
@@ -370,7 +350,7 @@ const LegendItem: React.FC<{ color: string; label: string }> = ({ color, label }
   </div>
 );
 
-const SessionExertionRow: React.FC<{ sw: SessionWithLoad; idx: number; t: (key: string) => string }> = ({ sw, t }) => {
+const SessionExertionRow: React.FC<{ sw: SessionWithLoad; t: (key: string) => string }> = ({ sw, t }) => {
   const { session, avgRpe, durationMin, load, attendanceCount } = sw;
   const displayRpe = avgRpe > 0 ? avgRpe.toFixed(1) : '—';
   const hasRpe = avgRpe > 0;
@@ -389,7 +369,7 @@ const SessionExertionRow: React.FC<{ sw: SessionWithLoad; idx: number; t: (key: 
           <span className="text-[8px] uppercase tracking-tighter">{t('rpe')}</span>
         </div>
         <div>
-          <h4 className="font-bold text-sm text-on-surface truncate max-w-[200px]">
+          <h4 className="font-bold text-sm text-on-surface truncate max-w-[300px]">
             {session.titles?.map(title => t(title)).join(' & ') || 'Session'}
           </h4>
           <div className="flex items-center gap-3 mt-1">

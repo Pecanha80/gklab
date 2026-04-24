@@ -16,17 +16,22 @@ export function useWellness(goalkeeperId?: string) {
 
   const fetchLogs = useCallback(async (gkId?: string) => {
     const targetId = gkId || goalkeeperId;
-    if (!targetId || !user) return;
+    if (!user) return;
 
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('wellness_logs')
         .select('*')
-        .eq('goalkeeper_id', targetId)
         .order('date', { ascending: false })
         .limit(30);
+
+      if (targetId) {
+        query = query.eq('goalkeeper_id', targetId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setLogs(data || []);

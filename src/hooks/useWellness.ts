@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import type { WellnessLog } from '../types';
 import { useAuth } from './useAuth';
 import { useToast } from './useToast';
+import { useTranslation } from './useTranslation';
 
 function getTodayString(): string {
   return new Date().toISOString().slice(0, 10);
@@ -10,6 +11,7 @@ function getTodayString(): string {
 
 export function useWellness(goalkeeperId?: string) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { showError } = useToast();
   const [logs, setLogs] = useState<WellnessLog[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,7 +38,7 @@ export function useWellness(goalkeeperId?: string) {
       if (error) throw error;
       setLogs(data || []);
     } catch (err) {
-      showError('Erro ao carregar registos de bem-estar');
+      showError(t('errorLoadWellness'));
     } finally {
       setLoading(false);
     }
@@ -87,7 +89,7 @@ export function useWellness(goalkeeperId?: string) {
 
       return data;
     } catch (err) {
-      showError('Erro ao salvar bem-estar');
+      showError(t('errorSaveWellness'));
       throw err;
     }
   };

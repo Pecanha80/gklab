@@ -83,7 +83,7 @@ export default function App() {
   const handleCloseSessionModal = useCallback(() => setViewingSession(null), []);
   const handleExportAndClose = useCallback((id: string) => { handleExportSession(id); setViewingSession(null); }, []);
   const handleDeleteAndClose = useCallback((id: string) => { deleteSession(id); setViewingSession(null); }, [deleteSession]);
-  const handleEditAndClose = useCallback((session: TrainingSession) => { sessionForm.handleEditSession(session); setViewingSession(null); }, [sessionForm]);
+  const handleEditAndClose = useCallback((session: TrainingSession) => { sessionForm.handleEditSession(session); setViewingSession(null); setActiveTab('Training'); }, [sessionForm]);
   const handleCloseExerciseModal = useCallback(() => setSelectedExercise(null), []);
   const handleDeleteExercise = useCallback(async (id: string) => { await deleteExercise(id); setSelectedExercise(null); }, [deleteExercise]);
   const handleEditExerciseNav = useCallback((ex: Exercise) => { setEditingExercise(ex); setActiveTab('Exercises'); setSelectedExercise(null); }, []);

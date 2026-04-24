@@ -102,8 +102,8 @@ export const MethodologyTab: React.FC = () => {
 
   const [editingPrinciple, setEditingPrinciple] = useState<{ momentId: string; index: number } | null>(null);
   const [editingCompetency, setEditingCompetency] = useState<{ profileId: string; index: number } | null>(null);
-  const [newPrincipleText, setNewPrincipleText] = useState('');
-  const [newCompetencyText, setNewCompetencyText] = useState('');
+  const [principleTexts, setPrincipleTexts] = useState<Record<string, string>>({});
+  const [competencyTexts, setCompetencyTexts] = useState<Record<string, string>>({});
   const [addingPhase, setAddingPhase] = useState(false);
   const [editingPhaseId, setEditingPhaseId] = useState<string | null>(null);
   const [phaseForm, setPhaseForm] = useState({ name: '', duration: '', objectives: '', intensity: '' });
@@ -127,7 +127,7 @@ export const MethodologyTab: React.FC = () => {
       setWellnessLogs(wellRes.data || []);
       setExercises(exeRes.data || []);
     } catch (err) {
-      showError('Erro ao carregar dados de metodologia');
+      showError(t('methDataLoadError'));
     } finally {
       setLoading(false);
     }
@@ -242,15 +242,17 @@ export const MethodologyTab: React.FC = () => {
 
   // --- Principle helpers ---
   const handleAddPrinciple = (momentId: string) => {
-    if (!newPrincipleText.trim()) return;
+    const text = principleTexts[momentId] || '';
+    if (!text.trim()) return;
     const moment = methodology.gameModel.find(m => m.id === momentId);
     if (moment) {
-      updateGameModelPrinciples(momentId, [...moment.principles, newPrincipleText.trim()]);
-      setNewPrincipleText('');
+      updateGameModelPrinciples(momentId, [...moment.principles, text.trim()]);
+      setPrincipleTexts(prev => ({ ...prev, [momentId]: '' }));
     }
   };
 
   const handleRemovePrinciple = (momentId: string, index: number) => {
+    if (!window.confirm(t('methConfirmDeletePrinciple'))) return;
     const moment = methodology.gameModel.find(m => m.id === momentId);
     if (moment) {
       updateGameModelPrinciples(momentId, moment.principles.filter((_, i) => i !== index));
@@ -269,15 +271,17 @@ export const MethodologyTab: React.FC = () => {
 
   // --- Competency helpers ---
   const handleAddCompetency = (profileId: string) => {
-    if (!newCompetencyText.trim()) return;
+    const text = competencyTexts[profileId] || '';
+    if (!text.trim()) return;
     const profile = methodology.competencyProfiles.find(p => p.id === profileId);
     if (profile) {
-      updateCompetencyProfile(profileId, [...profile.competencies, newCompetencyText.trim()]);
-      setNewCompetencyText('');
+      updateCompetencyProfile(profileId, [...profile.competencies, text.trim()]);
+      setCompetencyTexts(prev => ({ ...prev, [profileId]: '' }));
     }
   };
 
   const handleRemoveCompetency = (profileId: string, index: number) => {
+    if (!window.confirm(t('methConfirmDeleteCompetency'))) return;
     const profile = methodology.competencyProfiles.find(p => p.id === profileId);
     if (profile) {
       updateCompetencyProfile(profileId, profile.competencies.filter((_, i) => i !== index));
@@ -539,13 +543,14 @@ export const MethodologyTab: React.FC = () => {
                               fillOpacity={0.5}
                             />
                             <Tooltip 
-                              contentStyle={{ 
-                                backgroundColor: '#fff', 
-                                border: 'none', 
-                                borderRadius: '12px', 
-                                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                              contentStyle={{
+                                backgroundColor: 'var(--color-surface, #1e1e1e)',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: '12px',
+                                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.3)',
                                 fontSize: '12px',
-                                fontWeight: 600
+                                fontWeight: 600,
+                                color: 'var(--color-on-surface, #e0e0e0)'
                               }} 
                             />
                           </RadarChart>
@@ -743,8 +748,8 @@ export const MethodologyTab: React.FC = () => {
                               onEdit={handleEditPrinciple}
                               editing={editingPrinciple}
                               setEditing={setEditingPrinciple}
-                              newText={newPrincipleText}
-                              setNewText={setNewPrincipleText}
+                              newText={principleTexts[moment.id] || ''}
+                              setNewText={(val: string) => setPrincipleTexts(prev => ({ ...prev, [moment.id]: val }))}
                               placeholderKey="methAddPrinciple"
                               idField="momentId"
                             />
@@ -791,8 +796,8 @@ export const MethodologyTab: React.FC = () => {
                               onEdit={handleEditCompetency}
                               editing={editingCompetency}
                               setEditing={setEditingCompetency}
-                              newText={newCompetencyText}
-                              setNewText={setNewCompetencyText}
+                              newText={competencyTexts[profile.id] || ''}
+                              setNewText={(val: string) => setCompetencyTexts(prev => ({ ...prev, [profile.id]: val }))}
                               placeholderKey="methAddCompetency"
                               idField="profileId"
                             />

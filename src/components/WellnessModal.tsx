@@ -54,7 +54,7 @@ export const WellnessModal: React.FC<WellnessModalProps> = ({
       if (onSuccess) onSuccess();
       setTimeout(onClose, 1500);
     } catch (err) {
-      showError('Erro ao salvar bem-estar');
+      showError(t('errorSaveWellness'));
     } finally {
       setSaving(false);
     }

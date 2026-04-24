@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { useToast } from './useToast';
+import { useTranslation } from './useTranslation';
 import type { Injury } from '../types';
 
 interface InjuryRow {
@@ -38,6 +39,7 @@ function mapRowToInjury(row: InjuryRow): Injury {
 
 export function useInjuries() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { showError } = useToast();
   const [injuries, setInjuries] = useState<Injury[]>([]);
   const [loading, setLoading] = useState(false);
@@ -55,7 +57,7 @@ export function useInjuries() {
       if (error) throw error;
       setInjuries((data || []).map((row: InjuryRow) => mapRowToInjury(row)));
     } catch {
-      showError('Erro ao carregar lesões');
+      showError(t('errorLoadInjuries'));
     } finally {
       setLoading(false);
     }
@@ -90,7 +92,7 @@ export function useInjuries() {
       if (error) throw error;
       if (inserted) setInjuries(prev => [mapRowToInjury(inserted as InjuryRow), ...prev]);
     } catch {
-      showError('Erro ao registar lesão');
+      showError(t('errorAddInjury'));
     }
   }, [user]);
 
@@ -121,7 +123,7 @@ export function useInjuries() {
         ));
       }
     } catch {
-      showError('Erro ao atualizar lesão');
+      showError(t('errorUpdateInjury'));
     }
   }, []);
 
@@ -135,7 +137,7 @@ export function useInjuries() {
       if (error) throw error;
       setInjuries(prev => prev.filter(inj => inj.id !== id));
     } catch {
-      showError('Erro ao apagar lesão');
+      showError(t('errorDeleteInjury'));
     }
   }, []);
 

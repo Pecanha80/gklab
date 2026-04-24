@@ -3,6 +3,7 @@ import { TrainingSession, PerformanceVideo, Goalkeeper, Exercise, SavedMicrocycl
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { useToast } from './useToast';
+import { useTranslation } from './useTranslation';
 import { getTodayDateString } from '../lib/utils';
 
 /** Normalizes exercise array fields that may come as JSON strings from Supabase. */
@@ -134,6 +135,7 @@ function mapMicrocycleToDB(mc: Partial<SavedMicrocycle>, userId: string) {
 
 export function useAppData() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { showSuccess, showError } = useToast();
   const [goalkeepers, setGoalkeepers] = useState<Goalkeeper[]>([]);
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
@@ -178,10 +180,10 @@ export function useAppData() {
 
       const tables = ['goalkeepers', 'sessions', 'videos', 'exercises', 'microcycles'];
       [gkRes, sessRes, vidRes, exRes, mcRes].forEach((res, i) => {
-        if (res.error) showError(`Erro ao carregar ${tables[i]}: ${res.error.message}`);
+        if (res.error) showError(`${t('errorLoadTable')} ${tables[i]}: ${res.error.message}`);
       });
     } catch {
-      showError('Erro ao carregar dados. Verifique sua conexão.');
+      showError(t('errorLoadData'));
     } finally {
       setIsLoading(false);
     }
@@ -348,7 +350,7 @@ export function useAppData() {
     try {
       await Promise.all(updates);
     } catch (error) {
-      showError('Erro ao reordenar goleiros');
+      showError(t('errorReorderGoalkeepers'));
       fetchAll();
     }
   };

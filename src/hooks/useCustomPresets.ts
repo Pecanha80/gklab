@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { useToast } from './useToast';
+import { useTranslation } from './useTranslation';
 import { DEBOUNCE_MS } from '../lib/utils';
 
 export interface CustomPresetsState {
@@ -94,6 +95,7 @@ function loadLocalPresets(): CustomPresetsState | null {
 
 export function useCustomPresets() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { showError } = useToast();
   const [customPresets, setCustomPresets] = useState<CustomPresetsState>(defaultStructure);
   const [isLoading, setIsLoading] = useState(true);
@@ -112,7 +114,7 @@ export function useCustomPresets() {
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
 
-      if (error) showError('Erro ao salvar predefinições');
+      if (error) showError(t('errorSavePresets'));
     }, DEBOUNCE_MS);
   }, [user]);
 
@@ -131,7 +133,7 @@ export function useCustomPresets() {
           .single();
 
         if (error && error.code !== 'PGRST116') {
-          showError('Erro ao carregar predefinições');
+          showError(t('errorLoadPresets'));
         } else if (data && data.presets) {
           setCustomPresets(data.presets);
           // Once successfully loaded from DB, we can consider migrating finished
@@ -145,7 +147,7 @@ export function useCustomPresets() {
           }
         }
       } catch (err) {
-        showError('Erro ao carregar predefinições');
+        showError(t('errorLoadPresets'));
       } finally {
         setIsLoading(false);
       }

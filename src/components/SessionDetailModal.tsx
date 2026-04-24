@@ -108,7 +108,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     try {
       await updateAttendance(gkId, status, currentNotes);
     } catch (err) {
-      showError('Erro ao atualizar presença');
+      showError(t('errorUpdateAttendance'));
     }
   };
 
@@ -126,7 +126,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     try {
       await updateAttendance(gkId, data.status, data.notes);
     } catch (err) {
-      showError('Erro ao salvar notas');
+      showError(t('errorSaveNotes'));
     }
   };
 
@@ -138,7 +138,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     try {
       await updateRpe(gkId, rpe);
     } catch (err) {
-      showError('Erro ao atualizar PSE');
+      showError(t('errorUpdateRpe'));
     }
   };
 

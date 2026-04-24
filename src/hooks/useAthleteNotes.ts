@@ -2,10 +2,12 @@ import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { useToast } from './useToast';
+import { useTranslation } from './useTranslation';
 import type { GoalkeeperNote } from '../types';
 
 export function useAthleteNotes() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { showError } = useToast();
   const [notes, setNotes] = useState<GoalkeeperNote[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ export function useAthleteNotes() {
       if (error) throw error;
       setNotes(data || []);
     } catch {
-      showError('Erro ao carregar notas');
+      showError(t('errorLoadNotes'));
     } finally {
       setLoading(false);
     }
@@ -47,7 +49,7 @@ export function useAthleteNotes() {
       if (error) throw error;
       if (inserted) setNotes(prev => [inserted, ...prev]);
     } catch {
-      showError('Erro ao adicionar nota');
+      showError(t('errorAddNote'));
     }
   }, [user]);
 
@@ -61,7 +63,7 @@ export function useAthleteNotes() {
       if (error) throw error;
       setNotes(prev => prev.filter(n => n.id !== noteId));
     } catch {
-      showError('Erro ao apagar nota');
+      showError(t('errorDeleteNote'));
     }
   }, []);
 

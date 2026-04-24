@@ -2,10 +2,12 @@ import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { useToast } from './useToast';
+import { useTranslation } from './useTranslation';
 import type { PhysicalTest } from '../types/physicalTest';
 
 export function usePhysicalTests() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { showError } = useToast();
   const [tests, setTests] = useState<PhysicalTest[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,7 +38,7 @@ export function usePhysicalTests() {
         }))
       );
     } catch {
-      showError('Erro ao carregar testes físicos');
+      showError(t('errorLoadPhysicalTests'));
     } finally {
       setLoading(false);
     }
@@ -83,7 +85,7 @@ export function usePhysicalTests() {
         setTests(prev => [mapped, ...prev]);
       }
     } catch {
-      showError('Erro ao adicionar teste físico');
+      showError(t('errorAddPhysicalTest'));
     }
   }, [user]);
 
@@ -97,7 +99,7 @@ export function usePhysicalTests() {
       if (error) throw error;
       setTests(prev => prev.filter(t => t.id !== testId));
     } catch {
-      showError('Erro ao apagar teste físico');
+      showError(t('errorDeletePhysicalTest'));
     }
   }, []);
 

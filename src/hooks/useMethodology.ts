@@ -3,6 +3,7 @@ import { Methodology, PeriodizationPhase } from '../types';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { useToast } from './useToast';
+import { useTranslation } from './useTranslation';
 
 function createDefaultMethodology(): Methodology {
   return {
@@ -25,6 +26,7 @@ function createDefaultMethodology(): Methodology {
 
 export function useMethodology() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { showError } = useToast();
   const [methodology, setMethodology] = useState<Methodology>(createDefaultMethodology);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +50,7 @@ export function useMethodology() {
         });
 
       if (error) {
-        showError('Erro ao salvar metodologia');
+        showError(t('methSaveError'));
       }
     }, 500);
   }, [user]);
@@ -69,7 +71,7 @@ export function useMethodology() {
           .single();
 
         if (error && error.code !== 'PGRST116') {
-          showError('Erro ao carregar metodologia');
+          showError(t('methLoadError'));
         } else if (data) {
           setMethodology({
             gameModel: data.game_model || [],
@@ -79,7 +81,7 @@ export function useMethodology() {
           });
         }
       } catch (err) {
-        showError('Erro ao carregar metodologia');
+        showError(t('methLoadError'));
       }
       setIsLoading(false);
     };

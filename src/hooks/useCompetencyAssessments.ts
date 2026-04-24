@@ -2,10 +2,12 @@ import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { useToast } from './useToast';
+import { useTranslation } from './useTranslation';
 import type { CompetencyAssessment } from '../types';
 
 export function useCompetencyAssessments() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { showError } = useToast();
   const [assessments, setAssessments] = useState<CompetencyAssessment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ export function useCompetencyAssessments() {
       if (error) throw error;
       setAssessments(data || []);
     } catch {
-      showError('Erro ao carregar avaliações');
+      showError(t('errorLoadAssessments'));
     } finally {
       setLoading(false);
     }
@@ -47,7 +49,7 @@ export function useCompetencyAssessments() {
       if (error) throw error;
       if (inserted) setAssessments(prev => [inserted, ...prev]);
     } catch {
-      showError('Erro ao adicionar avaliação');
+      showError(t('errorAddAssessment'));
     }
   }, [user]);
 
@@ -61,7 +63,7 @@ export function useCompetencyAssessments() {
       if (error) throw error;
       setAssessments(prev => prev.filter(a => a.id !== assessmentId));
     } catch {
-      showError('Erro ao apagar avaliação');
+      showError(t('errorDeleteAssessment'));
     }
   }, []);
 

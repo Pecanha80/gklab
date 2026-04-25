@@ -78,9 +78,6 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
       errors.push(t('drillTitleRequiredMsg'));
     }
     
-    if (!drill.category) {
-      errors.push(t('physicalCapacityRequiredMsg'));
-    }
 
     // Objective is recommended but not strictly required to block saving
     // unless we really want it. Let's keep it optional for speed.
@@ -143,14 +140,14 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
       const searchTerm = exerciseSearchTerm.toLowerCase();
       return ex.title.toLowerCase().includes(searchTerm) ||
         objectiveStr.toLowerCase().includes(searchTerm) ||
-        (ex.category && t(ex.category).toLowerCase().includes(searchTerm));
+        t(ex.type).toLowerCase().includes(searchTerm);
     });
 
     const groups: Record<string, Exercise[]> = {};
     filtered.forEach(ex => {
-      const cat = ex.category || 'uncategorized';
-      if (!groups[cat]) groups[cat] = [];
-      groups[cat].push(ex);
+      const group = ex.type || 'uncategorized';
+      if (!groups[group]) groups[group] = [];
+      groups[group].push(ex);
     });
 
     return groups;
@@ -711,8 +708,8 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                                       <div className="text-[10px] text-on-surface font-medium">{t(ex.intensity)}</div>
                                     </div>
                                     <div className="space-y-1">
-                                      <span className="text-[8px] text-on-surface-variant uppercase font-bold">{t('organization')}</span>
-                                      <div className="text-[10px] text-on-surface font-medium line-clamp-1">{Array.isArray(ex.organization) ? ex.organization.map(o => t(o)).join(', ') : t(ex.organization)}</div>
+                                      <span className="text-[8px] text-on-surface-variant uppercase font-bold">{t('repetitions')}</span>
+                                      <div className="text-[10px] text-on-surface font-medium line-clamp-1">{ex.repetitions || '—'}</div>
                                     </div>
                                   </div>
                                   <button onClick={(e) => { e.stopPropagation(); setSelectedExercise(ex); }} className="w-full py-2 bg-white/[0.03] hover:bg-white/[0.04] rounded text-[10px] font-bold uppercase tracking-widest transition-all">

@@ -75,10 +75,18 @@ export const en = {
     high: 'High',
 
     // Exercise Types
+    shotStopping: 'Shot Stopping',
+    crosses: 'Crosses',
+    oneVsOne: '1v1',
+    footwork: 'Footwork',
+    distribution: 'Distribution',
+    depthControl: 'Depth Control',
+    setPieces: 'Set Pieces',
+    warmup: 'Warmup',
+    // Legacy type fallbacks
     analytical: 'Analytical',
     decision: 'Decision',
     contextualized: 'Contextualized',
-    warmup: 'Warmup',
 
     // Exercise Planner
     exercisePlannerEditor: 'Exercise Planner & Editor',
@@ -493,7 +501,6 @@ export const en = {
     recovery: 'Recovery',
     reaction: 'Reaction',
     u23Dev: 'U23 Development',
-    crosses: 'Crosses',
     matchPrep: 'Match Prep',
     off: 'OFF',
     goalkeepersStatus: 'Goalkeepers Status',
@@ -1161,11 +1168,7 @@ export const en = {
     assessmentHistory: 'Assessment History',
     averageScore: 'Average Score',
     noAssessmentsYet: 'No assessments yet.',
-    shotStopping: 'Shot Stopping',
     crossesAerial: 'Crosses/Aerial',
-    oneVsOne: '1v1',
-    distribution: 'Distribution',
-    footwork: 'Footwork',
     positioning: 'Positioning',
     physicalAttributes: 'Physical Attributes',
     psychologicalResilience: 'Psychological Resilience',

@@ -57,24 +57,25 @@ export const VectorElement: React.FC<VectorElementProps> = ({
   const renderShape = () => {
     switch (type) {
       case 'box':
-        // GK Training Box with artificial grass on one side
+        // GK Training Box — grass body, wood front face
         return (
           <Group>
-            {/* Main Body (Isometic-ish 3D view) */}
-            <Rect x={-20} y={-8} width={40} height={24} fill="#8B4513" stroke="#5D2E0C" strokeWidth={1} cornerRadius={2} />
-            {/* Top Side (White/Wood) */}
-            <Rect x={-20} y={-16} width={40} height={12} fill="#D2B48C" stroke="#8B4513" strokeWidth={1} cornerRadius={1} />
-            {/* Artificial Grass Side (The user requested this specific side) */}
+            {/* Main Body — artificial grass */}
+            <Rect x={-20} y={-8} width={40} height={24} fill="#2d6a1e" stroke="#1b3f12" strokeWidth={1} cornerRadius={2} />
+            {/* Top Side — grass lighter */}
+            <Rect x={-20} y={-16} width={40} height={12} fill="#3d8a2e" stroke="#2d6a1e" strokeWidth={1} cornerRadius={1} />
+            {/* Grass details on top */}
+            <Line points={[-15, -14, -13, -8, -11, -14]} stroke="#4a8b34" strokeWidth={1} />
+            <Line points={[-5, -12, -3, -7, -1, -12]} stroke="#4a8b34" strokeWidth={1} />
+            <Line points={[5, -14, 7, -9, 9, -14]} stroke="#4a8b34" strokeWidth={1} />
+            <Line points={[13, -12, 15, -7, 17, -12]} stroke="#4a8b34" strokeWidth={1} />
+            {/* Front Face — wood */}
             <Group x={-20} y={-8}>
-              <Rect width={40} height={24} fill="#2d6a1e" stroke="#1b3f12" strokeWidth={1} />
-              {/* Grass details - tiny lines */}
-              <Line points={[5, 4, 7, 10, 9, 4]} stroke="#4a8b34" strokeWidth={1} />
-              <Line points={[15, 6, 17, 14, 19, 6]} stroke="#4a8b34" strokeWidth={1} />
-              <Line points={[25, 3, 27, 11, 29, 3]} stroke="#4a8b34" strokeWidth={1} />
-              <Line points={[33, 7, 35, 15, 37, 7]} stroke="#4a8b34" strokeWidth={1} />
-              <Line points={[10, 16, 12, 22, 14, 16]} stroke="#4a8b34" strokeWidth={1} />
-              <Line points={[20, 14, 22, 21, 24, 14]} stroke="#4a8b34" strokeWidth={1} />
-              <Line points={[30, 17, 32, 23, 34, 17]} stroke="#4a8b34" strokeWidth={1} />
+              <Rect width={40} height={24} fill="#8B4513" stroke="#5D2E0C" strokeWidth={1} />
+              {/* Wood grain details */}
+              <Line points={[4, 6, 36, 6]} stroke="#A0632B" strokeWidth={0.5} />
+              <Line points={[4, 12, 36, 12]} stroke="#A0632B" strokeWidth={0.5} />
+              <Line points={[4, 18, 36, 18]} stroke="#A0632B" strokeWidth={0.5} />
             </Group>
           </Group>
         );

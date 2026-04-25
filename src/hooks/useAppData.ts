@@ -195,9 +195,24 @@ export function useAppData() {
 
   const addExerciseToLibrary = async (exercise: Omit<Exercise, 'id'>) => {
     if (!user) return;
+    const row = {
+      type: exercise.type,
+      title: exercise.title,
+      category: exercise.category || null,
+      objective: Array.isArray(exercise.objective) ? exercise.objective.join('\n') : exercise.objective,
+      organization: Array.isArray(exercise.organization) ? exercise.organization.join('\n') : exercise.organization,
+      execution: Array.isArray(exercise.execution) ? exercise.execution.join('\n') : exercise.execution,
+      progression: Array.isArray(exercise.progression) ? exercise.progression.join('\n') : exercise.progression,
+      successCriteria: Array.isArray(exercise.successCriteria) ? exercise.successCriteria.join('\n') : exercise.successCriteria,
+      duration: Array.isArray(exercise.duration) ? exercise.duration.join(' + ') : exercise.duration,
+      intensity: exercise.intensity,
+      repetitions: exercise.repetitions || null,
+      diagram: exercise.diagram || null,
+      user_id: user.id,
+    };
     const { data, error } = await supabase
       .from('exercises')
-      .insert([{ ...exercise, user_id: user.id }])
+      .insert([row])
       .select();
 
     if (error) {

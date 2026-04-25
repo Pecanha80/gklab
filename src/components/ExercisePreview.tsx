@@ -23,9 +23,14 @@ export const ExercisePreview = ({ drill }: { drill: Omit<Exercise, 'id'> }) => {
           <p className="text-sm text-on-surface font-medium">{t(drill.title) || t('untitledDrill')}</p>
           <span className={cn(
             "inline-block mt-1 px-2 py-1 rounded text-[8px] font-bold",
-            drill.type === 'analytical' ? "bg-primary/10 text-primary" :
-            drill.type === 'decision' ? "bg-secondary/10 text-secondary" :
-            drill.type === 'contextualized' ? "bg-tertiary/10 text-tertiary" :
+            drill.type === 'shotStopping' ? "bg-blue-500/10 text-blue-400" :
+            drill.type === 'crosses' ? "bg-amber-500/10 text-amber-400" :
+            drill.type === 'oneVsOne' ? "bg-red-500/10 text-red-400" :
+            drill.type === 'footwork' ? "bg-green-500/10 text-green-400" :
+            drill.type === 'distribution' ? "bg-indigo-500/10 text-indigo-400" :
+            drill.type === 'depthControl' ? "bg-pink-500/10 text-pink-400" :
+            drill.type === 'setPieces' ? "bg-teal-500/10 text-teal-400" :
+            drill.type === 'warmup' ? "bg-purple-500/10 text-purple-400" :
             "bg-surface text-on-surface-variant"
           )}>
             {t(drill.type)}

@@ -38,7 +38,7 @@ export const emptySession: Omit<TrainingSession, 'id'> = {
 };
 
 export const emptyDrill: Omit<Exercise, 'id'> = {
-  type: 'analytical',
+  type: 'shotStopping',
   title: '',
   category: '',
   objective: [],
@@ -46,6 +46,7 @@ export const emptyDrill: Omit<Exercise, 'id'> = {
   execution: [],
   progression: [],
   successCriteria: [],
+  repetitions: '',
   duration: [],
   intensity: 'medium',
   gameMoment: '',
@@ -331,7 +332,7 @@ export function useSessionForm(
           progression: [],
           successCriteria: [],
           duration: [],
-          type: 'analytical'
+          type: 'shotStopping'
         } : {})
       }));
     }
@@ -478,7 +479,7 @@ export function useSessionForm(
       exercises: [
         {
           id: 'ex1',
-          type: 'analytical',
+          type: 'shotStopping',
           title: 'ex1Title',
           objective: 'ex1Objective',
           organization: 'ex1Organization',
@@ -490,7 +491,7 @@ export function useSessionForm(
         },
         {
           id: 'ex2',
-          type: 'decision',
+          type: 'oneVsOne',
           title: 'ex2Title',
           objective: 'ex2Objective',
           organization: 'ex2Organization',
@@ -502,7 +503,7 @@ export function useSessionForm(
         },
         {
           id: 'ex3',
-          type: 'contextualized',
+          type: 'shotStopping',
           title: 'ex3Title',
           objective: 'ex3Objective',
           organization: 'ex3Organization',

@@ -35,16 +35,15 @@ const SectionHeading: React.FC<{ title: string; icon?: React.ComponentType<{ cla
 
 function getTypeBadgeClasses(type: string): string {
   switch (type) {
-    case 'analytical':
-      return 'bg-secondary/10 text-secondary';
-    case 'decision':
-      return 'bg-tertiary/10 text-tertiary';
-    case 'contextualized':
-      return 'bg-primary/10 text-primary';
-    case 'warmup':
-      return 'bg-error/10 text-error';
-    default:
-      return 'bg-on-surface/10 text-on-surface';
+    case 'shotStopping': return 'bg-blue-500/10 text-blue-500';
+    case 'crosses': return 'bg-amber-500/10 text-amber-500';
+    case 'oneVsOne': return 'bg-red-500/10 text-red-500';
+    case 'footwork': return 'bg-green-500/10 text-green-500';
+    case 'distribution': return 'bg-indigo-500/10 text-indigo-500';
+    case 'depthControl': return 'bg-pink-500/10 text-pink-500';
+    case 'setPieces': return 'bg-teal-500/10 text-teal-500';
+    case 'warmup': return 'bg-purple-500/10 text-purple-500';
+    default: return 'bg-on-surface/10 text-on-surface';
   }
 }
 
@@ -56,6 +55,12 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   onEdit,
 }) => {
   const { t } = useTranslation();
+  /** Translate a value that may be a string, string array, or undefined. Strips [category] prefixes. */
+  const tField = (value: string | string[] | undefined): string => {
+    if (!value) return '';
+    if (Array.isArray(value)) return value.filter(Boolean).map(v => t(v.replace(/^\[.*?\]/, ''))).join(', ');
+    return t(value.replace(/^\[.*?\]/, ''));
+  };
   const { showError } = useToast();
   const {
     attendance,
@@ -265,10 +270,10 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               <div className="space-y-3">
                 <SectionHeading title={t('specificObjectivesHeading')} icon={Target} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label={t('technical')} value={session.objectives.technical} />
-                  <Field label={t('tactical')} value={session.objectives.tactical} />
-                  <Field label={t('physical')} value={session.objectives.physical} />
-                  <Field label={t('cognitive')} value={session.objectives.cognitive} />
+                  <Field label={t('technical')} value={tField(session.objectives.technical)} />
+                  <Field label={t('tactical')} value={tField(session.objectives.tactical)} />
+                  <Field label={t('physical')} value={tField(session.objectives.physical)} />
+                  <Field label={t('cognitive')} value={tField(session.objectives.cognitive)} />
                 </div>
               </div>
             )}
@@ -291,9 +296,24 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                         <Field label={t('startingPoint')} value={drill.startingPoint} />
                         <Field label={t('coachingPoints')} value={drill.coachingPoints} />
                         <Field label={t('execution')} value={drill.execution} />
-                        <Field label={t('duration')} value={drill.duration} />
+                        {(drill.repetitions || drill.duration) && (
+                          <div className="flex gap-4">
+                            <Field label={t('repetitions')} value={drill.repetitions} />
+                            <Field label={t('duration')} value={drill.duration} />
+                          </div>
+                        )}
                         <Field label={t('progression')} value={drill.progression} />
                       </div>
+                      {drill.diagram && (
+                        <div className="mt-2">
+                          <img
+                            src={drill.diagram}
+                            alt={`Diagram for ${drill.title}`}
+                            className="rounded-lg border border-white/[0.04] max-h-64 object-contain"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -335,8 +355,9 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                         <Field label={t('execution')} value={exercise.execution} />
                         <Field label={t('progression')} value={exercise.progression} />
                         <Field label={t('successCriteriaLabel')} value={exercise.successCriteria} />
-                        {(exercise.duration || exercise.intensity) && (
+                        {(exercise.repetitions || exercise.duration || exercise.intensity) && (
                           <div className="flex gap-4">
+                            <Field label={t('repetitions')} value={exercise.repetitions} />
                             <Field label={t('duration')} value={exercise.duration} />
                             <Field label={t('intensity')} value={exercise.intensity} />
                           </div>

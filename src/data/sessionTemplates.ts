@@ -26,7 +26,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'centralShotStopping',
         objective: 'focusSetPositionDiving',
         organization: 'penaltyAreaOneCoachTenBalls',
@@ -38,7 +38,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'angledShotsRebounds',
         objective: 'improvePositioningRecovery',
         organization: 'penaltyAreaTwoServersAngles',
@@ -77,7 +77,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'staticHandlingWScoopCup',
         objective: 'perfectMechanicsCatches',
         organization: 'sixYardBoxOneServerFiveBalls',
@@ -116,7 +116,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'lateralDivingLowMid',
         objective: 'focusFootworkAttackingForward',
         organization: 'smallGoalOneServerFiveBalls',
@@ -155,7 +155,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'oneVOneSpreadTechnique',
         objective: 'masterSpreadKBlockTechnique',
         organization: 'oneVOneZoneBoxEdgeToGoal',
@@ -167,7 +167,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'oneVOneSmotheringFrontDive',
         objective: 'enhanceReactionSpeedCloseRangeShots',
         organization: 'smallGoalOneServerFiveBalls',
@@ -184,7 +184,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'uncontestedCrossClaiming',
         objective: 'developTimingTrajectoryReadingConfidence',
         organization: 'fullGoalTwoWingersCrossing',
@@ -196,7 +196,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'crossesWithPassivePressure',
         objective: 'developTimingTrajectoryReadingConfidence',
         organization: 'penaltyAreaMannequinsSimulatingTraffic',
@@ -213,7 +213,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'goalKickTargetPractice',
         objective: 'increaseDistributionRangeAccuracyFeet',
         organization: 'fullPitchTargetsAt30m50m70m',
@@ -225,7 +225,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'sideVolleyDropKickDistribution',
         objective: 'improveQuickDistributionHands',
         organization: 'fullPitchTargetsAt30m50m70m',
@@ -248,7 +248,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'deflectedShotReactions',
         objective: 'enhanceReactionSpeedCloseRangeShots',
         organization: 'penaltyAreaMannequinsSimulatingTraffic',
@@ -260,7 +260,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'turnSaveBlindReactions',
         objective: 'enhanceReactionSpeedCloseRangeShots',
         organization: 'penaltyAreaOneCoachTenBalls',
@@ -283,7 +283,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'throughBallInterceptions',
         objective: 'enhanceDecisionMakingSweeperKeeper',
         organization: 'oneVOneZoneBoxEdgeToGoal',
@@ -295,7 +295,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'clearancesOutsideTheBox',
         objective: 'increaseDistributionRangeAccuracyFeet',
         organization: 'fullPitchTargetsAt30m50m70m',
@@ -312,7 +312,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'doubleSaveShotRebound',
         objective: 'improveAbilityRecoverQuicklySecondarySaves',
         organization: 'penaltyAreaOneCoachTenBalls',
@@ -335,7 +335,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'trafficCrossesPunching',
         objective: 'developTimingTrajectoryReadingConfidence',
         organization: 'penaltyAreaMannequinsSimulatingTraffic',
@@ -358,7 +358,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'reactionToThroughBalls',
         objective: 'enhanceDecisionMakingSweeperKeeper',
         organization: 'oneVOneZoneBoxEdgeToGoal',
@@ -381,7 +381,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'powerDivesOverHurdles',
         objective: 'buildExplosiveLegPower',
         organization: 'sixYardBoxHurdlesAgilityLadder',
@@ -419,7 +419,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
     exercises: [
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'figure8FootworkCatch',
         objective: 'improveBasicHandlingHandEyeCoordination',
         organization: 'sixYardBoxHurdlesAgilityLadder',
@@ -431,7 +431,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'volleyCatchesFootwork',
         objective: 'developQuickFootworkOptimalPositioning',
         organization: 'smallGoalOneServerFiveBalls',
@@ -460,7 +460,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'lowShotHandlingVolleys',
         objective: 'enhanceReactionSpeedCloseRangeShots',
         organization: 'smallGoalOneServerFiveBalls',
@@ -472,7 +472,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'lateralDivesCentralShots',
         objective: 'focusSetPositionDiving',
         organization: 'penaltyAreaOneCoachTenBalls',
@@ -484,7 +484,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'uncontestedHighCrosses',
         objective: 'developTimingTrajectoryReadingConfidence',
         organization: 'fullGoalTwoWingersCrossing',
@@ -496,7 +496,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'aerialDominanceWithPressure',
         objective: 'developTimingTrajectoryReadingConfidence',
         organization: 'penaltyAreaMannequinsSimulatingTraffic',
@@ -508,7 +508,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'distributionShortLong',
         objective: 'increaseDistributionRangeAccuracyFeet',
         organization: 'fullPitchTargetsAt30m50m70m',
@@ -520,7 +520,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'buildupUnderPressure',
         objective: 'increaseDistributionRangeAccuracyFeet',
         organization: 'oneVOneZoneBoxEdgeToGoal',
@@ -532,7 +532,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'shotStoppingReactions',
         objective: 'enhanceReactionSpeedCloseRangeShots',
         organization: 'penaltyAreaMannequinsSimulatingTraffic',
@@ -544,7 +544,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'doubleSavesRecovery',
         objective: 'improveAbilityRecoverQuicklySecondarySaves',
         organization: 'penaltyAreaOneCoachTenBalls',
@@ -556,7 +556,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'tacticalPositioningScenario',
         objective: 'enhanceDecisionMakingSweeperKeeper',
         organization: 'oneVOneZoneBoxEdgeToGoal',
@@ -568,7 +568,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'analytical',
+        type: 'shotStopping',
         title: 'topCornerExtensionDives',
         objective: 'buildExplosiveLegPower',
         organization: 'penaltyAreaOneCoachTenBalls',
@@ -580,7 +580,7 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
       },
       {
         id: crypto.randomUUID(),
-        type: 'decision',
+        type: 'oneVsOne',
         title: 'overarmThrowsRollsUnderPressure',
         objective: 'improveQuickDistributionHands',
         organization: 'fullPitchTargetsAt30m50m70m',

@@ -95,10 +95,17 @@ export const pt = {
     high: 'Alta',
 
     // Exercise Types
+    shotStopping: 'Defesa de Baliza',
+    oneVsOne: '1v1',
+    footwork: 'Jogo com os Pés',
+    distribution: 'Distribuição',
+    depthControl: 'Controle da Profundidade',
+    setPieces: 'Bolas Paradas',
+    warmup: 'Aquecimento',
+    // Legacy type fallbacks
     analytical: 'Analítico',
     decision: 'Decisão',
     contextualized: 'Contextualizado',
-    warmup: 'Aquecimento',
 
     // Exercise Planner
     exercisePlannerEditor: 'Planejador de Exercícios',
@@ -1192,11 +1199,7 @@ export const pt = {
     assessmentHistory: 'Histórico de Avaliações',
     averageScore: 'Score Médio',
     noAssessmentsYet: 'Sem avaliações ainda.',
-    shotStopping: 'Defesa de Baliza',
     crossesAerial: 'Cruzamentos/Aéreo',
-    oneVsOne: '1v1',
-    distribution: 'Distribuição',
-    footwork: 'Jogo com os Pés',
     positioning: 'Posicionamento',
     physicalAttributes: 'Atributos Físicos',
     psychologicalResilience: 'Resiliência Psicológica',

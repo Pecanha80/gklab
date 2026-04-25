@@ -15,14 +15,22 @@ interface ExerciseDetailModalProps {
 
 function getTypeBadgeClasses(type: Exercise['type']): string {
   switch (type) {
-    case 'analytical':
-      return 'bg-secondary/10 text-secondary';
-    case 'decision':
-      return 'bg-tertiary/10 text-tertiary';
-    case 'contextualized':
-      return 'bg-primary/10 text-primary';
+    case 'shotStopping':
+      return 'bg-blue-500/10 text-blue-400';
+    case 'crosses':
+      return 'bg-amber-500/10 text-amber-400';
+    case 'oneVsOne':
+      return 'bg-red-500/10 text-red-400';
+    case 'footwork':
+      return 'bg-green-500/10 text-green-400';
+    case 'distribution':
+      return 'bg-indigo-500/10 text-indigo-400';
+    case 'depthControl':
+      return 'bg-pink-500/10 text-pink-400';
+    case 'setPieces':
+      return 'bg-teal-500/10 text-teal-400';
     case 'warmup':
-      return 'bg-error/10 text-error';
+      return 'bg-purple-500/10 text-purple-400';
   }
 }
 

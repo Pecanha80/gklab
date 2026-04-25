@@ -238,7 +238,7 @@ describe('getSessionCompleteness', () => {
     generalObjectives: ['Improve shot stopping'],
     objectives: { technical: 'Diving', tactical: '', physical: '', cognitive: '' },
     warmup: [{ id: 'w1', type: 'warmup', title: 'Warmup', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '10min', intensity: 'low' }],
-    exercises: [{ id: 'e1', type: 'analytical', title: 'Drill 1', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '15min', intensity: 'medium' }],
+    exercises: [{ id: 'e1', type: 'shotStopping', title: 'Drill 1', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '15min', intensity: 'medium' }],
     coolDown: 'Stretching',
     observations: { positives: 'Good', adjustments: '', individualEval: '' },
     titles: ['footwork'],
@@ -304,9 +304,9 @@ describe('getSessionIntensityLevel', () => {
   it('returns "high" when majority of exercises are high intensity', () => {
     const session = makeSession({
       exercises: [
-        { id: '1', type: 'analytical', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'high' },
-        { id: '2', type: 'analytical', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'high' },
-        { id: '3', type: 'analytical', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'medium' },
+        { id: '1', type: 'shotStopping', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'high' },
+        { id: '2', type: 'shotStopping', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'high' },
+        { id: '3', type: 'shotStopping', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'medium' },
       ],
     });
     expect(getSessionIntensityLevel(session)).toBe('high');
@@ -315,8 +315,8 @@ describe('getSessionIntensityLevel', () => {
   it('returns "medium" when exercises are mixed', () => {
     const session = makeSession({
       exercises: [
-        { id: '1', type: 'analytical', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'low' },
-        { id: '2', type: 'analytical', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'high' },
+        { id: '1', type: 'shotStopping', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'low' },
+        { id: '2', type: 'shotStopping', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'high' },
       ],
     });
     expect(getSessionIntensityLevel(session)).toBe('medium');
@@ -325,8 +325,8 @@ describe('getSessionIntensityLevel', () => {
   it('returns "low" when all exercises are low intensity', () => {
     const session = makeSession({
       exercises: [
-        { id: '1', type: 'analytical', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'low' },
-        { id: '2', type: 'analytical', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'low' },
+        { id: '1', type: 'shotStopping', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'low' },
+        { id: '2', type: 'shotStopping', title: '', objective: '', organization: '', execution: '', progression: '', successCriteria: '', duration: '', intensity: 'low' },
       ],
     });
     expect(getSessionIntensityLevel(session)).toBe('low');

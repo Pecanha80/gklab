@@ -89,7 +89,7 @@ export interface Injury {
 
 export interface Exercise {
   id: string;
-  type: 'analytical' | 'decision' | 'contextualized' | 'warmup';
+  type: 'shotStopping' | 'crosses' | 'oneVsOne' | 'footwork' | 'distribution' | 'depthControl' | 'setPieces' | 'warmup';
   title: string;
   category?: string; // e.g. 'Strength', 'Agility', etc.
   objective: string | string[];
@@ -97,6 +97,7 @@ export interface Exercise {
   execution: string | string[];
   progression: string | string[];
   successCriteria: string | string[];
+  repetitions?: string;
   duration: string | string[];
   intensity: 'low' | 'medium' | 'high';
   gameMoment?: string;

@@ -337,7 +337,7 @@ export const PRESETS = {
     'reactionSpeed',
     'endurance'
   ],
-  drillTypes: ['warmup', 'analytical', 'decision', 'contextualized'] as const,
+  drillTypes: ['warmup', 'shotStopping', 'crosses', 'oneVsOne', 'footwork', 'distribution', 'depthControl', 'setPieces'] as const,
   intensities: ['low', 'medium', 'high'] as const,
   durations: ['dur_5min', 'dur_10min', 'dur_15min', 'dur_20min', 'dur_30min'],
   tacticalPrinciples: [

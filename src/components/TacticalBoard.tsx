@@ -250,6 +250,19 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
         }
       }
 
+      // Arrow keys — move selected element
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        if (currentSelected) {
+          e.preventDefault();
+          const step = e.shiftKey ? 10 : 2;
+          const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
+          const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
+          setElements(prev => prev.map(el =>
+            el.id === currentSelected ? { ...el, x: el.x + dx, y: el.y + dy } : el
+          ));
+        }
+      }
+
       // Paste (Ctrl+V or Cmd+V)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
         if (copiedElementRef.current) {
@@ -764,7 +777,7 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
                   )}
                   <button
                     onClick={removeSelected}
-                    className="w-full py-2 bg-error/10 text-error hover:bg-error/20 rounded text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                    className="w-full py-2 bg-error text-white hover:bg-error/80 rounded text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                   >
                     <Trash2 className="w-4 h-4" />
                     {t('deleteSelected')}

@@ -142,18 +142,26 @@ export const MethodologyTab: React.FC = () => {
     const last30Days = new Date();
     last30Days.setDate(last30Days.getDate() - 30);
 
-    // 1. Exercise Distribution by Taxonomy
+    // 1. Exercise Distribution by Type
     const taxonomyCounts = {
-      analytical: exercises.filter(e => e.type === 'analytical').length,
-      decision: exercises.filter(e => e.type === 'decision').length,
-      contextualized: exercises.filter(e => e.type === 'contextualized').length,
+      shotStopping: exercises.filter(e => e.type === 'shotStopping').length,
+      crosses: exercises.filter(e => e.type === 'crosses').length,
+      oneVsOne: exercises.filter(e => e.type === 'oneVsOne').length,
+      footwork: exercises.filter(e => e.type === 'footwork').length,
+      distribution: exercises.filter(e => e.type === 'distribution').length,
+      depthControl: exercises.filter(e => e.type === 'depthControl').length,
+      setPieces: exercises.filter(e => e.type === 'setPieces').length,
       warmup: exercises.filter(e => e.type === 'warmup').length,
     };
 
     const exerciseDonutData = [
-      { name: t('analytical'), value: taxonomyCounts.analytical, color: '#3b82f6' },
-      { name: t('decision'), value: taxonomyCounts.decision, color: '#f59e0b' },
-      { name: t('contextualized'), value: taxonomyCounts.contextualized, color: '#10b981' },
+      { name: t('shotStopping'), value: taxonomyCounts.shotStopping, color: '#3b82f6' },
+      { name: t('crosses'), value: taxonomyCounts.crosses, color: '#f59e0b' },
+      { name: t('oneVsOne'), value: taxonomyCounts.oneVsOne, color: '#ef4444' },
+      { name: t('footwork'), value: taxonomyCounts.footwork, color: '#10b981' },
+      { name: t('distribution'), value: taxonomyCounts.distribution, color: '#6366f1' },
+      { name: t('depthControl'), value: taxonomyCounts.depthControl, color: '#ec4899' },
+      { name: t('setPieces'), value: taxonomyCounts.setPieces, color: '#14b8a6' },
       { name: t('warmup'), value: taxonomyCounts.warmup, color: '#8b5cf6' },
     ].filter(d => d.value > 0);
 
@@ -1024,35 +1032,24 @@ export const MethodologyTab: React.FC = () => {
                     className="overflow-hidden"
                   >
                     <div className="p-5 pt-0 space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-surface rounded-xl p-4 border border-white/[0.04]">
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-2 h-2 rounded-full bg-blue-500" />
-                            <h4 className="font-headline font-bold text-sm text-on-surface">{t('analytical')}</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {([
+                          { key: 'shotStopping', color: 'bg-blue-500' },
+                          { key: 'crosses', color: 'bg-amber-500' },
+                          { key: 'oneVsOne', color: 'bg-red-500' },
+                          { key: 'footwork', color: 'bg-green-500' },
+                          { key: 'distribution', color: 'bg-indigo-500' },
+                          { key: 'depthControl', color: 'bg-pink-500' },
+                          { key: 'setPieces', color: 'bg-teal-500' },
+                          { key: 'warmup', color: 'bg-purple-500' },
+                        ] as const).map(({ key, color }) => (
+                          <div key={key} className="bg-surface rounded-xl p-4 border border-white/[0.04]">
+                            <div className="flex items-center gap-2">
+                              <div className={cn("w-2 h-2 rounded-full", color)} />
+                              <h4 className="font-headline font-bold text-sm text-on-surface">{t(key)}</h4>
+                            </div>
                           </div>
-                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxAnalytical')}</p>
-                        </div>
-                        <div className="bg-surface rounded-xl p-4 border border-white/[0.04]">
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-2 h-2 rounded-full bg-amber-500" />
-                            <h4 className="font-headline font-bold text-sm text-on-surface">{t('decision')}</h4>
-                          </div>
-                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxDecision')}</p>
-                        </div>
-                        <div className="bg-surface rounded-xl p-4 border border-white/[0.04]">
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-2 h-2 rounded-full bg-green-500" />
-                            <h4 className="font-headline font-bold text-sm text-on-surface">{t('contextualized')}</h4>
-                          </div>
-                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxContextualized')}</p>
-                        </div>
-                        <div className="bg-surface rounded-xl p-4 border border-white/[0.04]">
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-2 h-2 rounded-full bg-purple-500" />
-                            <h4 className="font-headline font-bold text-sm text-on-surface">{t('warmup')}</h4>
-                          </div>
-                          <p className="text-xs text-on-surface-variant leading-relaxed">{t('methTaxWarmup')}</p>
-                        </div>
+                        ))}
                       </div>
 
                       <div className="bg-surface rounded-xl p-4 border border-white/[0.04]">

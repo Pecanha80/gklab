@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Target, Library } from 'lucide-react';
+import { X, Target, Library, Clock } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Exercise } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -40,249 +40,162 @@ export const DrillForm: React.FC<DrillFormProps> = ({
     : (editingDrillId ? t('editExercise') : t('newExercise'));
 
   return (
-    <div className="bg-surface-elevated p-6 rounded-xl border border-white/[0.06] space-y-6">
-      <div className="flex justify-between items-center mb-2">
-        <h4 className="text-xs font-bold text-primary uppercase tracking-widest">{headerLabel}</h4>
-        <button type="button" onClick={onCancel} className="text-on-surface-variant hover:text-error transition-colors"><X className="w-4 h-4" /></button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className={cn("space-y-4", context === 'warmup' && "space-y-3")}>
-          {context === 'warmup' ? (
-            <>
-              {/* Warmup: title first, then type + starting point side by side */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('drillTitle')}</label>
-                  <QuickSelect
-                    options={getOptions('drillTitles', PRESETS.drills.titles)}
-                    onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
-                    selectedValues={currentDrill.title ? [currentDrill.title] : []}
-                    onDelete={(val) => removeCustomPreset('drillTitles', val)}
-                    isDeletable={(val) => !val.startsWith('#')}
-                    onAdd={(val) => addCustomPreset('drillTitles', val, [])}
-                    onMove={(val) => moveCustomPreset('drillTitles', val, '')}
-                  />
-                </div>
-                <input type="text" value={translateContent(currentDrill.title)} onChange={e => setCurrentDrill({ ...currentDrill, title: e.target.value })} className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('type')}</label>
-                  </div>
-                  <select value={currentDrill.type} onChange={e => setCurrentDrill({ ...currentDrill, type: e.target.value as Exercise['type'] })} className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs">
-                    {PRESETS.drillTypes.filter((t: any) => t !== 'warmup').map(type => (
-                      <option key={type} value={type}>{t(type)}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('gameMomentsLabel')}</label>
-                    <QuickSelect
-                      multiSelect={false}
-                      selectedValues={currentDrill.gameMoment ? [currentDrill.gameMoment] : []}
-                      options={getOptions('gameMoments', [
-                        'momentOrganizedDefense',
-                        'momentDefensiveTransition',
-                        'momentOrganizedAttack',
-                        'momentOffensiveTransition',
-                        'momentSetPieces'
-                      ])}
-                      onSelect={(vals) => setCurrentDrill({ ...currentDrill, gameMoment: vals[vals.length - 1] })}
-                      onDelete={(val) => removeCustomPreset('gameMoments', val)}
-                      isDeletable={(val) => !val.startsWith('#')}
-                      onAdd={(val) => addCustomPreset('gameMoments', val, [])}
-                      onMove={(val) => moveCustomPreset('gameMoments', val, '')}
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    readOnly
-                    value={currentDrill.gameMoment ? t(currentDrill.gameMoment) : ''}
-                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
-                    placeholder={t('select')}
-                  />
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Main: type first, then title */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('type')}</label>
-                </div>
-                <select value={currentDrill.type} onChange={e => setCurrentDrill({ ...currentDrill, type: e.target.value as Exercise['type'] })} className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs">
-                  {PRESETS.drillTypes.filter((t: any) => t !== 'warmup').map(type => (
-                    <option key={type} value={type}>{t(type)}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('drillTitle')}</label>
-                  <QuickSelect
-                    options={getOptions('drillTitles', PRESETS.drills.titles)}
-                    onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
-                    selectedValues={currentDrill.title ? [currentDrill.title] : []}
-                    onDelete={(val) => removeCustomPreset('drillTitles', val)}
-                    isDeletable={(val) => !val.startsWith('#')}
-                    onAdd={(val) => addCustomPreset('drillTitles', val, [])}
-                    onMove={(val) => moveCustomPreset('drillTitles', val, '')}
-                  />
-                </div>
-                <input
-                  type="text"
-                  value={translateContent(currentDrill.title)}
-                  onChange={e => setCurrentDrill({ ...currentDrill, title: e.target.value })}
-                  onBlur={() => addCustomPreset('drillTitles', currentDrill.title, PRESETS.drills.titles)}
-                  className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
-                />
-              </div>
-            </>
-          )}
-          
-          {context === 'main' && (
-            <div className="space-y-1">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('category')}</label>
-              <div className="flex flex-wrap gap-1">
-                {PRESETS.drillCategories.map(cap => (
-                  <button
-                    key={cap}
-                    type="button"
-                    onClick={() => setCurrentDrill({ ...currentDrill, category: cap })}
-                    className={cn(
-                      "px-3 py-1.5 rounded text-[8px] font-bold border transition-all",
-                      currentDrill.category === cap ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface border-white/[0.04] text-on-surface-variant"
-                    )}
-                  >
-                    {t(cap)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('objective')}</label>
-              <QuickSelect
-                options={getOptions('drillObjectives', PRESETS.drills.objectives)}
-                onSelect={(vals) => setCurrentDrill({ ...currentDrill, objective: vals.map(v => t(v)).join('\n') })}
-                selectedValues={typeof currentDrill.objective === 'string' ? currentDrill.objective.split('\n') : currentDrill.objective}
-                onDelete={(val) => removeCustomPreset('drillObjectives', val)}
-                isDeletable={(val) => !val.startsWith('#')}
-                onAdd={(val) => addCustomPreset('drillObjectives', val, [])}
-                onMove={(val) => moveCustomPreset('drillObjectives', val, '')}
-              />
-            </div>
-            <textarea
-              value={translateContent(currentDrill.objective)}
-              onChange={e => setCurrentDrill({ ...currentDrill, objective: e.target.value })}
-              onBlur={() => addCustomPreset('drillObjectives', currentDrill.objective, PRESETS.drills.objectives)}
-              className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[60px]"
+    <div className="bg-surface-elevated rounded-xl border border-white/[0.06] overflow-hidden">
+      {/* ── Header bar ── */}
+      <div className="flex items-center gap-3 px-5 py-3 border-b border-white/[0.04] bg-white/[0.02]">
+        <h4 className="text-[11px] font-bold text-primary uppercase tracking-widest">{headerLabel}</h4>
+        <div className="flex-1" />
+        {/* Inline metadata pills */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-surface rounded-md border border-white/[0.06] px-1.5 py-1">
+            <input
+              type="text"
+              value={(currentDrill.repetitions || '').replace(/\s*(reps|min)$/i, '')}
+              onChange={e => {
+                const unit = (currentDrill.repetitions || '').match(/\s*(reps|min)$/i)?.[1] || 'reps';
+                setCurrentDrill({ ...currentDrill, repetitions: e.target.value ? `${e.target.value} ${unit}` : '' });
+              }}
+              className="w-10 bg-transparent text-[11px] font-bold text-on-surface text-center outline-none placeholder:text-on-surface-variant/40"
+              placeholder="3x6"
+            />
+            <select
+              value={(currentDrill.repetitions || '').match(/\s*(reps|min)$/i)?.[1] || 'reps'}
+              onChange={e => {
+                const num = (currentDrill.repetitions || '').replace(/\s*(reps|min)$/i, '').trim();
+                setCurrentDrill({ ...currentDrill, repetitions: num ? `${num} ${e.target.value}` : '' });
+              }}
+              className="bg-transparent text-[9px] font-bold text-accent outline-none cursor-pointer"
+            >
+              <option value="reps">reps</option>
+              <option value="min">min</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-1 bg-surface rounded-md border border-white/[0.06] px-1.5 py-1">
+            <Clock className="w-3 h-3 text-on-surface-variant/50" />
+            <input
+              type="text"
+              value={translateContent(currentDrill.duration)}
+              onChange={e => setCurrentDrill({ ...currentDrill, duration: e.target.value })}
+              className="w-12 bg-transparent text-[11px] font-bold text-on-surface text-center outline-none placeholder:text-on-surface-variant/40"
+              placeholder="15'"
+            />
+            <QuickSelect
+              options={getOptions('durations', PRESETS.durations)}
+              onSelect={(vals) => setCurrentDrill({ ...currentDrill, duration: vals.map(v => t(v)).join(' + ') })}
+              selectedValues={typeof currentDrill.duration === 'string' ? currentDrill.duration.split(' + ') : currentDrill.duration}
+              onDelete={(val) => removeCustomPreset('durations', val)}
+              isDeletable={(val) => !val.startsWith('#')}
+              onAdd={(val) => addCustomPreset('durations', val, [])}
+              onMove={(val) => moveCustomPreset('durations', val, '')}
             />
           </div>
+          <select
+            value={currentDrill.intensity}
+            onChange={e => setCurrentDrill({ ...currentDrill, intensity: e.target.value as Exercise['intensity'] })}
+            className={cn(
+              "text-[10px] font-bold rounded-md border px-2 py-1.5 outline-none cursor-pointer",
+              currentDrill.intensity === 'high' ? "bg-error/10 text-error border-error/20" :
+              currentDrill.intensity === 'medium' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
+              "bg-green-500/10 text-green-500 border-green-500/20"
+            )}
+          >
+            {PRESETS.intensities.map(intensity => (
+              <option key={intensity} value={intensity}>{t(intensity)}</option>
+            ))}
+          </select>
+        </div>
+        <button type="button" onClick={onCancel} className="text-on-surface-variant hover:text-error transition-colors ml-1">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
 
-          {/* UEFA A: Starting Point - only in main context, warmup shows it below */}
-          {context === 'main' && (
-            <div className="space-y-1">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('startingPoint')}</label>
-              <input
-                type="text"
-                value={translateContent(currentDrill.startingPoint)}
-                onChange={e => setCurrentDrill({ ...currentDrill, startingPoint: e.target.value })}
-                className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
-                placeholder="e.g. Pass from CB to Fullback..."
+      {/* ── Body ── */}
+      <div className="p-5 space-y-5">
+        {/* Row 1: Type + Title (+ Game Moment for warmup) */}
+        <div className="flex gap-3 items-end">
+          <div className="space-y-1 w-[130px] shrink-0">
+            <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('type')}</label>
+            <select value={currentDrill.type} onChange={e => setCurrentDrill({ ...currentDrill, type: e.target.value as Exercise['type'] })} className="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs">
+              {PRESETS.drillTypes.filter((t: any) => t !== 'warmup').map(type => (
+                <option key={type} value={type}>{t(type)}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1 flex-1">
+            <div className="flex items-center gap-2">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('drillTitle')}</label>
+              <QuickSelect
+                options={getOptions('drillTitles', PRESETS.drills.titles)}
+                onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
+                selectedValues={currentDrill.title ? [currentDrill.title] : []}
+                onDelete={(val) => removeCustomPreset('drillTitles', val)}
+                isDeletable={(val) => !val.startsWith('#')}
+                onAdd={(val) => addCustomPreset('drillTitles', val, [])}
+                onMove={(val) => moveCustomPreset('drillTitles', val, '')}
               />
             </div>
-          )}
+            <input
+              type="text"
+              value={translateContent(currentDrill.title)}
+              onChange={e => setCurrentDrill({ ...currentDrill, title: e.target.value })}
+              onBlur={() => context === 'main' && addCustomPreset('drillTitles', currentDrill.title, PRESETS.drills.titles)}
+              className="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs"
+            />
+          </div>
+          <div className="space-y-1 w-[180px] shrink-0">
+            <div className="flex items-center gap-2">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('gameMomentsLabel')}</label>
+              <QuickSelect
+                multiSelect={false}
+                selectedValues={currentDrill.gameMoment ? [currentDrill.gameMoment] : []}
+                options={getOptions('gameMoments', [
+                  'momentOrganizedDefense',
+                  'momentDefensiveTransition',
+                  'momentOrganizedAttack',
+                  'momentOffensiveTransition',
+                  'momentSetPieces'
+                ])}
+                onSelect={(vals) => setCurrentDrill({ ...currentDrill, gameMoment: vals[vals.length - 1] })}
+                onDelete={(val) => removeCustomPreset('gameMoments', val)}
+                isDeletable={(val) => !val.startsWith('#')}
+                onAdd={(val) => addCustomPreset('gameMoments', val, [])}
+                onMove={(val) => moveCustomPreset('gameMoments', val, '')}
+              />
+            </div>
+            <input
+              type="text"
+              readOnly
+              value={currentDrill.gameMoment ? t(currentDrill.gameMoment) : ''}
+              className="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs"
+              placeholder={t('select')}
+            />
+          </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        {/* Row 2: Main content grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Left column */}
+          <div className="space-y-3">
             <div className="space-y-1">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('duration')}</label>
-              <div className="flex gap-2">
-                <input type="text" value={translateContent(currentDrill.duration)} onChange={e => setCurrentDrill({ ...currentDrill, duration: e.target.value })} className="flex-1 bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs" />
+              <div className="flex items-center gap-2">
+                <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('objective')}</label>
                 <QuickSelect
-                  options={getOptions('durations', PRESETS.durations)}
-                  onSelect={(vals) => setCurrentDrill({ ...currentDrill, duration: vals.map(v => t(v)).join(' + ') })}
-                  selectedValues={typeof currentDrill.duration === 'string' ? currentDrill.duration.split(' + ') : currentDrill.duration}
-                  onDelete={(val) => removeCustomPreset('durations', val)}
+                  options={getOptions('drillObjectives', PRESETS.drills.objectives)}
+                  onSelect={(vals) => setCurrentDrill({ ...currentDrill, objective: vals.map(v => t(v)).join('\n') })}
+                  selectedValues={typeof currentDrill.objective === 'string' ? currentDrill.objective.split('\n') : currentDrill.objective}
+                  onDelete={(val) => removeCustomPreset('drillObjectives', val)}
                   isDeletable={(val) => !val.startsWith('#')}
-                  onAdd={(val) => addCustomPreset('durations', val, [])}
-                  onMove={(val) => moveCustomPreset('durations', val, '')}
+                  onAdd={(val) => addCustomPreset('drillObjectives', val, [])}
+                  onMove={(val) => moveCustomPreset('drillObjectives', val, '')}
                 />
               </div>
+              <textarea
+                value={translateContent(currentDrill.objective)}
+                onChange={e => setCurrentDrill({ ...currentDrill, objective: e.target.value })}
+                onBlur={() => addCustomPreset('drillObjectives', currentDrill.objective, PRESETS.drills.objectives)}
+                className="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs min-h-[52px]"
+              />
             </div>
-            <div className="space-y-1">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('intensity')}</label>
-              <select value={currentDrill.intensity} onChange={e => setCurrentDrill({ ...currentDrill, intensity: e.target.value as Exercise['intensity'] })} className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs">
-                {PRESETS.intensities.map(intensity => (
-                  <option key={intensity} value={intensity}>{t(intensity)}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-             {context === 'main' && (
-               <div className="space-y-1">
-                 <div className="flex items-center gap-2">
-                   <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('gameMomentsLabel')}</label>
-                   <QuickSelect
-                     multiSelect={false}
-                     selectedValues={currentDrill.gameMoment ? [currentDrill.gameMoment] : []}
-                     options={getOptions('gameMoments', [
-                       'momentOrganizedDefense',
-                       'momentDefensiveTransition',
-                       'momentOrganizedAttack',
-                       'momentOffensiveTransition',
-                       'momentSetPieces'
-                     ])}
-                     onSelect={(vals) => setCurrentDrill({ ...currentDrill, gameMoment: vals[vals.length - 1] })}
-                     onDelete={(val) => removeCustomPreset('gameMoments', val)}
-                     isDeletable={(val) => !val.startsWith('#')}
-                     onAdd={(val) => addCustomPreset('gameMoments', val, [])}
-                     onMove={(val) => moveCustomPreset('gameMoments', val, '')}
-                   />
-                 </div>
-                 <input
-                   type="text"
-                   readOnly
-                   value={currentDrill.gameMoment ? t(currentDrill.gameMoment) : ''}
-                   className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
-                   placeholder={t('select')}
-                 />
-               </div>
-             )}
-             <div className="space-y-1">
-               <div className="flex items-center gap-2">
-                 <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('tacticalPrinciplesLabel')}</label>
-                 <QuickSelect
-                   multiSelect={true}
-                   options={getOptions('tacticalPrinciples', PRESETS.tacticalPrinciples)}
-                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, tacticalPrinciples: vals })}
-                   selectedValues={currentDrill.tacticalPrinciples || []}
-                   onDelete={(val) => removeCustomPreset('tacticalPrinciples', val)}
-                   isDeletable={(val) => !val.startsWith('#')}
-                   onAdd={(val) => addCustomPreset('tacticalPrinciples', val, [])}
-                   onMove={(val) => moveCustomPreset('tacticalPrinciples', val, '')}
-                 />
-               </div>
-               <textarea
-                 value={translateContent(currentDrill.tacticalPrinciples)}
-                 onChange={e => setCurrentDrill({ ...currentDrill, tacticalPrinciples: e.target.value.split('\n') })}
-                 className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[40px]"
-                 placeholder={t('objectivePlaceholder')}
-               />
-             </div>
-          </div>
-
-          {context === 'main' && (
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('coachingPoints')}</label>
@@ -290,116 +203,40 @@ export const DrillForm: React.FC<DrillFormProps> = ({
               <textarea
                 value={translateContent(currentDrill.coachingPoints)}
                 onChange={e => setCurrentDrill({ ...currentDrill, coachingPoints: e.target.value })}
-                className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[80px]"
+                className="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs min-h-[52px]"
                 placeholder="Primary & Secondary KCPs..."
               />
             </div>
-          )}
+          </div>
 
-          <div className="space-y-1">
-            <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('diagram')}</label>
-            {context === 'warmup' ? (
-              <button
-                type="button"
-                onClick={onOpenTacticalBoard}
-                className={cn(
-                  "w-full h-32 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all",
-                  currentDrill.diagram ? "border-primary bg-primary/5" : "border-white/[0.06] hover:border-white/[0.06]"
-                )}
-              >
-                {currentDrill.diagram ? (
-                  <img src={currentDrill.diagram} alt="Diagram" className="h-full w-full object-contain p-2" referrerPolicy="no-referrer" />
-                ) : (
-                  <>
-                    <Target className="w-6 h-6 text-on-surface-variant" />
-                    <span className="text-[8px] font-bold uppercase">{t('designExercise')}</span>
-                  </>
-                )}
-              </button>
-            ) : (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={onOpenTacticalBoard}
-                  className={cn(
-                    "flex-1 h-32 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all",
-                    currentDrill.diagram ? "border-primary bg-primary/5" : "border-white/[0.06] hover:border-white/[0.06]"
-                  )}
-                >
-                  {currentDrill.diagram ? (
-                    <img src={currentDrill.diagram} alt="Diagram" className="h-full w-full object-contain p-2" referrerPolicy="no-referrer" />
-                  ) : (
-                    <>
-                      <Target className="w-6 h-6 text-on-surface-variant" />
-                      <span className="text-[8px] font-bold uppercase">{t('designExercise')}</span>
-                    </>
-                  )}
-                </button>
-                {onOpenLibrary && (
-                  <button
-                    type="button"
-                    onClick={onOpenLibrary}
-                    className="flex-1 h-32 border-2 border-dashed border-white/[0.06] rounded-lg text-on-surface-variant hover:border-secondary hover:text-secondary transition-all flex flex-col items-center justify-center gap-2"
-                  >
-                    <Library className="w-6 h-6" />
-                    <span className="text-[8px] font-bold uppercase tracking-widest">{t('fromLibrary')}</span>
-                  </button>
-                )}
+          {/* Right column */}
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('tacticalPrinciplesLabel')}</label>
+                <QuickSelect
+                  multiSelect={true}
+                  options={getOptions('tacticalPrinciples', PRESETS.tacticalPrinciples)}
+                  onSelect={(vals) => setCurrentDrill({ ...currentDrill, tacticalPrinciples: vals })}
+                  selectedValues={currentDrill.tacticalPrinciples || []}
+                  onDelete={(val) => removeCustomPreset('tacticalPrinciples', val)}
+                  isDeletable={(val) => !val.startsWith('#')}
+                  onAdd={(val) => addCustomPreset('tacticalPrinciples', val, [])}
+                  onMove={(val) => moveCustomPreset('tacticalPrinciples', val, '')}
+                />
               </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Warmup: Starting Point + Coaching Points side by side */}
-      {context === 'warmup' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('startingPoint')}</label>
-            <input
-              type="text"
-              value={translateContent(currentDrill.startingPoint)}
-              onChange={e => setCurrentDrill({ ...currentDrill, startingPoint: e.target.value })}
-              className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
-              placeholder="e.g. Pass from CB to Fullback..."
-            />
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('coachingPoints')}</label>
-            </div>
-            <textarea
-              value={translateContent(currentDrill.coachingPoints)}
-              onChange={e => setCurrentDrill({ ...currentDrill, coachingPoints: e.target.value })}
-              className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[40px]"
-              placeholder="Primary & Secondary KCPs..."
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('organization')}</label>
-              <QuickSelect
-                options={getOptions('drillOrganizations', PRESETS.drills.organizations)}
-                onSelect={(vals) => setCurrentDrill({ ...currentDrill, organization: vals.map(v => t(v)).join('\n') })}
-                selectedValues={typeof currentDrill.organization === 'string' ? currentDrill.organization.split('\n') : currentDrill.organization}
-                onDelete={(val) => removeCustomPreset('drillOrganizations', val)}
-                isDeletable={(val) => !val.startsWith('#')}
-                onAdd={(val) => addCustomPreset('drillOrganizations', val, [])}
-                onMove={(val) => moveCustomPreset('drillOrganizations', val, '')}
+              <textarea
+                value={translateContent(currentDrill.tacticalPrinciples)}
+                onChange={e => setCurrentDrill({ ...currentDrill, tacticalPrinciples: e.target.value.split('\n') })}
+                className="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs min-h-[52px]"
+                placeholder={t('objectivePlaceholder')}
               />
             </div>
-            <textarea
-              value={translateContent(currentDrill.organization)}
-              onChange={e => setCurrentDrill({ ...currentDrill, organization: e.target.value })}
-              onBlur={() => addCustomPreset('drillOrganizations', currentDrill.organization, PRESETS.drills.organizations)}
-              className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[60px]"
-            />
           </div>
+        </div>
+
+        {/* Row 3: Execution + Progression */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('execution')}</label>
@@ -418,12 +255,10 @@ export const DrillForm: React.FC<DrillFormProps> = ({
               value={translateContent(currentDrill.execution)}
               onChange={e => setCurrentDrill({ ...currentDrill, execution: e.target.value })}
               onBlur={() => addCustomPreset('drillExecutions', currentDrill.execution, PRESETS.drills.executions)}
-              className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[60px]"
+              className="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs min-h-[52px]"
             />
           </div>
-        </div>
-        {context === 'main' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {context === 'main' && (
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('progression')}</label>
@@ -441,34 +276,48 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                 value={translateContent(currentDrill.progression)}
                 onChange={e => setCurrentDrill({ ...currentDrill, progression: e.target.value })}
                 onBlur={() => addCustomPreset('drillProgressions', currentDrill.progression, PRESETS.drills.progressions)}
-                className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[60px]"
+                className="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs min-h-[52px]"
               />
             </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('successCriteria')}</label>
-                <QuickSelect
-                  options={getOptions('drillSuccessCriteria', PRESETS.drills.successCriteria)}
-                  onSelect={(vals) => setCurrentDrill({ ...currentDrill, successCriteria: vals.map(v => t(v)).join('\n') })}
-                  selectedValues={typeof currentDrill.successCriteria === 'string' ? currentDrill.successCriteria.split('\n') : currentDrill.successCriteria}
-                  onDelete={(val) => removeCustomPreset('drillSuccessCriteria', val)}
-                  isDeletable={(val) => !val.startsWith('#')}
-                  onAdd={(val) => addCustomPreset('drillSuccessCriteria', val, [])}
-                  onMove={(val) => moveCustomPreset('drillSuccessCriteria', val, '')}
-                />
-              </div>
-              <textarea
-                value={translateContent(currentDrill.successCriteria)}
-                onChange={e => setCurrentDrill({ ...currentDrill, successCriteria: e.target.value })}
-                onBlur={() => addCustomPreset('drillSuccessCriteria', currentDrill.successCriteria, PRESETS.drills.successCriteria)}
-                className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[60px]"
-              />
-            </div>
+          )}
+        </div>
+        {/* Diagram — full width */}
+        <div className="space-y-1">
+          <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('diagram')}</label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onOpenTacticalBoard}
+              className={cn(
+                "flex-1 h-24 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-all",
+                currentDrill.diagram ? "border-primary bg-primary/5" : "border-white/[0.06] hover:border-white/[0.1]"
+              )}
+            >
+              {currentDrill.diagram ? (
+                <img src={currentDrill.diagram} alt="Diagram" className="h-full w-full object-contain p-1.5" referrerPolicy="no-referrer" />
+              ) : (
+                <>
+                  <Target className="w-5 h-5 text-on-surface-variant" />
+                  <span className="text-[8px] font-bold uppercase">{t('designExercise')}</span>
+                </>
+              )}
+            </button>
+            {onOpenLibrary && (
+              <button
+                type="button"
+                onClick={onOpenLibrary}
+                className="flex-1 h-24 border-2 border-dashed border-white/[0.06] rounded-lg text-on-surface-variant hover:border-secondary hover:text-secondary transition-all flex flex-col items-center justify-center gap-1.5"
+              >
+                <Library className="w-5 h-5" />
+                <span className="text-[8px] font-bold uppercase tracking-widest">{t('fromLibrary')}</span>
+              </button>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-white/[0.04]">
+      {/* ── Footer actions ── */}
+      <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-white/[0.04] bg-white/[0.01]">
         <button
           type="button"
           onClick={async () => {
@@ -478,14 +327,14 @@ export const DrillForm: React.FC<DrillFormProps> = ({
             }
             await onSave();
           }}
-          className="flex items-center justify-center gap-2 text-[10px] font-bold text-primary hover:text-primary-dim uppercase tracking-widest transition-all"
+          className="flex items-center gap-1.5 text-[10px] font-bold text-primary hover:text-primary-dim uppercase tracking-widest transition-all"
         >
-          <Library className="w-4 h-4" />
+          <Library className="w-3.5 h-3.5" />
           {t('saveToLibrary')}
         </button>
-        <div className="flex items-center gap-3 justify-end">
-          <button type="button" onClick={onCancel} className="px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-white/[0.03] rounded transition-all">{t('discard')}</button>
-          <button type="button" onClick={onSave} className="bg-primary text-on-primary px-6 py-2 rounded text-xs font-bold uppercase tracking-widest hover:bg-primary-dim transition-all active:scale-95 shadow-lg shadow-primary/20">{editingDrillId ? t('saveChanges') : t('addExerciseToSession')}</button>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={onCancel} className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest hover:bg-white/[0.03] rounded transition-all">{t('discard')}</button>
+          <button type="button" onClick={onSave} className="bg-primary text-on-primary px-5 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-primary-dim transition-all active:scale-95 shadow-lg shadow-primary/20">{editingDrillId ? t('saveChanges') : t('addExerciseToSession')}</button>
         </div>
       </div>
     </div>

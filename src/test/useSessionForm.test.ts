@@ -89,7 +89,7 @@ function makeMinimalSession(): Omit<TrainingSession, 'id'> {
 function makeExercise(overrides: Partial<Exercise> = {}): Exercise {
   return {
     id: 'ex-1',
-    type: 'analytical',
+    type: 'shotStopping',
     title: 'Diving Save',
     objective: ['react to low shot'],
     organization: ['2 posts, 1 server'],
@@ -377,7 +377,7 @@ describe('useSessionForm — handleAddSession (Save Session button)', () => {
       const { result } = renderSessionForm();
 
       const warmupDrill = makeExercise({ id: 'w1', type: 'warmup', title: 'Ladder Footwork' });
-      const mainDrill = makeExercise({ id: 'e1', type: 'analytical', title: 'Low Dive' });
+      const mainDrill = makeExercise({ id: 'e1', type: 'shotStopping', title: 'Low Dive' });
 
       act(() => {
         result.current.setNewSession({
@@ -552,7 +552,7 @@ describe('useSessionForm — handleAddSession (Save Session button)', () => {
       act(() => {
         result.current.setDrillContext('main');
         result.current.setCurrentDrill({
-          type: 'analytical',
+          type: 'shotStopping',
           title: 'High Ball Catch',
           objective: ['catch high ball'],
           organization: ['box + server'],
@@ -604,7 +604,7 @@ describe('useSessionForm — handleAddSession (Save Session button)', () => {
       act(() => {
         result.current.setIsAddingDrill(true);
         result.current.setCurrentDrill({
-          type: 'analytical',
+          type: 'shotStopping',
           title: 'Penalty Save',
           objective: [],
           organization: [],

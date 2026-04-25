@@ -202,6 +202,8 @@ export const pt = {
     progCategoryPressure: 'Oposição & Pressão',
     progCategoryConstraints: 'Regras & Restrições',
     moveTo: 'Mover para...',
+    selectCategory: 'Escolher área',
+    noCategorySpecial: 'Sem categoria',
 
     // Session Templates
     shotStoppingCentralAngled: 'Defesas (Centrais & Anguladas)',

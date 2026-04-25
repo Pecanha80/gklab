@@ -83,11 +83,8 @@ export const QuickSelect = ({
     const value = typeof opt === 'string' ? opt : opt.value;
     const isHeader = typeof opt === 'string' ? value.startsWith('#') : !!(opt as { isHeader?: boolean }).isHeader;
     if (isHeader) return true;
-    let optLabel = typeof opt === 'string' ? (isHeader ? t(value.replace('# ', '')) : t(opt)) : opt.label;
-    // Strip [category] prefix if present
-    if (typeof opt === 'string' && optLabel.startsWith('[')) {
-      optLabel = optLabel.replace(/^\[.*?\]/, '');
-    }
+    const rawKey = typeof opt === 'string' ? opt.replace(/^\[.*?\]/, '') : '';
+    let optLabel = typeof opt === 'string' ? t(rawKey) : opt.label;
     return optLabel.toLowerCase().includes(searchTerm.toLowerCase()) ||
            value.toLowerCase().includes(searchTerm.toLowerCase());
   });
@@ -215,7 +212,7 @@ export const QuickSelect = ({
                         {activePicker === 'move' ? (t('moveTo') || 'Mover para') : (t('selectCategory') || 'Escolher área')}
                       </p>
                       <p className="text-[9px] text-on-surface-variant truncate">
-                        "{pickerValue}"
+                        "{pickerValue ? t(pickerValue.replace(/^\[.*?\]/, '')) : ''}"
                       </p>
                     </div>
                     <div className="overflow-y-auto max-h-[300px]">
@@ -291,11 +288,15 @@ export const QuickSelect = ({
                           {filteredOptions.map((opt, idx) => {
                             const value = typeof opt === 'string' ? opt : opt.value;
                             const isHeader = typeof opt === 'string' ? value.startsWith('# ') : !!(opt as { isHeader?: boolean }).isHeader;
-                            let optLabel = typeof opt === 'string' ? (isHeader ? t(value.replace('# ', '')) : t(opt)) : opt.label;
-
-                            // Strip [category] prefix if present for display
-                            if (typeof opt === 'string' && !isHeader && optLabel.startsWith('[')) {
-                              optLabel = optLabel.replace(/^\[.*?\]/, '');
+                            let optLabel: string;
+                            if (typeof opt !== 'string') {
+                              optLabel = opt.label;
+                            } else if (isHeader) {
+                              optLabel = t(value.replace('# ', ''));
+                            } else {
+                              // Strip [category] prefix before translating
+                              const rawKey = opt.replace(/^\[.*?\]/, '');
+                              optLabel = t(rawKey);
                             }
 
                             if (isHeader) {

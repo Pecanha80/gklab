@@ -183,6 +183,8 @@ export const en = {
     progCategoryPressure: 'Opposition & Pressure',
     progCategoryConstraints: 'Rules & Constraints',
     moveTo: 'Move to...',
+    selectCategory: 'Choose area',
+    noCategorySpecial: 'No category',
 
     // Session Templates
     shotStoppingCentralAngled: 'Shot Stopping (Central & Angled)',

@@ -165,7 +165,72 @@ export function useCustomPresets() {
     const safDefaults = defaultOptions ?? [];
     const custom = customPresets[k] || [];
     const deleted = customPresets.deletedDefaults || [];
-    return [...safDefaults.filter(opt => !deleted.includes(opt)), ...custom];
+
+    const filteredDefaults = safDefaults.filter(opt => !deleted.includes(opt));
+
+    // Separate custom items: those with [category] prefix go into their category section
+    const categorized: Record<string, string[]> = {};
+    const uncategorized: string[] = [];
+    for (const item of custom) {
+      const match = item.match(/^\[(.+?)\]/);
+      if (match) {
+        const cat = match[1];
+        if (!categorized[cat]) categorized[cat] = [];
+        categorized[cat].push(item);
+      } else {
+        uncategorized.push(item);
+      }
+    }
+
+    // If no categorized items, just append all custom at the end
+    if (Object.keys(categorized).length === 0) {
+      return [...filteredDefaults, ...custom];
+    }
+
+    // Insert categorized items after their corresponding header's last item
+    const rebuilt: string[] = [];
+    for (let i = 0; i < filteredDefaults.length; i++) {
+      const opt = filteredDefaults[i];
+      const isHeader = opt.startsWith('# ');
+      const nextOpt = filteredDefaults[i + 1];
+      const nextIsHeader = nextOpt?.startsWith('# ');
+
+      // If current is a header and next is also a header (empty category), insert after header
+      if (isHeader) {
+        rebuilt.push(opt);
+        const cat = opt.replace('# ', '');
+        if (categorized[cat]) {
+          // If next is also a header or end, insert categorized items here
+          if (!nextOpt || nextIsHeader) {
+            rebuilt.push(...categorized[cat]);
+            delete categorized[cat];
+          }
+        }
+        continue;
+      }
+
+      rebuilt.push(opt);
+
+      // If this is the last non-header item before a header or end, insert categorized items
+      if (!nextOpt || nextIsHeader) {
+        // Find which category this item belongs to
+        // Walk backwards to find the header
+        for (let j = i - 1; j >= 0; j--) {
+          if (filteredDefaults[j].startsWith('# ')) {
+            const cat = filteredDefaults[j].replace('# ', '');
+            if (categorized[cat]) {
+              rebuilt.push(...categorized[cat]);
+              delete categorized[cat];
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    // Append any remaining categorized items (no matching header found) and uncategorized
+    const remaining = Object.values(categorized).flat();
+    return [...rebuilt, ...remaining, ...uncategorized];
   };
 
   const addCustomPreset = (key: PresetKey, value: string | string[], defaultOptions: readonly string[], category?: string) => {
@@ -208,16 +273,32 @@ export function useCustomPresets() {
     const actualText = value.replace(/^\[.*?\]/, '');
     const newValue = newCategory ? `[${newCategory}]${actualText}` : actualText;
 
-    const updated = {
-      ...customPresets,
-      [k]: existing.map(v => {
-        const vText = v.replace(/^\[.*?\]/, '').trim();
-        return (v.trim() === value.trim() || vText === actualText.trim()) ? newValue : v;
-      })
-    };
+    const isCustom = existing.some(v => {
+      const vText = v.replace(/^\[.*?\]/, '').trim();
+      return v.trim() === value.trim() || vText === actualText.trim();
+    });
 
-    setCustomPresets(updated);
-    persistToSupabase(updated);
+    if (isCustom) {
+      // Move within custom presets
+      const updated = {
+        ...customPresets,
+        [k]: existing.map(v => {
+          const vText = v.replace(/^\[.*?\]/, '').trim();
+          return (v.trim() === value.trim() || vText === actualText.trim()) ? newValue : v;
+        })
+      };
+      setCustomPresets(updated);
+      persistToSupabase(updated);
+    } else {
+      // Moving a default preset: mark original as deleted, add as custom with new category
+      const updated = {
+        ...customPresets,
+        deletedDefaults: [...(customPresets.deletedDefaults || []), value],
+        [k]: [...existing, newValue]
+      };
+      setCustomPresets(updated);
+      persistToSupabase(updated);
+    }
   };
 
   return { customPresets, isLoading, getOptions, addCustomPreset, removeCustomPreset, moveCustomPreset };

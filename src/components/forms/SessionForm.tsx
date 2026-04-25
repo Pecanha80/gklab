@@ -310,7 +310,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                   {(['technical', 'tactical', 'physical', 'cognitive'] as const).map((objKey) => (
                     <div key={objKey} className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <label className="text-[9px] text-on-surface-variant uppercase font-label">{t(objKey)}</label>
+                        <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t(objKey)}</label>
                         <QuickSelect
                           options={getOptions(objKey, PRESETS.objectives[objKey])}
                           onSelect={(val) => setNewSession({
@@ -343,18 +343,18 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
               <Section title={t('sectionWarmUp')} icon={Clock} accentColor="bg-orange-500">
                 <div className="space-y-4">
                   {newSession.warmup.map((drill, idx) => (
-                    <div key={drill.id} className="bg-surface-elevated p-4 rounded-lg border border-white/[0.06] relative group">
-                      <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button type="button" onClick={() => handleEditDrill(drill, 'warmup')} className="text-on-surface-variant hover:text-primary">
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button type="button" onClick={() => handleRemoveDrill(drill.id)} className="text-on-surface-variant hover:text-error">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                    <div key={drill.id} className="bg-surface-elevated p-4 rounded-lg border border-white/[0.06] group">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="bg-primary/20 text-primary text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-widest">{t(drill.type)}</span>
                         <h5 className="text-sm font-bold text-on-surface">{idx + 1}. {t(drill.title)}</h5>
+                        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
+                          <button type="button" onClick={() => handleEditDrill(drill, 'warmup')} className="text-on-surface-variant hover:text-primary p-0.5">
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" onClick={() => handleRemoveDrill(drill.id)} className="text-on-surface-variant hover:text-error p-0.5">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                         <span className="text-[10px] text-on-surface-variant ml-auto flex items-center"><Clock className="w-3 h-3 mr-1" /> {tField(drill.duration)}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-[10px]">
@@ -417,18 +417,18 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
               <Section title={t('mainPartExercises')} icon={Dumbbell} accentColor="bg-red-500">
                 <div className="space-y-4">
                   {newSession.exercises.map((drill, idx) => (
-                    <div key={drill.id} className="bg-surface-elevated p-4 rounded-lg border border-white/[0.06] relative group">
-                      <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button type="button" onClick={() => handleEditDrill(drill, 'main')} className="text-on-surface-variant hover:text-primary">
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button type="button" onClick={() => handleRemoveDrill(drill.id)} className="text-on-surface-variant hover:text-error">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                    <div key={drill.id} className="bg-surface-elevated p-4 rounded-lg border border-white/[0.06] group">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="bg-primary/20 text-primary text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-widest">{t(drill.type)}</span>
                         <h5 className="text-sm font-bold text-on-surface">{idx + 1}. {t(drill.title)}</h5>
+                        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
+                          <button type="button" onClick={() => handleEditDrill(drill, 'main')} className="text-on-surface-variant hover:text-primary p-0.5">
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" onClick={() => handleRemoveDrill(drill.id)} className="text-on-surface-variant hover:text-error p-0.5">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                         <span className="text-[10px] text-on-surface-variant ml-auto flex items-center"><Clock className="w-3 h-3 mr-1" /> {tField(drill.duration)}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-[10px]">
@@ -502,7 +502,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                           <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-2">
-                              <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('format')}</label>
+                              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('format')}</label>
                               <QuickSelect
                                       options={getOptions('integratedFormats', PRESETS.integrated.formats)}
                                 onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, format: vals.map(v => t(v)).join(', ') } : i) }))}
@@ -522,7 +522,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                           </div>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('number')}</label>
+                            <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('number')}</label>
                             <QuickSelect
                                   options={getOptions('integratedNumbers', PRESETS.integrated.numbers)}
                               onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, number: vals.map(v => t(v)).join(', ') } : i) }))}
@@ -542,7 +542,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                         </div>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('space')}</label>
+                            <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('space')}</label>
                             <QuickSelect
                                   options={getOptions('integratedSpaces', PRESETS.integrated.spaces)}
                               onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, space: vals.map(v => t(v)).join(', ') } : i) }))}
@@ -563,7 +563,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                         </div>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('time')}</label>
+                            <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('time')}</label>
                             <QuickSelect
                                   options={getOptions('integratedTimes', PRESETS.integrated.times)}
                               onSelect={(vals) => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, time: vals.map(v => t(v)).join(', ') } : i) }))}
@@ -599,7 +599,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
               <Section title={t('sectionCoolDown')} icon={Wind} accentColor="bg-cyan-500">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('coolDownExercises')}</label>
+                    <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('coolDownExercises')}</label>
                     <QuickSelect
                       options={getOptions('coolDowns', PRESETS.coolDowns)}
                       onSelect={(vals) => setNewSession({ ...newSession, coolDown: vals.map(v => t(v)).join('\n') })}
@@ -629,7 +629,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('positivePoints')}</label>
+                          <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('positivePoints')}</label>
                           <QuickSelect
                               options={getOptions('obsPositives', PRESETS.observations.positives)}
                             onSelect={(vals) => setNewSession({ ...newSession, observations: { ...newSession.observations, positives: vals.map(v => t(v)).join('\n') } })}
@@ -652,7 +652,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('adjustmentsForNext')}</label>
+                          <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('adjustmentsForNext')}</label>
                           <QuickSelect
                               options={getOptions('obsAdjustments', PRESETS.observations.adjustments)}
                             onSelect={(vals) => setNewSession({ ...newSession, observations: { ...newSession.observations, adjustments: vals.map(v => t(v)).join('\n') } })}

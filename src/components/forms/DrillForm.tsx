@@ -47,13 +47,13 @@ export const DrillForm: React.FC<DrillFormProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
+        <div className={cn("space-y-4", context === 'warmup' && "space-y-3")}>
           {context === 'warmup' ? (
             <>
-              {/* Warmup: title first, then type */}
+              {/* Warmup: title first, then type + starting point side by side */}
               <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('drillTitle')}</label>
+                <div className="flex items-center gap-2">
+                  <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('drillTitle')}</label>
                   <QuickSelect
                     options={getOptions('drillTitles', PRESETS.drills.titles)}
                     onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
@@ -66,23 +66,53 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                 </div>
                 <input type="text" value={translateContent(currentDrill.title)} onChange={e => setCurrentDrill({ ...currentDrill, title: e.target.value })} className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs" />
               </div>
-              <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('type')}</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('type')}</label>
+                  </div>
+                  <select value={currentDrill.type} onChange={e => setCurrentDrill({ ...currentDrill, type: e.target.value as Exercise['type'] })} className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs">
+                    {PRESETS.drillTypes.filter((t: any) => t !== 'warmup').map(type => (
+                      <option key={type} value={type}>{t(type)}</option>
+                    ))}
+                  </select>
                 </div>
-                <select value={currentDrill.type} onChange={e => setCurrentDrill({ ...currentDrill, type: e.target.value as Exercise['type'] })} className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs">
-                  {PRESETS.drillTypes.filter((t: any) => t !== 'warmup').map(type => (
-                    <option key={type} value={type}>{t(type)}</option>
-                  ))}
-                </select>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('gameMomentsLabel')}</label>
+                    <QuickSelect
+                      multiSelect={false}
+                      selectedValues={currentDrill.gameMoment ? [currentDrill.gameMoment] : []}
+                      options={getOptions('gameMoments', [
+                        'momentOrganizedDefense',
+                        'momentDefensiveTransition',
+                        'momentOrganizedAttack',
+                        'momentOffensiveTransition',
+                        'momentSetPieces'
+                      ])}
+                      onSelect={(vals) => setCurrentDrill({ ...currentDrill, gameMoment: vals[vals.length - 1] })}
+                      onDelete={(val) => removeCustomPreset('gameMoments', val)}
+                      isDeletable={(val) => !val.startsWith('#')}
+                      onAdd={(val) => addCustomPreset('gameMoments', val, [])}
+                      onMove={(val) => moveCustomPreset('gameMoments', val, '')}
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    readOnly
+                    value={currentDrill.gameMoment ? t(currentDrill.gameMoment) : ''}
+                    className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
+                    placeholder={t('select')}
+                  />
+                </div>
               </div>
             </>
           ) : (
             <>
               {/* Main: type first, then title */}
               <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('type')}</label>
+                <div className="flex items-center gap-2">
+                  <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('type')}</label>
                 </div>
                 <select value={currentDrill.type} onChange={e => setCurrentDrill({ ...currentDrill, type: e.target.value as Exercise['type'] })} className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs">
                   {PRESETS.drillTypes.filter((t: any) => t !== 'warmup').map(type => (
@@ -91,8 +121,8 @@ export const DrillForm: React.FC<DrillFormProps> = ({
                 </select>
               </div>
               <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('drillTitle')}</label>
+                <div className="flex items-center gap-2">
+                  <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('drillTitle')}</label>
                   <QuickSelect
                     options={getOptions('drillTitles', PRESETS.drills.titles)}
                     onSelect={(vals) => applyDrillTemplate(vals[vals.length - 1])}
@@ -114,28 +144,30 @@ export const DrillForm: React.FC<DrillFormProps> = ({
             </>
           )}
           
-          <div className="space-y-1">
-            <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('category')}</label>
-            <div className="flex flex-wrap gap-1">
-              {PRESETS.drillCategories.map(cap => (
-                <button
-                  key={cap}
-                  type="button"
-                  onClick={() => setCurrentDrill({ ...currentDrill, category: cap })}
-                  className={cn(
-                    "px-3 py-1.5 rounded text-[8px] font-bold border transition-all",
-                    currentDrill.category === cap ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface border-white/[0.04] text-on-surface-variant"
-                  )}
-                >
-                  {t(cap)}
-                </button>
-              ))}
+          {context === 'main' && (
+            <div className="space-y-1">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('category')}</label>
+              <div className="flex flex-wrap gap-1">
+                {PRESETS.drillCategories.map(cap => (
+                  <button
+                    key={cap}
+                    type="button"
+                    onClick={() => setCurrentDrill({ ...currentDrill, category: cap })}
+                    className={cn(
+                      "px-3 py-1.5 rounded text-[8px] font-bold border transition-all",
+                      currentDrill.category === cap ? "bg-secondary/20 border-secondary text-secondary" : "bg-surface border-white/[0.04] text-on-surface-variant"
+                    )}
+                  >
+                    {t(cap)}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="space-y-1">
-            <div className="flex justify-between items-center">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('objective')}</label>
+            <div className="flex items-center gap-2">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('objective')}</label>
               <QuickSelect
                 options={getOptions('drillObjectives', PRESETS.drills.objectives)}
                 onSelect={(vals) => setCurrentDrill({ ...currentDrill, objective: vals.map(v => t(v)).join('\n') })}
@@ -154,23 +186,25 @@ export const DrillForm: React.FC<DrillFormProps> = ({
             />
           </div>
 
-          {/* UEFA A: Starting Point */}
-          <div className="space-y-1">
-            <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('startingPoint')}</label>
-            <input 
-              type="text" 
-              value={translateContent(currentDrill.startingPoint)} 
-              onChange={e => setCurrentDrill({ ...currentDrill, startingPoint: e.target.value })} 
-              className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
-              placeholder="e.g. Pass from CB to Fullback..."
-            />
-          </div>
+          {/* UEFA A: Starting Point - only in main context, warmup shows it below */}
+          {context === 'main' && (
+            <div className="space-y-1">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('startingPoint')}</label>
+              <input
+                type="text"
+                value={translateContent(currentDrill.startingPoint)}
+                onChange={e => setCurrentDrill({ ...currentDrill, startingPoint: e.target.value })}
+                className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
+                placeholder="e.g. Pass from CB to Fullback..."
+              />
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('duration')}</label>
+              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('duration')}</label>
               <div className="flex gap-2">
                 <input type="text" value={translateContent(currentDrill.duration)} onChange={e => setCurrentDrill({ ...currentDrill, duration: e.target.value })} className="flex-1 bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs" />
                 <QuickSelect
@@ -185,7 +219,7 @@ export const DrillForm: React.FC<DrillFormProps> = ({
               </div>
             </div>
             <div className="space-y-1">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('intensity')}</label>
+              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('intensity')}</label>
               <select value={currentDrill.intensity} onChange={e => setCurrentDrill({ ...currentDrill, intensity: e.target.value as Exercise['intensity'] })} className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs">
                 {PRESETS.intensities.map(intensity => (
                   <option key={intensity} value={intensity}>{t(intensity)}</option>
@@ -195,37 +229,39 @@ export const DrillForm: React.FC<DrillFormProps> = ({
           </div>
 
           <div className="space-y-1">
-             <div className="space-y-1">
-               <div className="flex justify-between items-center">
-                 <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('gameMomentsLabel')}</label>
-                 <QuickSelect
-                   multiSelect={false}
-                   selectedValues={currentDrill.gameMoment ? [currentDrill.gameMoment] : []}
-                   options={getOptions('gameMoments', [
-                     'momentOrganizedDefense',
-                     'momentDefensiveTransition',
-                     'momentOrganizedAttack',
-                     'momentOffensiveTransition',
-                     'momentSetPieces'
-                   ])}
-                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, gameMoment: vals[vals.length - 1] })}
-                   onDelete={(val) => removeCustomPreset('gameMoments', val)}
-                   isDeletable={(val) => !val.startsWith('#')}
-                   onAdd={(val) => addCustomPreset('gameMoments', val, [])}
-                   onMove={(val) => moveCustomPreset('gameMoments', val, '')}
+             {context === 'main' && (
+               <div className="space-y-1">
+                 <div className="flex items-center gap-2">
+                   <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('gameMomentsLabel')}</label>
+                   <QuickSelect
+                     multiSelect={false}
+                     selectedValues={currentDrill.gameMoment ? [currentDrill.gameMoment] : []}
+                     options={getOptions('gameMoments', [
+                       'momentOrganizedDefense',
+                       'momentDefensiveTransition',
+                       'momentOrganizedAttack',
+                       'momentOffensiveTransition',
+                       'momentSetPieces'
+                     ])}
+                     onSelect={(vals) => setCurrentDrill({ ...currentDrill, gameMoment: vals[vals.length - 1] })}
+                     onDelete={(val) => removeCustomPreset('gameMoments', val)}
+                     isDeletable={(val) => !val.startsWith('#')}
+                     onAdd={(val) => addCustomPreset('gameMoments', val, [])}
+                     onMove={(val) => moveCustomPreset('gameMoments', val, '')}
+                   />
+                 </div>
+                 <input
+                   type="text"
+                   readOnly
+                   value={currentDrill.gameMoment ? t(currentDrill.gameMoment) : ''}
+                   className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
+                   placeholder={t('select')}
                  />
                </div>
-               <input
-                 type="text"
-                 readOnly
-                 value={currentDrill.gameMoment ? t(currentDrill.gameMoment) : ''}
-                 className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
-                 placeholder={t('select')}
-               />
-             </div>
+             )}
              <div className="space-y-1">
-               <div className="flex justify-between items-center">
-                 <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('tacticalPrinciplesLabel')}</label>
+               <div className="flex items-center gap-2">
+                 <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('tacticalPrinciplesLabel')}</label>
                  <QuickSelect
                    multiSelect={true}
                    options={getOptions('tacticalPrinciples', PRESETS.tacticalPrinciples)}
@@ -246,20 +282,22 @@ export const DrillForm: React.FC<DrillFormProps> = ({
              </div>
           </div>
 
-          <div className="space-y-1">
-            <div className="flex justify-between items-center">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('coachingPoints')}</label>
+          {context === 'main' && (
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('coachingPoints')}</label>
+              </div>
+              <textarea
+                value={translateContent(currentDrill.coachingPoints)}
+                onChange={e => setCurrentDrill({ ...currentDrill, coachingPoints: e.target.value })}
+                className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[80px]"
+                placeholder="Primary & Secondary KCPs..."
+              />
             </div>
-            <textarea
-              value={translateContent(currentDrill.coachingPoints)}
-              onChange={e => setCurrentDrill({ ...currentDrill, coachingPoints: e.target.value })}
-              className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[80px]"
-              placeholder="Primary & Secondary KCPs..."
-            />
-          </div>
+          )}
 
           <div className="space-y-1">
-            <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('diagram')}</label>
+            <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('diagram')}</label>
             {context === 'warmup' ? (
               <button
                 type="button"
@@ -313,11 +351,38 @@ export const DrillForm: React.FC<DrillFormProps> = ({
         </div>
       </div>
 
+      {/* Warmup: Starting Point + Coaching Points side by side */}
+      {context === 'warmup' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('startingPoint')}</label>
+            <input
+              type="text"
+              value={translateContent(currentDrill.startingPoint)}
+              onChange={e => setCurrentDrill({ ...currentDrill, startingPoint: e.target.value })}
+              className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs"
+              placeholder="e.g. Pass from CB to Fullback..."
+            />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('coachingPoints')}</label>
+            </div>
+            <textarea
+              value={translateContent(currentDrill.coachingPoints)}
+              onChange={e => setCurrentDrill({ ...currentDrill, coachingPoints: e.target.value })}
+              className="w-full bg-surface border border-white/[0.04] rounded px-3 py-2 text-xs min-h-[40px]"
+              placeholder="Primary & Secondary KCPs..."
+            />
+          </div>
+        </div>
+      )}
+
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <div className="flex justify-between items-center">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('organization')}</label>
+            <div className="flex items-center gap-2">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('organization')}</label>
               <QuickSelect
                 options={getOptions('drillOrganizations', PRESETS.drills.organizations)}
                 onSelect={(vals) => setCurrentDrill({ ...currentDrill, organization: vals.map(v => t(v)).join('\n') })}
@@ -336,8 +401,8 @@ export const DrillForm: React.FC<DrillFormProps> = ({
             />
           </div>
           <div className="space-y-1">
-            <div className="flex justify-between items-center">
-              <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('execution')}</label>
+            <div className="flex items-center gap-2">
+              <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('execution')}</label>
               <QuickSelect
                 options={getOptions('drillExecutions', PRESETS.drills.executions)}
                 onSelect={(vals) => setCurrentDrill({ ...currentDrill, execution: vals.map(v => t(v)).join('\n') })}
@@ -360,8 +425,8 @@ export const DrillForm: React.FC<DrillFormProps> = ({
         {context === 'main' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <div className="flex justify-between items-center">
-                <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('progression')}</label>
+              <div className="flex items-center gap-2">
+                <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('progression')}</label>
                 <QuickSelect
                   options={getOptions('drillProgressions', PRESETS.drills.progressions)}
                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, progression: vals.map(v => t(v)).join('\n') })}
@@ -380,8 +445,8 @@ export const DrillForm: React.FC<DrillFormProps> = ({
               />
             </div>
             <div className="space-y-1">
-              <div className="flex justify-between items-center">
-                <label className="text-[9px] text-on-surface-variant uppercase font-label">{t('successCriteria')}</label>
+              <div className="flex items-center gap-2">
+                <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('successCriteria')}</label>
                 <QuickSelect
                   options={getOptions('drillSuccessCriteria', PRESETS.drills.successCriteria)}
                   onSelect={(vals) => setCurrentDrill({ ...currentDrill, successCriteria: vals.map(v => t(v)).join('\n') })}
@@ -403,7 +468,7 @@ export const DrillForm: React.FC<DrillFormProps> = ({
         )}
       </div>
 
-      <div className="flex justify-between items-center pt-4 border-t border-white/[0.04]">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-white/[0.04]">
         <button
           type="button"
           onClick={async () => {
@@ -413,12 +478,12 @@ export const DrillForm: React.FC<DrillFormProps> = ({
             }
             await onSave();
           }}
-          className="flex items-center gap-2 text-[10px] font-bold text-primary hover:text-primary-dim uppercase tracking-widest transition-all"
+          className="flex items-center justify-center gap-2 text-[10px] font-bold text-primary hover:text-primary-dim uppercase tracking-widest transition-all"
         >
           <Library className="w-4 h-4" />
           {t('saveToLibrary')}
         </button>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3 justify-end">
           <button type="button" onClick={onCancel} className="px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-white/[0.03] rounded transition-all">{t('discard')}</button>
           <button type="button" onClick={onSave} className="bg-primary text-on-primary px-6 py-2 rounded text-xs font-bold uppercase tracking-widest hover:bg-primary-dim transition-all active:scale-95 shadow-lg shadow-primary/20">{editingDrillId ? t('saveChanges') : t('addExerciseToSession')}</button>
         </div>

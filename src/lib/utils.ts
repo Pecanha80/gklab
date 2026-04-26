@@ -58,6 +58,27 @@ export const CATEGORY_LABEL_KEYS: Record<string, string> = {
   academy: 'academy',
 };
 
+/** Calculate age from birth date string (YYYY-MM-DD). */
+export function calculateAge(birthDate: string | undefined): number | null {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
+/** Determine load zone from load percentage. */
+export function getLoadZone(load: number): 'low' | 'optimal' | 'high' {
+  return load <= 40 ? 'low' : load <= 70 ? 'optimal' : 'high';
+}
+
+/** Color class for load zone dot. */
+export function getLoadZoneColor(zone: 'low' | 'optimal' | 'high'): string {
+  return zone === 'low' ? 'bg-blue-500' : zone === 'optimal' ? 'bg-tertiary' : 'bg-error';
+}
+
 /** Complete goalkeeper status labels (translation keys). */
 export const STATUS_LABEL_KEYS: Record<string, string> = {
   Ready: 'ready',

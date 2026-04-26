@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Ruler, Weight, Phone, Mail, UserCheck, Building2, Calendar, Hand, Hash, Info } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn, getLoadZone } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Goalkeeper, Attendance, TrainingSession, WellnessLog } from '../../types';
 
@@ -42,7 +42,7 @@ export const AthleteOverview: React.FC<AthleteOverviewProps> = ({ goalkeeper, we
     a => recentSessionIds.includes(a.session_id) && (a.status === 'present' || a.status === 'late')
   ).length;
 
-  const loadZone = goalkeeper.load <= 40 ? 'low' : goalkeeper.load <= 70 ? 'optimal' : 'high';
+  const loadZone = getLoadZone(goalkeeper.load);
   const loadZoneLabel = loadZone === 'low' ? t('loadZoneLow') : loadZone === 'optimal' ? t('loadZoneOptimal') : t('loadZoneHigh');
   const loadZoneColor = loadZone === 'low' ? 'text-blue-500' : loadZone === 'optimal' ? 'text-success' : 'text-error';
 

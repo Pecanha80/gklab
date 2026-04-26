@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Plus, X, Trash2, Edit3, Activity, Upload, Image as ImageIcon, UserCheck, Heart, Moon, Brain, Frown, Zap, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { cn, getTodayDateString } from '../../lib/utils';
+import { cn, getTodayDateString, calculateAge, getLoadZone, getLoadZoneColor } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useWellness } from '../../hooks/useWellness';
 import { useCustomPresets } from '../../hooks/useCustomPresets';
@@ -104,15 +104,7 @@ function getTrialStatus(gk: Goalkeeper): 'active' | 'expiring' | 'expired' | nul
   return 'active';
 }
 
-function calculateAge(birthDate: string): number | null {
-  if (!birthDate) return null;
-  const birth = new Date(birthDate);
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return age;
-}
+// calculateAge imported from lib/utils
 
 export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
   goalkeepers,
@@ -357,8 +349,8 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
               className="group relative rounded-xl border border-black/[0.08] bg-surface p-5 transition-all hover:shadow-md cursor-pointer"
               onClick={() => setSelectedAthlete(gk)}
             >
-              {/* Hover actions */}
-              <div className="absolute right-3 top-3 flex gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100" onClick={e => e.stopPropagation()}>
+              {/* Hover actions — bottom-right to avoid overlapping name */}
+              <div className="absolute right-3 bottom-3 flex gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 z-10" onClick={e => e.stopPropagation()}>
                 <button
                   onClick={() => openWellnessModal(gk)}
                   className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 p-1.5 text-emerald-700 transition-colors hover:bg-emerald-500 hover:text-white"
@@ -396,17 +388,24 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
 
               {/* Profile */}
               <div className="mb-4 flex items-center gap-4">
-                <img
-                  src={gk.imageUrl}
-                  alt={gk.name}
-                  className="h-16 w-16 rounded-full object-cover"
-                />
+                <div className="relative">
+                  <img
+                    src={gk.imageUrl}
+                    alt={gk.name}
+                    className="h-16 w-16 rounded-full object-cover"
+                  />
+                  {(!gk.imageUrl || gk.imageUrl.includes('placeholder') || gk.imageUrl.includes('default')) && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/10">
+                      <ImageIcon className="h-5 w-5 text-white/50" />
+                    </div>
+                  )}
+                </div>
                 <div>
                   <h3 className="font-headline text-base font-semibold text-on-surface">
                     {gk.name}
                   </h3>
                   <p className="font-label text-sm text-on-surface-variant">{getCategoryLabel(gk.category)}</p>
-                  <div className="mt-1 flex flex-wrap gap-1">
+                  <div className="mt-1 flex flex-wrap items-center gap-1">
                     <span
                       className={cn(
                         'inline-block rounded-md px-2 py-0.5 font-label text-xs font-medium',
@@ -415,6 +414,11 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
                     >
                       {statusLabels[gk.status]}
                     </span>
+                    {/* Load zone dot */}
+                    <div
+                      className={cn('w-2 h-2 rounded-full', getLoadZoneColor(getLoadZone(gk.load)))}
+                      title={gk.load + '% ' + (getLoadZone(gk.load) === 'low' ? t('loadZoneLow') : getLoadZone(gk.load) === 'optimal' ? t('loadZoneOptimal') : t('loadZoneHigh'))}
+                    />
                     {(() => {
                       const trialStatus = getTrialStatus(gk);
                       if (!trialStatus) return null;
@@ -435,35 +439,44 @@ export const GoalkeepersTab: React.FC<GoalkeepersTabProps> = React.memo(({
                       );
                     })()}
 
-                    {/* Quick Wellness Info */}
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/60">Wellness:</span>
-                      <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">NEW</span>
+                    {/* Wellness Info */}
+                    <div className="flex items-center gap-1.5 ml-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/60">{t('wellness')}:</span>
+                      {gk.form === 50 && gk.recovery === 50 && gk.load === 50 ? (
+                        <span className="text-[10px] font-bold text-on-surface-variant/50 bg-surface-elevated px-1.5 py-0.5 rounded">{t('wellnessNoRecord')}</span>
+                      ) : (
+                        <span className={cn(
+                          "text-[10px] font-black px-1.5 py-0.5 rounded",
+                          gk.form >= 70 ? "text-emerald-700 bg-emerald-50" :
+                          gk.form >= 40 ? "text-amber-700 bg-amber-50" :
+                          "text-red-700 bg-red-50"
+                        )}>
+                          {gk.form}%
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Details */}
-              <div className="flex flex-wrap gap-3 text-xs">
-                {gk.birthDate && (
-                  <div className="rounded-md bg-surface-elevated px-2.5 py-1.5">
-                    <span className="text-on-surface-variant">{t('age')}: </span>
-                    <span className="font-medium text-on-surface">{calculateAge(gk.birthDate)} {t('years')}</span>
-                  </div>
-                )}
-                {gk.height && (
-                  <div className="rounded-md bg-surface-elevated px-2.5 py-1.5">
-                    <span className="text-on-surface-variant">{t('height')}: </span>
-                    <span className="font-medium text-on-surface">{gk.height} cm</span>
-                  </div>
-                )}
-                {gk.weight && (
-                  <div className="rounded-md bg-surface-elevated px-2.5 py-1.5">
-                    <span className="text-on-surface-variant">{t('weight')}: </span>
-                    <span className="font-medium text-on-surface">{gk.weight} kg</span>
-                  </div>
-                )}
+              {/* Details — always render all pills for consistent card height */}
+              <div className="flex flex-wrap gap-3 text-xs min-h-[32px]">
+                <div className="rounded-md bg-surface-elevated px-2.5 py-1.5">
+                  <span className="text-on-surface-variant">{t('age')}: </span>
+                  <span className="font-medium text-on-surface">{gk.birthDate ? `${calculateAge(gk.birthDate)} ${t('years')}` : '—'}</span>
+                </div>
+                <div className="rounded-md bg-surface-elevated px-2.5 py-1.5">
+                  <span className="text-on-surface-variant">{t('height')}: </span>
+                  <span className="font-medium text-on-surface">{gk.height ? `${gk.height} cm` : '—'}</span>
+                </div>
+                <div className="rounded-md bg-surface-elevated px-2.5 py-1.5">
+                  <span className="text-on-surface-variant">{t('envLabel')}: </span>
+                  <span className="font-medium text-on-surface">{gk.wingspan ? `${gk.wingspan} cm` : '—'}</span>
+                </div>
+                <div className="rounded-md bg-surface-elevated px-2.5 py-1.5">
+                  <span className="text-on-surface-variant">{t('weight')}: </span>
+                  <span className="font-medium text-on-surface">{gk.weight ? `${gk.weight} kg` : '—'}</span>
+                </div>
                 {(gk.membership || 'permanent') === 'trial' && gk.trialStartDate && (
                   <div className="rounded-md bg-amber-50 px-2.5 py-1.5">
                     <span className="text-amber-600">{t('trialStartDate')}: </span>

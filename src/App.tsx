@@ -302,6 +302,7 @@ export default function App() {
           <TacticalBoard
             onClose={handleCloseTacticalBoard}
             onSave={handleSaveTacticalBoard}
+            initialData={sessionForm.currentDrill.diagram}
           />
         )}
       </AnimatePresence>

@@ -252,18 +252,22 @@ describe('useSessionForm — handleAddSession (Save Session button)', () => {
   // 3. handleAddSession — error path
   // -------------------------------------------------------------------------
   describe('handleAddSession — addSession returns false (Supabase error)', () => {
-    it('shows an alert when addSession returns false', async () => {
+    it('does not reset form when addSession returns false', async () => {
       addSession.mockResolvedValueOnce(false);
       const { result } = renderSessionForm();
+
+      act(() => {
+        result.current.setIsAddingSession(true);
+      });
+
       const event = makeFakeEvent();
 
       await act(async () => {
         await result.current.handleAddSession(event);
       });
 
-      expect(window.alert).toHaveBeenCalledWith(
-        expect.stringContaining('Error')
-      );
+      // Form stays open — error toast is handled by useAppData, not by alert
+      expect(result.current.isAddingSession).toBe(true);
     });
 
     it('does NOT reset isAddingSession when addSession fails', async () => {

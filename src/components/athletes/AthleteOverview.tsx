@@ -1,5 +1,5 @@
-import React from 'react';
-import { Ruler, Weight, Calendar, Shield, Users, Phone, Mail, UserCheck, Building2, Hash, Hand } from 'lucide-react';
+import React, { useState } from 'react';
+import { Ruler, Weight, Phone, Mail, UserCheck, Building2, Calendar, Hand, Hash, Info } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Goalkeeper, Attendance, TrainingSession, WellnessLog } from '../../types';
@@ -14,10 +14,7 @@ interface AthleteOverviewProps {
 
 export const AthleteOverview: React.FC<AthleteOverviewProps> = ({ goalkeeper, wellnessLogs, attendance, sessions }) => {
   const { t } = useTranslation();
-
-  const age = goalkeeper.birthDate
-    ? Math.floor((Date.now() - new Date(goalkeeper.birthDate + 'T00:00:00').getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-    : null;
+  const [showLoadInfo, setShowLoadInfo] = useState(false);
 
   const attendedSessions = attendance.filter(a => a.status === 'present' || a.status === 'late');
   const totalSessions = attendance.length;
@@ -35,69 +32,55 @@ export const AthleteOverview: React.FC<AthleteOverviewProps> = ({ goalkeeper, we
     return sum + dur;
   }, 0);
 
+  // Load context: sessions in last 7 days
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const recentSessionIds = sessions
+    .filter(s => new Date(s.date) >= sevenDaysAgo)
+    .map(s => s.id);
+  const sessionsThisWeek = attendance.filter(
+    a => recentSessionIds.includes(a.session_id) && (a.status === 'present' || a.status === 'late')
+  ).length;
+
+  const loadZone = goalkeeper.load <= 40 ? 'low' : goalkeeper.load <= 70 ? 'optimal' : 'high';
+  const loadZoneLabel = loadZone === 'low' ? t('loadZoneLow') : loadZone === 'optimal' ? t('loadZoneOptimal') : t('loadZoneHigh');
+  const loadZoneColor = loadZone === 'low' ? 'text-blue-500' : loadZone === 'optimal' ? 'text-success' : 'text-error';
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-      {/* Bio card */}
+      {/* Physical Profile + Contact card (no redundancies with header) */}
       <div className="bg-surface rounded-xl border border-black/[0.08] overflow-hidden">
         <div className="flex items-center gap-2 px-5 py-3 bg-black/[0.02] border-b border-black/[0.06]">
           <div className="w-1 h-5 rounded-full bg-blue-500" />
-          <span className="text-[10px] font-bold text-on-surface uppercase tracking-wider">{t('personalInfo') || 'Dados Pessoais'}</span>
+          <span className="text-[10px] font-bold text-on-surface uppercase tracking-wider">{t('physicalProfile')}</span>
         </div>
         <div className="p-5 space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-xl overflow-hidden border border-black/[0.08]">
-              {goalkeeper.imageUrl ? (
-                <img src={goalkeeper.imageUrl} alt={goalkeeper.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="w-full h-full bg-background flex items-center justify-center text-2xl font-bold text-on-surface-variant">
-                  {goalkeeper.name.slice(0, 2).toUpperCase()}
-                </div>
-              )}
+          {/* Physical Measurements - prominent */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-3 bg-background rounded-lg">
+              <p className="text-xl font-bold text-on-surface">{goalkeeper.height || '—'}</p>
+              <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5">{t('height') || 'Altura'} (cm)</p>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                {goalkeeper.jerseyNumber != null && (
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-primary/10 text-primary text-sm font-bold">
-                    {goalkeeper.jerseyNumber}
-                  </span>
-                )}
-                <h3 className="text-lg font-bold text-on-surface">{goalkeeper.name}</h3>
-              </div>
-              <p className="text-sm text-on-surface-variant">{t(goalkeeper.category) || goalkeeper.category}</p>
-              {goalkeeper.membership === 'trial' && (
-                <span className="text-[9px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded mt-1 inline-block">TRIAL</span>
-              )}
+            <div className="text-center p-3 bg-background rounded-lg">
+              <p className="text-xl font-bold text-on-surface">{goalkeeper.wingspan || '—'}</p>
+              <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5">{t('wingspan') || 'Enverg.'} (cm)</p>
+            </div>
+            <div className="text-center p-3 bg-background rounded-lg">
+              <p className="text-xl font-bold text-on-surface">{goalkeeper.weight || '—'}</p>
+              <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5">{t('weight') || 'Peso'} (kg)</p>
             </div>
           </div>
 
+          {/* Details */}
           <div className="grid grid-cols-2 gap-3">
-            {age != null && (
+            {goalkeeper.jerseyNumber != null && (
               <div className="flex items-center gap-2 text-sm">
-                <Calendar className="w-4 h-4 text-on-surface-variant/50" />
-                <span className="text-on-surface-variant">{age} {t('years') || 'anos'}</span>
-              </div>
-            )}
-            {goalkeeper.height && (
-              <div className="flex items-center gap-2 text-sm">
-                <Ruler className="w-4 h-4 text-on-surface-variant/50" />
-                <span className="text-on-surface-variant">{goalkeeper.height} cm</span>
-              </div>
-            )}
-            {goalkeeper.weight && (
-              <div className="flex items-center gap-2 text-sm">
-                <Weight className="w-4 h-4 text-on-surface-variant/50" />
-                <span className="text-on-surface-variant">{goalkeeper.weight} kg</span>
+                <Hash className="w-4 h-4 text-on-surface-variant/50" />
+                <span className="text-on-surface-variant">#{goalkeeper.jerseyNumber}</span>
               </div>
             )}
             <div className="flex items-center gap-2 text-sm">
-              <Shield className="w-4 h-4 text-on-surface-variant/50" />
-              <span className={cn(
-                "font-semibold",
-                goalkeeper.status === 'Ready' ? "text-success" :
-                goalkeeper.status === 'Injured' ? "text-error" : "text-warning"
-              )}>
-                {t(goalkeeper.status === 'Ready' ? 'ready' : goalkeeper.status === 'Injured' ? 'injured' : goalkeeper.status === 'Minor Strain' ? 'minorStrain' : 'inTraining')}
-              </span>
+              <span className="text-[10px] text-on-surface-variant">{t(goalkeeper.category) || goalkeeper.category}</span>
             </div>
             {goalkeeper.preferredFoot && (
               <div className="flex items-center gap-2 text-sm">
@@ -115,11 +98,8 @@ export const AthleteOverview: React.FC<AthleteOverviewProps> = ({ goalkeeper, we
                 </span>
               </div>
             )}
-            {goalkeeper.wingspan && (
-              <div className="flex items-center gap-2 text-sm">
-                <Ruler className="w-4 h-4 text-on-surface-variant/50" />
-                <span className="text-on-surface-variant">{t('wingspan')}: {goalkeeper.wingspan} cm</span>
-              </div>
+            {goalkeeper.membership === 'trial' && (
+              <span className="text-[9px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded inline-block">TRIAL</span>
             )}
           </div>
 
@@ -208,15 +188,39 @@ export const AthleteOverview: React.FC<AthleteOverviewProps> = ({ goalkeeper, we
               <div className={cn("h-full rounded-full transition-all", goalkeeper.recovery >= 70 ? "bg-success" : goalkeeper.recovery >= 40 ? "bg-warning" : "bg-error")} style={{ width: `${goalkeeper.recovery}%` }} />
             </div>
           </div>
-          {/* Load */}
+          {/* Load with tooltip */}
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-on-surface-variant font-medium">{t('load') || 'Carga'}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-on-surface-variant font-medium">{t('loadLabel') || 'Carga'}</span>
+                <button
+                  onClick={() => setShowLoadInfo(!showLoadInfo)}
+                  className="text-on-surface-variant/40 hover:text-on-surface-variant transition-colors"
+                >
+                  <Info className="w-3.5 h-3.5" />
+                </button>
+              </div>
               <span className="font-bold text-on-surface">{goalkeeper.load}%</span>
             </div>
             <div className="h-2 bg-background rounded-full overflow-hidden">
               <div className={cn("h-full rounded-full transition-all", goalkeeper.load <= 60 ? "bg-success" : goalkeeper.load <= 80 ? "bg-warning" : "bg-error")} style={{ width: `${goalkeeper.load}%` }} />
             </div>
+            <div className="flex items-center justify-between mt-1">
+              <span className={cn("text-[9px] font-bold uppercase tracking-wider", loadZoneColor)}>{loadZoneLabel}</span>
+            </div>
+            {showLoadInfo && (
+              <div className="mt-2 p-3 bg-background rounded-lg text-xs space-y-1.5 border border-black/[0.06]">
+                <p className="text-on-surface-variant">
+                  <span className="font-bold">{sessionsThisWeek}</span> {t('loadContextSessions')}
+                </p>
+                <p className="text-on-surface-variant/70 text-[10px]">{t('loadContextFormula')}</p>
+                <div className="flex gap-3 pt-1 border-t border-black/[0.04]">
+                  <span className="text-[9px] text-blue-500 font-semibold">{'< 40%'} {t('loadZoneLow')}</span>
+                  <span className="text-[9px] text-success font-semibold">40-70% {t('loadZoneOptimal')}</span>
+                  <span className="text-[9px] text-error font-semibold">{'> 70%'} {t('loadZoneHigh')}</span>
+                </div>
+              </div>
+            )}
           </div>
           {/* Wellness */}
           {recentWellness && (

@@ -10,7 +10,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '../../lib/utils';
+import { cn, getDiagramImage } from '../../lib/utils';
 import { Exercise } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useCustomPresets, type CustomPresetsState } from '../../hooks/useCustomPresets';
@@ -134,20 +134,34 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
     return true;
   };
 
+  const PHYSICAL_CAPACITY_ORDER = ['strength', 'velocity', 'reactionSpeed', 'endurance', ''] as const;
+
+  const CAPACITY_COLORS: Record<string, string> = {
+    strength: 'bg-red-500',
+    velocity: 'bg-blue-500',
+    reactionSpeed: 'bg-amber-500',
+    endurance: 'bg-green-500',
+    '': 'bg-white/30',
+  };
+
   const groupedExercises = React.useMemo(() => {
     const filtered = exercisesLibrary.filter(ex => {
       const objectiveStr = Array.isArray(ex.objective) ? ex.objective.join(' ') : (ex.objective || '');
       const searchTerm = exerciseSearchTerm.toLowerCase();
+      const capacityStr = ex.category ? t(ex.category).toLowerCase() : '';
       return ex.title.toLowerCase().includes(searchTerm) ||
         objectiveStr.toLowerCase().includes(searchTerm) ||
-        t(ex.type).toLowerCase().includes(searchTerm);
+        t(ex.type).toLowerCase().includes(searchTerm) ||
+        capacityStr.includes(searchTerm);
     });
 
-    const groups: Record<string, Exercise[]> = {};
+    const groups: Record<string, Record<string, Exercise[]>> = {};
     filtered.forEach(ex => {
       const group = ex.type || 'uncategorized';
-      if (!groups[group]) groups[group] = [];
-      groups[group].push(ex);
+      const capacity = ex.category || '';
+      if (!groups[group]) groups[group] = {};
+      if (!groups[group][capacity]) groups[group][capacity] = [];
+      groups[group][capacity].push(ex);
     });
 
     return groups;
@@ -221,7 +235,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                 <span className="text-[10px] font-bold text-on-surface uppercase tracking-wider">1. {t('identification') || 'Identificação'}</span>
               </div>
               <div className="p-5 space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div className="space-y-1 md:col-span-2">
                     <div className="flex justify-between items-center">
                       <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('drillTitle')}</label>
@@ -251,21 +265,28 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('type')}</label>
-                    <div className="flex gap-1">
-                      {PRESETS.drillTypes.map(dtype => (
-                        <button
-                          key={dtype}
-                          type="button"
-                          onClick={() => setCurrentDrill({ ...currentDrill, type: dtype as Exercise['type'] })}
-                          className={cn(
-                            "flex-1 py-2 rounded-lg text-[9px] font-bold border transition-all",
-                            currentDrill.type === dtype ? "bg-accent text-white border-accent shadow-sm" : "bg-background border-black/[0.08] text-on-surface-variant hover:border-black/[0.15]"
-                          )}
-                        >
-                          {t(dtype)}
-                        </button>
+                    <select
+                      value={currentDrill.type}
+                      onChange={e => setCurrentDrill({ ...currentDrill, type: e.target.value as Exercise['type'] })}
+                      className="w-full bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm font-medium"
+                    >
+                      {PRESETS.drillTypes.filter((dt: string) => dt !== 'warmup').map(dtype => (
+                        <option key={dtype} value={dtype}>{t(dtype)}</option>
                       ))}
-                    </div>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wide">{t('physicalCapacity')}</label>
+                    <select
+                      value={currentDrill.category || ''}
+                      onChange={e => setCurrentDrill({ ...currentDrill, category: e.target.value || undefined })}
+                      className="w-full bg-background border border-black/[0.1] rounded-lg px-3 py-2.5 text-sm font-medium"
+                    >
+                      <option value="">{t('selectPhysicalCapacity')}</option>
+                      {PRESETS.physicalCapacities.map(cap => (
+                        <option key={cap} value={cap}>{t(cap)}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -525,7 +546,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   )}
                 >
                   {currentDrill.diagram ? (
-                    <img src={currentDrill.diagram} alt="Diagram" className="h-full w-full object-contain p-2" referrerPolicy="no-referrer" />
+                    <img src={getDiagramImage(currentDrill.diagram)} alt="Diagram" className="h-full w-full object-contain p-2" referrerPolicy="no-referrer" />
                   ) : (
                     <>
                       <Target className="w-6 h-6 text-on-surface-variant" />
@@ -626,7 +647,10 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                   if (b === 'uncategorized') return -1;
                   return a.localeCompare(b);
                 })
-                .map(([category, exercises]) => (
+                .map(([category, subgroups]) => {
+                  const totalExercises = Object.values(subgroups).reduce((sum, arr) => sum + arr.length, 0);
+
+                  return (
                   <div key={category} className="space-y-3">
                     <button
                       onClick={() => toggleFolder(category)}
@@ -640,7 +664,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                           <h3 className="font-bold text-on-surface uppercase tracking-tight text-sm">
                             {category === 'uncategorized' ? t('uncategorized') : t(category)}
                           </h3>
-                          <p className="text-[10px] text-on-surface-variant font-label">{exercises.length} {t('exercisesLabel')}</p>
+                          <p className="text-[10px] text-on-surface-variant font-label">{totalExercises} {t('exercisesLabel')}</p>
                         </div>
                       </div>
                       <ChevronRight className={cn("w-5 h-5 text-on-surface-variant transition-transform", expandedFolders[category] ? "rotate-90" : "")} />
@@ -654,8 +678,23 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                           exit={{ opacity: 0, height: 0 }}
                           className="overflow-hidden"
                         >
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-1">
-                            {exercises.map(ex => (
+                          <div className="space-y-4 p-1">
+                            {PHYSICAL_CAPACITY_ORDER
+                              .filter(cap => subgroups[cap] && subgroups[cap].length > 0)
+                              .map(cap => {
+                                const exercises = subgroups[cap];
+                                return (
+                                  <div key={cap}>
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <div className={cn("w-2 h-2 rounded-full", CAPACITY_COLORS[cap])} />
+                                      <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest">
+                                        {cap ? t(cap) : t('general')}
+                                      </span>
+                                      <span className="text-[9px] text-on-surface-variant/50">({exercises.length})</span>
+                                      <div className="flex-1 border-t border-white/[0.04]" />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                      {exercises.map(ex => (
                               <motion.div
                                 key={ex.id}
                                 whileHover={{ y: -4 }}
@@ -664,7 +703,7 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                               >
                                 {ex.diagram && (
                                   <div className="h-40 bg-white/[0.03] relative overflow-hidden border-b border-white/[0.04]">
-                                    <img src={ex.diagram} alt={ex.title as string} className="w-full h-full object-contain p-4" referrerPolicy="no-referrer" />
+                                    <img src={getDiagramImage(ex.diagram)} alt={ex.title as string} className="w-full h-full object-contain p-4" referrerPolicy="no-referrer" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent opacity-60" />
                                     <button
                                       onClick={(e) => {
@@ -680,7 +719,20 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                                 )}
                                 <div className="p-5 space-y-4">
                                   <div className="flex items-center justify-between">
-                                    <span className="bg-primary/20 text-primary text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">{t(ex.type)}</span>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="bg-primary/20 text-primary text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">{t(ex.type)}</span>
+                                      {ex.category && (
+                                        <span className={cn(
+                                          "text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest",
+                                          ex.category === 'strength' ? "bg-red-500/15 text-red-400" :
+                                          ex.category === 'velocity' ? "bg-blue-500/15 text-blue-400" :
+                                          ex.category === 'reactionSpeed' ? "bg-amber-500/15 text-amber-400" :
+                                          "bg-green-500/15 text-green-400"
+                                        )}>
+                                          {t(ex.category)}
+                                        </span>
+                                      )}
+                                    </div>
                                     <div className="flex items-center text-[10px] text-on-surface-variant">
                                       <Clock className="w-3 h-3 mr-1" /> {Array.isArray(ex.duration) ? ex.duration.map(d => t(d)).join(', ') : t(ex.duration)}
                                     </div>
@@ -717,13 +769,18 @@ export const ExercisesTab: React.FC<ExercisesTabProps> = React.memo(({
                                   </button>
                                 </div>
                               </motion.div>
-                            ))}
+                                      ))}
+                                    </div>
+                                  </div>
+                                );
+                              })}
                           </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
                   </div>
-                ))
+                  );
+                })
             )}
           </div>
         </div>

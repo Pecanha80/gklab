@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, User, Heart, Activity, Calendar, FileText, Star, AlertTriangle, Dumbbell } from 'lucide-react';
+import { ArrowLeft, User, Heart, Activity, Calendar, FileText, Star, AlertTriangle, Dumbbell, Target } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useWellness } from '../../hooks/useWellness';
@@ -14,6 +14,7 @@ import { AthleteNotes } from './AthleteNotes';
 import { AthleteAssessment } from './AthleteAssessment';
 import { AthleteInjuries } from './AthleteInjuries';
 import { AthletePhysicalTests } from './AthletePhysicalTests';
+import { AthleteIDP } from './AthleteIDP';
 
 interface AthleteProfileProps {
   goalkeeper: Goalkeeper;
@@ -21,7 +22,7 @@ interface AthleteProfileProps {
   onUpdate: (gk: Goalkeeper) => Promise<void>;
 }
 
-type ProfileTab = 'overview' | 'wellness' | 'load' | 'history' | 'notes' | 'assessment' | 'injuries' | 'tests';
+type ProfileTab = 'overview' | 'wellness' | 'load' | 'history' | 'notes' | 'assessment' | 'idp' | 'injuries' | 'tests';
 
 export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBack, onUpdate }) => {
   const { t } = useTranslation();
@@ -52,6 +53,17 @@ export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBa
     fetchAthleteData();
   }, [fetchAthleteData]);
 
+  const age = goalkeeper.birthDate
+    ? Math.floor((Date.now() - new Date(goalkeeper.birthDate + 'T00:00:00').getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+    : null;
+
+  // Missing data alert
+  const missingFields: string[] = [];
+  if (!goalkeeper.birthDate) missingFields.push(t('birthDate') || 'Data de Nascimento');
+  if (!goalkeeper.height) missingFields.push(t('height') || 'Altura');
+  if (!goalkeeper.weight) missingFields.push(t('weight') || 'Peso');
+  if (!goalkeeper.wingspan) missingFields.push(t('wingspan') || 'Envergadura');
+
   const tabs: { key: ProfileTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { key: 'overview', label: t('overview') || 'Visão Geral', icon: User },
     { key: 'wellness', label: t('wellness') || 'Bem-estar', icon: Heart },
@@ -59,6 +71,7 @@ export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBa
     { key: 'history', label: t('trainingHistory') || 'Histórico', icon: Calendar },
     { key: 'notes', label: t('notes') || 'Notas', icon: FileText },
     { key: 'assessment', label: t('assessment') || 'Avaliação', icon: Star },
+    { key: 'idp', label: t('developmentPlan') || 'Plano Individual', icon: Target },
     { key: 'injuries', label: t('injuries') || 'Lesões', icon: AlertTriangle },
     { key: 'tests', label: t('physicalTests') || 'Testes Físicos', icon: Dumbbell },
   ];
@@ -95,10 +108,28 @@ export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBa
                 {t(goalkeeper.status === 'Ready' ? 'ready' : goalkeeper.status === 'Injured' ? 'injured' : goalkeeper.status === 'Minor Strain' ? 'minorStrain' : 'inTraining')}
               </span>
               <span className="text-sm text-on-surface-variant">{goalkeeper.form}% {t('formLabel')}</span>
+              {age != null && (
+                <span className="text-sm text-on-surface-variant">
+                  {age} {t('years') || 'anos'}
+                </span>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Missing Data Alert */}
+      {missingFields.length > 0 && (
+        <div className="flex items-start gap-3 bg-warning/5 border border-warning/20 rounded-xl p-4">
+          <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold text-warning">{t('incompleteProfile')}</p>
+            <p className="text-xs text-on-surface-variant mt-0.5">
+              {t('incompleteProfileDesc')}: {missingFields.join(', ')}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Tab navigation */}
       <div className="flex gap-1 bg-background rounded-xl p-1 border border-black/[0.06]">
@@ -138,6 +169,9 @@ export const AthleteProfile: React.FC<AthleteProfileProps> = ({ goalkeeper, onBa
         )}
         {activeTab === 'assessment' && (
           <AthleteAssessment goalkeeper={goalkeeper} />
+        )}
+        {activeTab === 'idp' && (
+          <AthleteIDP goalkeeper={goalkeeper} />
         )}
         {activeTab === 'injuries' && (
           <AthleteInjuries goalkeeper={goalkeeper} />

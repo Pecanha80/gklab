@@ -50,7 +50,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = React.memo(({
     isAddingSession, setIsAddingSession, editingSessionId,
     newSession, setNewSession,
     isAddingDrill, setIsAddingDrill, drillContext, setDrillContext,
-    editingDrillId, currentDrill, setCurrentDrill,
+    editingDrillId, setEditingDrillId, currentDrill, setCurrentDrill,
     isSelectingFromLibrary, setIsSelectingFromLibrary, setIsTacticalBoardOpen,
     translateContent, handleGeneralObjectivesChange,
     handleAddSession, handleAddDrill, handleEditDrill, handleCancelDrill, handleRemoveDrill,
@@ -267,6 +267,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = React.memo(({
           currentDrill={currentDrill}
           setCurrentDrill={setCurrentDrill}
           editingDrillId={editingDrillId}
+          setEditingDrillId={setEditingDrillId}
           translateContent={translateContent}
           handleGeneralObjectivesChange={handleGeneralObjectivesChange}
           handleAddSession={handleAddSession}
@@ -446,7 +447,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = React.memo(({
                   currentDrill={currentDrill}
                   setCurrentDrill={setCurrentDrill}
                   editingDrillId={editingDrillId}
-                  context={drillContext}
+                  context={drillContext as 'warmup' | 'main'}
                   translateContent={translateContent}
                   applyDrillTemplate={applyDrillTemplate}
                   onSave={handleAddDrill}

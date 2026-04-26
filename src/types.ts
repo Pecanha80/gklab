@@ -87,6 +87,19 @@ export interface Injury {
   created_at: string;
 }
 
+export interface DevelopmentGoal {
+  id: string;
+  user_id: string;
+  goalkeeper_id: string;
+  title: string;
+  category: 'technical' | 'tactical' | 'physical' | 'psychological';
+  description?: string;
+  targetDate?: string;
+  status: 'pending' | 'in_progress' | 'achieved';
+  priority: 'low' | 'medium' | 'high';
+  created_at: string;
+}
+
 export interface Exercise {
   id: string;
   type: 'shotStopping' | 'crosses' | 'oneVsOne' | 'footwork' | 'distribution' | 'depthControl' | 'setPieces' | 'warmup';
@@ -113,6 +126,7 @@ export interface IntegratedExercise {
   number: string | string[];
   space: string | string[];
   time: string | string[];
+  diagram?: string;
 }
 
 export interface TrainingSession {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Clock, Zap, Trash2, Edit3 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { cn } from '../lib/utils';
+import { cn, getDiagramImage } from '../lib/utils';
 import { useTranslation } from '../hooks/useTranslation';
 import { Field } from './ui/Field';
 import type { Exercise } from '../types';
@@ -106,8 +106,21 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
         </div>
 
         <div className="p-6 space-y-5">
-          {/* Duration & Intensity Row */}
+          {/* Duration, Intensity & Physical Capacity Row */}
           <div className="flex items-center gap-4">
+            {exercise.category && (
+              <span
+                className={cn(
+                  'text-[10px] font-bold px-2 py-0.5 rounded-md',
+                  exercise.category === 'strength' ? 'bg-red-500/10 text-red-400' :
+                  exercise.category === 'velocity' ? 'bg-blue-500/10 text-blue-400' :
+                  exercise.category === 'reactionSpeed' ? 'bg-amber-500/10 text-amber-400' :
+                  'bg-green-500/10 text-green-400'
+                )}
+              >
+                {t(exercise.category)}
+              </span>
+            )}
             {exercise.duration && (
               <div className="flex items-center gap-1.5 text-on-surface/60 text-xs">
                 <Clock className="w-3.5 h-3.5" />
@@ -145,7 +158,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
                 {t('diagram')}
               </p>
               <img
-                src={exercise.diagram}
+                src={getDiagramImage(exercise.diagram)}
                 alt={`Diagram for ${exercise.title}`}
                 className="rounded-lg border border-white/[0.04] w-full object-contain max-h-72"
               />

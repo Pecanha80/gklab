@@ -163,6 +163,26 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
   const [elements, setElements] = useState<TacticalElement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [fieldType, setFieldType] = useState('full');
+  const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
+
+  // Load existing diagram: restore elements from JSON or show legacy image as background
+  useEffect(() => {
+    if (!initialData) return;
+    try {
+      const parsed = JSON.parse(initialData);
+      if (parsed.elements && Array.isArray(parsed.elements)) {
+        setElements(parsed.elements);
+        if (parsed.fieldType) setFieldType(parsed.fieldType);
+      }
+    } catch {
+      // Legacy format: plain base64 image — show as background reference
+      if (initialData.startsWith('data:image')) {
+        const img = new window.Image();
+        img.onload = () => setBgImage(img);
+        img.src = initialData;
+      }
+    }
+  }, [initialData]);
   const [activeTool, setActiveTool] = useState<ElementType | null>(null);
   const [drawingId, setDrawingId] = useState<string | null>(null);
   
@@ -402,7 +422,12 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
     setSelectedId(null);
     setTimeout(() => {
       if (stageRef.current) {
-        onSave(stageRef.current.toDataURL());
+        const payload = JSON.stringify({
+          image: stageRef.current.toDataURL(),
+          elements,
+          fieldType,
+        });
+        onSave(payload);
       }
     }, 50);
   };
@@ -806,6 +831,17 @@ export const TacticalBoard: React.FC<TacticalBoardProps> = ({ onSave, onClose, i
               >
                 <Layer>
                   <SoccerFieldBackground type={fieldType} width={canvasSize.w} height={canvasSize.h} />
+                  {bgImage && elements.length === 0 && (
+                    <Image
+                      image={bgImage}
+                      x={0}
+                      y={0}
+                      width={canvasSize.w}
+                      height={canvasSize.h}
+                      opacity={0.5}
+                      listening={false}
+                    />
+                  )}
 
                   {elements.map((el) => {
                     const isSelected = el.id === selectedId;

@@ -17,7 +17,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { cn } from '../../lib/utils';
+import { cn, getDiagramImage } from '../../lib/utils';
 import { TrainingSession, Exercise, SavedMicrocycle } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { PRESETS } from '../../data/presets';
@@ -45,11 +45,12 @@ export interface SessionFormProps {
   // Drill state
   isAddingDrill: boolean;
   setIsAddingDrill: (v: boolean) => void;
-  drillContext: 'warmup' | 'main';
-  setDrillContext: (v: 'warmup' | 'main') => void;
+  drillContext: 'warmup' | 'main' | 'integrated';
+  setDrillContext: (v: 'warmup' | 'main' | 'integrated') => void;
   currentDrill: Omit<Exercise, 'id'>;
   setCurrentDrill: React.Dispatch<React.SetStateAction<Omit<Exercise, 'id'>>>;
   editingDrillId: string | null;
+  setEditingDrillId: (id: string | null) => void;
   // Handlers
   translateContent: (content: string | string[] | undefined) => string;
   handleGeneralObjectivesChange: (selected: string[]) => void;
@@ -85,6 +86,7 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
   currentDrill,
   setCurrentDrill,
   editingDrillId,
+  setEditingDrillId,
   translateContent,
   handleGeneralObjectivesChange,
   handleAddSession,
@@ -583,6 +585,40 @@ export const SessionForm: React.FC<SessionFormProps> = React.memo(({
                           />
                         </div>
                       </div>
+                      {/* Diagram */}
+                      <div className="mt-3 flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDrillContext('integrated');
+                            setEditingDrillId(integrated.id);
+                            setIsTacticalBoardOpen(true);
+                          }}
+                          className={cn(
+                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border",
+                            integrated.diagram
+                              ? "border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+                              : "border-dashed border-black/20 text-on-surface-variant hover:text-primary hover:border-primary"
+                          )}
+                        >
+                          <Target className="w-3.5 h-3.5" />
+                          {integrated.diagram ? t('editDiagram') : t('addDiagram')}
+                        </button>
+                        {integrated.diagram && (
+                          <button
+                            type="button"
+                            onClick={() => setNewSession(prev => ({ ...prev, integratedWithTeam: prev.integratedWithTeam?.map(i => i.id === integrated.id ? { ...i, diagram: undefined } : i) }))}
+                            className="text-[10px] font-bold text-error/60 hover:text-error transition-colors"
+                          >
+                            {t('removeDiagram')}
+                          </button>
+                        )}
+                      </div>
+                      {integrated.diagram && (
+                        <div className="mt-2">
+                          <img src={getDiagramImage(integrated.diagram)} alt="Diagram" className="rounded-lg border border-white/[0.04] max-h-32 w-full object-contain" referrerPolicy="no-referrer" />
+                        </div>
+                      )}
                     </div>
                   ))}
                   <button

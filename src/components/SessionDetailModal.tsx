@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Clock, Users, Target, Dumbbell, Trophy, Wind, Edit3, Download, Calendar, CheckCircle2, XCircle, AlertCircle, MessageSquare, Trash2, Activity } from 'lucide-react';
 import { motion } from 'motion/react';
-import { cn } from '../lib/utils';
+import { cn, getDiagramImage } from '../lib/utils';
 import { parseCategory } from '../lib/dashboard';
 import { useTranslation } from '../hooks/useTranslation';
 import { useToast } from '../hooks/useToast';
@@ -282,7 +282,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             {hasWarmup && (
               <div className="space-y-3">
                 <SectionHeading title={t('warmUpHeading')} icon={Wind} />
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {session.warmup.map((drill, idx) => (
                     <div key={drill.id} className="bg-surface rounded-xl border border-white/[0.04] p-4 space-y-3">
                       <div className="flex items-center gap-2">
@@ -307,9 +307,9 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                       {drill.diagram && (
                         <div className="mt-2">
                           <img
-                            src={drill.diagram}
+                            src={getDiagramImage(drill.diagram)}
                             alt={`Diagram for ${drill.title}`}
-                            className="rounded-lg border border-white/[0.04] max-h-64 object-contain"
+                            className="rounded-lg border border-white/[0.04] max-h-48 w-full object-contain"
                             referrerPolicy="no-referrer"
                           />
                         </div>
@@ -324,7 +324,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             {session.exercises.length > 0 && (
               <div className="space-y-3">
                 <SectionHeading title={t('exercisesHeading')} icon={Dumbbell} />
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {session.exercises.map((exercise, idx) => (
                     <div
                       key={exercise.id}
@@ -366,9 +366,9 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                       {exercise.diagram && (
                         <div className="mt-2">
                           <img
-                            src={exercise.diagram}
+                            src={getDiagramImage(exercise.diagram)}
                             alt={`Diagram for ${exercise.title}`}
-                            className="rounded-lg border border-white/[0.04] max-h-64 object-contain"
+                            className="rounded-lg border border-white/[0.04] max-h-48 w-full object-contain"
                           />
                         </div>
                       )}
@@ -392,6 +392,16 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                       <Field label={t('number')} value={item.number} />
                       <Field label={t('space')} value={item.space} />
                       <Field label={t('time')} value={item.time} />
+                      {item.diagram && (
+                        <div className="col-span-2 sm:col-span-4 mt-1">
+                          <img
+                            src={getDiagramImage(item.diagram)}
+                            alt="Integrated exercise diagram"
+                            className="rounded-lg border border-white/[0.04] max-h-48 w-full object-contain"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

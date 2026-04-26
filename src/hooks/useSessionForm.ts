@@ -71,7 +71,7 @@ export function useSessionForm(
   const [newSession, setNewSession] = useState<Omit<TrainingSession, 'id'>>({ ...emptySession });
 
   const [isAddingDrill, setIsAddingDrill] = useState(false);
-  const [drillContext, setDrillContext] = useState<'warmup' | 'main'>('main');
+  const [drillContext, setDrillContext] = useState<'warmup' | 'main' | 'integrated'>('main');
   const [editingDrillId, setEditingDrillId] = useState<string | null>(null);
   const [currentDrill, setCurrentDrill] = useState<Omit<Exercise, 'id'>>({ ...emptyDrill });
   const [isSelectingFromLibrary, setIsSelectingFromLibrary] = useState(false);
@@ -540,7 +540,10 @@ export function useSessionForm(
           : prev.warmup,
         exercises: drillContext === 'main'
           ? prev.exercises.map(d => d.id === editingDrillId ? { ...d, diagram: dataUrl } : d)
-          : prev.exercises
+          : prev.exercises,
+        integratedWithTeam: drillContext === 'integrated'
+          ? prev.integratedWithTeam?.map(d => d.id === editingDrillId ? { ...d, diagram: dataUrl } : d)
+          : prev.integratedWithTeam,
       }));
     } else {
       setCurrentDrill(prev => ({ ...prev, diagram: dataUrl }));
@@ -564,6 +567,7 @@ export function useSessionForm(
     drillContext,
     setDrillContext,
     editingDrillId,
+    setEditingDrillId,
     currentDrill,
     setCurrentDrill,
     isSelectingFromLibrary,

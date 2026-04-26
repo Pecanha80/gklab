@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Target, Library, Clock } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn, getDiagramImage } from '../../lib/utils';
 import { Exercise } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useCustomPresets } from '../../hooks/useCustomPresets';
@@ -118,6 +118,19 @@ export const DrillForm: React.FC<DrillFormProps> = ({
             <select value={currentDrill.type} onChange={e => setCurrentDrill({ ...currentDrill, type: e.target.value as Exercise['type'] })} className="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs">
               {PRESETS.drillTypes.filter((t: any) => t !== 'warmup').map(type => (
                 <option key={type} value={type}>{t(type)}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1 w-[130px] shrink-0">
+            <label className="text-[9px] text-on-surface-variant uppercase font-label font-bold">{t('physicalCapacity')}</label>
+            <select
+              value={currentDrill.category || ''}
+              onChange={e => setCurrentDrill({ ...currentDrill, category: e.target.value || undefined })}
+              className="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs"
+            >
+              <option value="">—</option>
+              {PRESETS.physicalCapacities.map(cap => (
+                <option key={cap} value={cap}>{t(cap)}</option>
               ))}
             </select>
           </div>
@@ -294,7 +307,7 @@ export const DrillForm: React.FC<DrillFormProps> = ({
               )}
             >
               {currentDrill.diagram ? (
-                <img src={currentDrill.diagram} alt="Diagram" className="h-full w-full object-contain p-1.5" referrerPolicy="no-referrer" />
+                <img src={getDiagramImage(currentDrill.diagram)} alt="Diagram" className="h-full w-full object-contain p-1.5" referrerPolicy="no-referrer" />
               ) : (
                 <>
                   <Target className="w-5 h-5 text-on-surface-variant" />

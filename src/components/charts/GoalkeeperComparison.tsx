@@ -197,7 +197,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
 
       {/* Chart 1: Average RPE */}
       <ChartSection title={t('compAvgRpe')}>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" minWidth={0} height={300}>
           <BarChart data={avgRpeData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#0000000a" />
             <XAxis dataKey="name" tick={{ fontSize: 11, fontWeight: 600 }} />
@@ -217,7 +217,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
 
       {/* Chart 2: Total Load */}
       <ChartSection title={t('compTotalLoad')}>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" minWidth={0} height={300}>
           <BarChart data={totalLoadData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#0000000a" />
             <XAxis dataKey="name" tick={{ fontSize: 11, fontWeight: 600 }} />
@@ -237,7 +237,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
 
       {/* Chart 3: Attendance */}
       <ChartSection title={t('compAttendance')}>
-        <ResponsiveContainer width="100%" height={350}>
+        <ResponsiveContainer width="100%" minWidth={0} height={350}>
           <BarChart data={attendanceData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#0000000a" />
             <XAxis dataKey="name" tick={{ fontSize: 11, fontWeight: 600 }} />
@@ -289,7 +289,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
       {/* Chart 4: RPE Trend */}
       {rpeTrendData.length > 0 && (
         <ChartSection title={t('compRpeTrend')}>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" minWidth={0} height={300}>
             <LineChart data={rpeTrendData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#0000000a" />
               <XAxis dataKey="date" tick={{ fontSize: 10 }} />
@@ -315,7 +315,7 @@ export const GoalkeeperComparison: React.FC<Props> = ({
       {/* Chart 5: Wellness Radar */}
       {hasWellnessData && (
         <ChartSection title={t('compWellnessRadar')}>
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" minWidth={0} height={400}>
             <RadarChart data={wellnessRadarData} cx="50%" cy="50%" outerRadius="75%">
               <PolarGrid stroke="#0000000a" />
               <PolarAngleAxis dataKey="dimension" tick={{ fontSize: 11, fontWeight: 600 }} />

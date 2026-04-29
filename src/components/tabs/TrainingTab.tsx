@@ -108,7 +108,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = React.memo(({
     numAthletes: 3,
     duration: [] as string[],
     generalObjectives: [] as string[],
-    objectives: { technical: [] as string[], tactical: [] as string[], physical: [] as string[], cognitive: [] as string[] },
+    gym: [] as Exercise[],
     warmup: [] as Exercise[],
     exercises: [] as Exercise[],
     integratedWithTeam: [],

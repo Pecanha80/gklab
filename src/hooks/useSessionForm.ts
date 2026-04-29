@@ -15,12 +15,7 @@ export const emptySession: Omit<TrainingSession, 'id'> = {
   numAthletes: 3,
   duration: [],
   generalObjectives: [],
-  objectives: {
-    technical: [],
-    tactical: [],
-    physical: [],
-    cognitive: [],
-  },
+  gym: [],
   warmup: [],
   exercises: [],
   integratedWithTeam: [],
@@ -71,7 +66,7 @@ export function useSessionForm(
   const [newSession, setNewSession] = useState<Omit<TrainingSession, 'id'>>({ ...emptySession });
 
   const [isAddingDrill, setIsAddingDrill] = useState(false);
-  const [drillContext, setDrillContext] = useState<'warmup' | 'main' | 'integrated'>('main');
+  const [drillContext, setDrillContext] = useState<'warmup' | 'main' | 'integrated' | 'gym'>('main');
   const [editingDrillId, setEditingDrillId] = useState<string | null>(null);
   const [currentDrill, setCurrentDrill] = useState<Omit<Exercise, 'id'>>({ ...emptyDrill });
   const [isSelectingFromLibrary, setIsSelectingFromLibrary] = useState(false);
@@ -89,30 +84,11 @@ export function useSessionForm(
   };
 
   const handleGeneralObjectivesChange = (selected: string[]) => {
-    const updatedSpecifics = { ...newSession.objectives };
     const newWarmupDrills: Exercise[] = [];
-
-    const addToObjective = (field: keyof typeof updatedSpecifics, value: string) => {
-      const current = updatedSpecifics[field];
-      if (Array.isArray(current)) {
-        if (!current.includes(value)) {
-          updatedSpecifics[field] = [...current, value];
-        }
-      } else {
-        if (!current.includes(value)) {
-          updatedSpecifics[field] = current ? `${current}\n${value}` : value;
-        }
-      }
-    };
 
     selected.forEach(objKey => {
       const mapping = OBJECTIVE_MAPPINGS[objKey];
       if (mapping) {
-        if (mapping.technical) addToObjective('technical', mapping.technical);
-        if (mapping.tactical) addToObjective('tactical', mapping.tactical);
-        if (mapping.physical) addToObjective('physical', mapping.physical);
-        if (mapping.cognitive) addToObjective('cognitive', mapping.cognitive);
-
         if (mapping.warmupObjective) {
           newWarmupDrills.push({
             id: crypto.randomUUID(),
@@ -133,7 +109,6 @@ export function useSessionForm(
     setNewSession({
       ...newSession,
       generalObjectives: selected,
-      objectives: updatedSpecifics,
       warmup: newWarmupDrills.length > 0 ? newWarmupDrills : newSession.warmup
     });
   };
@@ -151,10 +126,14 @@ export function useSessionForm(
     savePresets('sessionTitles', newSession.titles, PRESETS.sessionTitles);
     savePresets('categories', newSession.category, PRESETS.categories);
     newSession.generalObjectives.forEach(obj => addCustomPreset('generalObjectives', obj, PRESETS.objectives.general));
-    savePresets('technical', newSession.objectives.technical, PRESETS.objectives.technical);
-    savePresets('tactical', newSession.objectives.tactical, PRESETS.objectives.tactical);
-    savePresets('physical', newSession.objectives.physical, PRESETS.objectives.physical);
-    savePresets('cognitive', newSession.objectives.cognitive, PRESETS.objectives.cognitive);
+    newSession.gym.forEach(drill => {
+      addCustomPreset('drillTitles', drill.title, PRESETS.drills.titles);
+      savePresets('drillObjectives', drill.objective, PRESETS.drills.objectives);
+      savePresets('drillOrganizations', drill.organization, PRESETS.drills.organizations);
+      savePresets('drillExecutions', drill.execution, PRESETS.drills.executions);
+      savePresets('drillProgressions', drill.progression, PRESETS.drills.progressions);
+      savePresets('drillSuccessCriteria', drill.successCriteria, PRESETS.drills.successCriteria);
+    });
 
     newSession.warmup.forEach(drill => {
       addCustomPreset('drillTitles', drill.title, PRESETS.drills.titles);
@@ -236,6 +215,9 @@ export function useSessionForm(
     if (editingDrillId) {
       setNewSession(prev => ({
         ...prev,
+        gym: drillContext === 'gym'
+          ? prev.gym.map(d => d.id === editingDrillId ? { ...currentDrill, id: editingDrillId } : d)
+          : prev.gym,
         warmup: drillContext === 'warmup'
           ? prev.warmup.map(d => d.id === editingDrillId ? { ...currentDrill, id: editingDrillId } : d)
           : prev.warmup,
@@ -250,6 +232,7 @@ export function useSessionForm(
       };
       setNewSession(prev => ({
         ...prev,
+        gym: drillContext === 'gym' ? [...prev.gym, drill] : prev.gym,
         warmup: drillContext === 'warmup' ? [...prev.warmup, drill] : prev.warmup,
         exercises: drillContext === 'main' ? [...prev.exercises, drill] : prev.exercises
       }));
@@ -260,7 +243,7 @@ export function useSessionForm(
     setEditingDrillId(null);
   };
 
-  const handleEditDrill = (drill: Exercise, context: 'warmup' | 'main') => {
+  const handleEditDrill = (drill: Exercise, context: 'warmup' | 'main' | 'gym') => {
     setDrillContext(context);
     setCurrentDrill({
       type: drill.type,
@@ -287,12 +270,14 @@ export function useSessionForm(
   const handleRemoveDrill = (id: string) => {
     setNewSession(prev => ({
       ...prev,
+      gym: prev.gym.filter(d => d.id !== id),
       warmup: prev.warmup.filter(d => d.id !== id),
       exercises: prev.exercises.filter(d => d.id !== id)
     }));
   };
 
   const applyDrillTemplate = (title: string) => {
+    if (!title) return;
     const normalizedTitle = title.trim().toLowerCase();
     const allExercises: Exercise[] = [];
     Object.values(SESSION_TEMPLATES).forEach(template => {
@@ -350,10 +335,6 @@ export function useSessionForm(
 
     let allWarmup: Exercise[] = [];
     let allExercises: Exercise[] = [];
-    let technical = '';
-    let tactical = '';
-    let physical = '';
-    let cognitive = '';
     let generalObjectives: string[] = [];
     let category: string | string[] = '';
 
@@ -387,12 +368,6 @@ export function useSessionForm(
             duration: Array.isArray(ex.duration) ? ex.duration.map(d => t(d)) : [ex.duration ? t(ex.duration) : ''],
           }))];
         }
-        if (template.objectives) {
-          if (template.objectives.technical) technical += (technical ? '\n' : '') + tField(template.objectives.technical);
-          if (template.objectives.tactical) tactical += (tactical ? '\n' : '') + tField(template.objectives.tactical);
-          if (template.objectives.physical) physical += (physical ? '\n' : '') + tField(template.objectives.physical);
-          if (template.objectives.cognitive) cognitive += (cognitive ? '\n' : '') + tField(template.objectives.cognitive);
-        }
         if (template.generalObjectives) {
           generalObjectives = Array.from(new Set([...generalObjectives, ...template.generalObjectives]));
         }
@@ -402,19 +377,6 @@ export function useSessionForm(
     generalObjectives.forEach(objKey => {
       const mapping = OBJECTIVE_MAPPINGS[objKey];
       if (mapping) {
-        if (mapping.technical && !technical.includes(t(mapping.technical))) {
-          technical = technical ? `${technical}\n${t(mapping.technical)}` : t(mapping.technical);
-        }
-        if (mapping.tactical && !tactical.includes(t(mapping.tactical))) {
-          tactical = tactical ? `${tactical}\n${t(mapping.tactical)}` : t(mapping.tactical);
-        }
-        if (mapping.physical && !physical.includes(t(mapping.physical))) {
-          physical = physical ? `${physical}\n${t(mapping.physical)}` : t(mapping.physical);
-        }
-        if (mapping.cognitive && !cognitive.includes(t(mapping.cognitive))) {
-          cognitive = cognitive ? `${cognitive}\n${t(mapping.cognitive)}` : t(mapping.cognitive);
-        }
-
         if (mapping.warmupObjective && allWarmup.length === 0) {
            allWarmup.push({
              id: crypto.randomUUID(),
@@ -437,12 +399,6 @@ export function useSessionForm(
       titles: resolvedTitles,
       category: category || prev.category,
       generalObjectives: generalObjectives,
-      objectives: {
-        technical: technical,
-        tactical: tactical,
-        physical: physical,
-        cognitive: cognitive,
-      },
       warmup: allWarmup,
       exercises: allExercises,
     }));
@@ -456,12 +412,7 @@ export function useSessionForm(
       duration: [t('dur_90min')],
       titles: ['crossesAerialDominance'],
       generalObjectives: ['developAerialDominance'],
-      objectives: {
-        technical: t('exampleTechnical'),
-        tactical: t('exampleTactical'),
-        physical: t('examplePhysical'),
-        cognitive: 'exampleCognitive',
-      },
+      gym: [],
       warmup: [
         {
           id: 'w1',
@@ -535,6 +486,9 @@ export function useSessionForm(
     if (editingDrillId) {
       setNewSession(prev => ({
         ...prev,
+        gym: drillContext === 'gym'
+          ? prev.gym.map(d => d.id === editingDrillId ? { ...d, diagram: dataUrl } : d)
+          : prev.gym,
         warmup: drillContext === 'warmup'
           ? prev.warmup.map(d => d.id === editingDrillId ? { ...d, diagram: dataUrl } : d)
           : prev.warmup,

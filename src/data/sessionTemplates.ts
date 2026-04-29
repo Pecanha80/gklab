@@ -3,12 +3,6 @@ import { TrainingSession } from '../types';
 export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
   'shotStoppingCentralAngled': {
     generalObjectives: ['improveOverallHandlingPositioning'],
-    objectives: {
-      technical: 'positioningDivingParrying',
-      tactical: 'positioningRelativeBall',
-      physical: 'explosivePowerAgility',
-      cognitive: 'readingShooterAnticipation',
-    },
     warmup: [
       {
         id: crypto.randomUUID(),
@@ -54,12 +48,6 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
   },
   'handlingCatchingFundamentals': {
     generalObjectives: ['refineBasicHandlingCatching'],
-    objectives: {
-      technical: 'wCatchScoopCupContour',
-      tactical: 'decisionCatchVsParry',
-      physical: 'handEyeCoordinationBalance',
-      cognitive: 'focusTrackingTrajectory',
-    },
     warmup: [
       {
         id: crypto.randomUUID(),
@@ -93,12 +81,6 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
   },
   'divingTechniques': {
     generalObjectives: ['developEffectiveSafeDiving'],
-    objectives: {
-      technical: 'stepAndDiveLandingMechanics',
-      tactical: 'choosingRightDive',
-      physical: 'explosiveLegPowerCoreFlexibility',
-      cognitive: 'timingSpatialAwareness',
-    },
     warmup: [
       {
         id: crypto.randomUUID(),
@@ -132,12 +114,6 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
   },
   'oneVOneSituations': {
     generalObjectives: ['strengthenOneVOneShotStopping'],
-    objectives: {
-      technical: 'oneVOneSpreadTechnique',
-      tactical: 'spaceProtection',
-      physical: 'explosivePower',
-      cognitive: 'decisionMaking',
-    },
     warmup: [
       {
         id: crypto.randomUUID(),
@@ -239,12 +215,6 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
   },
   'reactionSpeedReflexes': {
     generalObjectives: ['improveReactionSpeedReflexes'],
-    objectives: {
-      technical: 'handEyeCoordinationBalance',
-      tactical: 'defensiveLineOrg',
-      physical: 'reactionSpeed',
-      cognitive: 'scanning',
-    },
     exercises: [
       {
         id: crypto.randomUUID(),
@@ -274,12 +244,6 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
   },
   'sweeperKeeperSpaceDefense': {
     generalObjectives: ['masterSweeperKeeperActions'],
-    objectives: {
-      technical: 'clearancesOutsideTheBox',
-      tactical: 'spaceProtection',
-      physical: 'agility',
-      cognitive: 'anticipation',
-    },
     exercises: [
       {
         id: crypto.randomUUID(),
@@ -326,12 +290,6 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
   },
   'setPiecesDefense': {
     generalObjectives: ['developAerialDominance'],
-    objectives: {
-      technical: 'wCatchScoopCupContour',
-      tactical: 'setPieceOrganization',
-      physical: 'coreStability',
-      cognitive: 'communication',
-    },
     exercises: [
       {
         id: crypto.randomUUID(),
@@ -349,12 +307,6 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
   },
   'cognitiveSkillsDecisionMaking': {
     generalObjectives: ['improveReactionSpeedReflexes'],
-    objectives: {
-      technical: 'stepAndDiveLandingMechanics',
-      tactical: 'backPassSupport',
-      physical: 'reactionSpeed',
-      cognitive: 'decisionMaking',
-    },
     exercises: [
       {
         id: crypto.randomUUID(),
@@ -372,12 +324,6 @@ export const SESSION_TEMPLATES: Record<string, Partial<TrainingSession>> = {
   },
   'physicalConditioningPlyometrics': {
     generalObjectives: ['improveOverallHandlingPositioning'],
-    objectives: {
-      technical: 'positioningDivingParrying',
-      tactical: 'goalProtection',
-      physical: 'explosivePower',
-      cognitive: 'focus',
-    },
     exercises: [
       {
         id: crypto.randomUUID(),

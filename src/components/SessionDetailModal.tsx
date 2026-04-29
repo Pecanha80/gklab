@@ -160,12 +160,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     return t(key);
   };
 
-  const hasObjectives =
-    session.objectives.technical ||
-    session.objectives.tactical ||
-    session.objectives.physical ||
-    session.objectives.cognitive;
-
+  const hasGym = session.gym && session.gym.length > 0;
   const hasWarmup = session.warmup && session.warmup.length > 0;
 
   const hasObservations =
@@ -265,15 +260,20 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               </div>
             )}
 
-            {/* Specific Objectives */}
-            {hasObjectives && (
+            {/* Gym (Pre-Training) */}
+            {hasGym && (
               <div className="space-y-3">
-                <SectionHeading title={t('specificObjectivesHeading')} icon={Target} />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label={t('technical')} value={tField(session.objectives.technical)} />
-                  <Field label={t('tactical')} value={tField(session.objectives.tactical)} />
-                  <Field label={t('physical')} value={tField(session.objectives.physical)} />
-                  <Field label={t('cognitive')} value={tField(session.objectives.cognitive)} />
+                <SectionHeading title={t('gymHeading')} icon={Dumbbell} />
+                <div className="space-y-2">
+                  {session.gym.map((drill, idx) => (
+                    <div key={drill.id} className="flex items-center gap-3 bg-surface rounded-lg border border-white/[0.04] px-4 py-2.5">
+                      <span className="text-[10px] font-bold text-green-400 w-5 shrink-0">{idx + 1}.</span>
+                      <span className="text-sm font-semibold text-on-surface flex-1">{tField(drill.title)}</span>
+                      {drill.repetitions && (
+                        <span className="text-[10px] font-bold text-on-surface-variant bg-white/[0.04] px-2.5 py-1 rounded">{drill.repetitions}</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

@@ -12,6 +12,7 @@ import {
   Heart,
   Activity,
   BookOpen,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -97,7 +98,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             aria-expanded={moreMenuOpen}
             className={cn(
               "flex flex-col items-center gap-1 transition-colors",
-              moreMenuOpen || ['Videos', 'Methodology', 'Support'].includes(activeTab) ? "text-primary" : "text-on-surface-variant"
+              moreMenuOpen || ['Videos', 'Methodology', 'Support', 'Analytics'].includes(activeTab) ? "text-primary" : "text-on-surface-variant"
             )}
           >
             <MoreHorizontal className="w-5 h-5" />
@@ -134,6 +135,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               >
                 <Activity className="w-4 h-4" />
                 {t('rpeTab')}
+              </button>
+              <button
+                onClick={() => { setActiveTab('Analytics'); setMoreMenuOpen(false); }}
+                className={cn(
+                  "flex items-center gap-3 w-full px-4 py-2.5 text-sm font-label transition-colors",
+                  activeTab === 'Analytics' ? "text-accent bg-accent/10" : "text-on-surface-variant hover:bg-white/[0.04]"
+                )}
+              >
+                <BarChart3 className="w-4 h-4" />
+                {t('analyticsTab')}
               </button>
               <button
                 onClick={() => { setActiveTab('Methodology'); setMoreMenuOpen(false); }}

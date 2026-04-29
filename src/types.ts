@@ -102,7 +102,7 @@ export interface DevelopmentGoal {
 
 export interface Exercise {
   id: string;
-  type: 'shotStopping' | 'crosses' | 'oneVsOne' | 'footwork' | 'distribution' | 'depthControl' | 'setPieces' | 'warmup';
+  type: 'shotStopping' | 'crosses' | 'oneVsOne' | 'footwork' | 'distribution' | 'depthControl' | 'setPieces' | 'warmup' | 'gym';
   title: string;
   category?: string; // e.g. 'Strength', 'Agility', etc.
   objective: string | string[];
@@ -139,13 +139,7 @@ export interface TrainingSession {
   duration: string | string[];
   generalObjectives: string[];
   
-  // Specific Objectives
-  objectives: {
-    technical: string | string[];
-    tactical: string | string[];
-    physical: string | string[];
-    cognitive: string | string[];
-  };
+  gym: Exercise[]; // Gym (pre-training) exercises
 
   warmup: Exercise[]; // Warmup drills
 

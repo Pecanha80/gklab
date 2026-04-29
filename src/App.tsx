@@ -24,6 +24,7 @@ const WellnessTab = lazy(() => import('./components/tabs/WellnessTab').then(m =>
 const RPETab = lazy(() => import('./components/tabs/RPETab').then(m => ({ default: m.RPETab })));
 const VideosTab = lazy(() => import('./components/tabs/VideosTab').then(m => ({ default: m.VideosTab })));
 const MethodologyTab = lazy(() => import('./components/tabs/MethodologyTab').then(m => ({ default: m.MethodologyTab })));
+const AnalyticsTab = lazy(() => import('./components/tabs/AnalyticsTab'));
 const SupportTab = lazy(() => import('./components/tabs/SupportTab').then(m => ({ default: m.SupportTab })));
 
 const TabFallback = () => (
@@ -275,6 +276,12 @@ export default function App() {
         {activeTab === 'RPE' && (
           <motion.div key="rpe" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
             <Suspense fallback={<TabFallback />}><RPETab /></Suspense>
+          </motion.div>
+        )}
+
+        {activeTab === 'Analytics' && (
+          <motion.div key="analytics" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+            <Suspense fallback={<TabFallback />}><AnalyticsTab /></Suspense>
           </motion.div>
         )}
 

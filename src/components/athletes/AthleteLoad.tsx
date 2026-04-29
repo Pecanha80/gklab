@@ -120,7 +120,7 @@ export const AthleteLoad: React.FC<AthleteLoadProps> = ({ goalkeeper, attendance
           <span className="text-[10px] font-bold text-on-surface uppercase tracking-wider">{t('weeklyLoadDistribution') || 'Distribuição de Carga Semanal'}</span>
         </div>
         <div className="p-5">
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" minWidth={0} height={220}>
             <BarChart data={weeklyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
               <XAxis dataKey="week" tick={{ fontSize: 10 }} stroke="rgba(0,0,0,0.3)" />
@@ -140,7 +140,7 @@ export const AthleteLoad: React.FC<AthleteLoadProps> = ({ goalkeeper, attendance
         </div>
         <div className="p-5">
           {rpeDistribution.some(r => r.count > 0) ? (
-            <ResponsiveContainer width="100%" height={180}>
+            <ResponsiveContainer width="100%" minWidth={0} height={180}>
               <BarChart data={rpeDistribution}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                 <XAxis dataKey="rpe" tick={{ fontSize: 10 }} stroke="rgba(0,0,0,0.3)" />

@@ -72,7 +72,7 @@ function makeMinimalSession(): Omit<TrainingSession, 'id'> {
     numAthletes: 2,
     duration: ['90min'],
     generalObjectives: [],
-    objectives: { technical: [], tactical: [], physical: [], cognitive: [] },
+    gym: [],
     warmup: [],
     exercises: [],
     integratedWithTeam: [],
@@ -146,15 +146,10 @@ describe('useSessionForm — handleAddSession (Save Session button)', () => {
       const { result } = renderSessionForm();
       expect(result.current.newSession).toMatchObject({
         category: [],
+        gym: [],
         warmup: [],
         exercises: [],
         generalObjectives: [],
-        objectives: {
-          technical: [],
-          tactical: [],
-          physical: [],
-          cognitive: [],
-        },
         observations: {
           positives: [],
           adjustments: [],
@@ -904,20 +899,15 @@ describe('useSessionForm — handleAddSession (Save Session button)', () => {
       }).not.toThrow();
     });
 
-    it('populates specific objectives from a known objective mapping', () => {
+    it('does not populate specific objectives (objectives removed, replaced by gym)', () => {
       const { result } = renderSessionForm();
 
-      // 'developAerialDominance' has a mapping with technical, tactical, physical, cognitive
       act(() => {
         result.current.handleGeneralObjectivesChange(['developAerialDominance']);
       });
 
-      const { objectives } = result.current.newSession;
-      // The mapping entry values get stored directly (as keys, before translation)
-      expect(objectives.technical).toContain('uncontestedCrossClaiming');
-      expect(objectives.tactical).toContain('setPieceOrganization');
-      expect(objectives.physical).toContain('strength');
-      expect(objectives.cognitive).toContain('focus');
+      // objectives field no longer exists — only generalObjectives and warmup are set
+      expect(result.current.newSession.generalObjectives).toContain('developAerialDominance');
     });
 
     it('generates a warmup drill from the mapping warmupObjective', () => {
@@ -931,7 +921,7 @@ describe('useSessionForm — handleAddSession (Save Session button)', () => {
       expect(result.current.newSession.warmup[0].type).toBe('warmup');
     });
 
-    it('does not add a duplicate objective value on repeated calls', () => {
+    it('sets generalObjectives without duplicates on repeated calls', () => {
       const { result } = renderSessionForm();
 
       act(() => {
@@ -941,16 +931,7 @@ describe('useSessionForm — handleAddSession (Save Session button)', () => {
         result.current.handleGeneralObjectivesChange(['developAerialDominance']);
       });
 
-      const technical = result.current.newSession.objectives.technical;
-      // 'uncontestedCrossClaiming' should appear only once
-      if (Array.isArray(technical)) {
-        const count = technical.filter((v: string) => v === 'uncontestedCrossClaiming').length;
-        expect(count).toBe(1);
-      } else {
-        // string path: shouldn't repeat either
-        const parts = (technical as string).split('\n').filter(p => p === 'uncontestedCrossClaiming');
-        expect(parts.length).toBe(1);
-      }
+      expect(result.current.newSession.generalObjectives).toEqual(['developAerialDominance']);
     });
   });
 

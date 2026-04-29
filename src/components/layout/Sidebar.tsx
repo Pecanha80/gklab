@@ -14,6 +14,7 @@ import {
   Heart,
   Activity,
   BookOpen,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -76,6 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {isSidebarCollapsed && <div className="sidebar-section-spacer" />}
         <SidebarItem icon={Heart} labelKey="wellnessTab" active={activeTab === 'Wellness'} onClick={() => setActiveTab('Wellness')} isCollapsed={isSidebarCollapsed} t={t} />
         <SidebarItem icon={Activity} labelKey="rpeTab" active={activeTab === 'RPE'} onClick={() => setActiveTab('RPE')} isCollapsed={isSidebarCollapsed} t={t} />
+        <SidebarItem icon={BarChart3} labelKey="analyticsTab" active={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} isCollapsed={isSidebarCollapsed} t={t} />
 
         {!isSidebarCollapsed && (
           <p className="sidebar-section-label px-4 text-[9px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">

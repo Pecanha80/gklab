@@ -101,7 +101,7 @@ export const AthleteAssessment: React.FC<AthleteAssessmentProps> = ({ goalkeeper
 
         {latest ? (
           <div className="p-5">
-            <ResponsiveContainer width="100%" height={380}>
+            <ResponsiveContainer width="100%" minWidth={0} height={380}>
               <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
                 <PolarGrid stroke="rgba(0,0,0,0.08)" />
                 <PolarAngleAxis

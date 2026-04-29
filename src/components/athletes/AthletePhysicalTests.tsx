@@ -276,7 +276,7 @@ export const AthletePhysicalTests: React.FC<AthletePhysicalTestsProps> = ({ goal
                   {/* Chart */}
                   {chartData.length >= 2 && (
                     <div className="h-40">
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer width="100%" minWidth={0} height="100%">
                         <LineChart data={chartData}>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                           <XAxis

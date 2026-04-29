@@ -31,6 +31,8 @@ function getTypeBadgeClasses(type: Exercise['type']): string {
       return 'bg-teal-500/10 text-teal-400';
     case 'warmup':
       return 'bg-purple-500/10 text-purple-400';
+    case 'gym':
+      return 'bg-green-500/10 text-green-400';
   }
 }
 

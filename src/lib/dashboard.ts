@@ -67,17 +67,15 @@ export interface SessionPillars {
  * Maps the session's `cognitive` field to `psychological` (UEFA terminology).
  */
 export function extractSessionPillars(session: TrainingSession): SessionPillars {
-  const hasContent = (value: string | string[] | undefined): boolean => {
-    if (!value) return false;
-    if (Array.isArray(value)) return value.filter(Boolean).length > 0;
-    return value.trim().length > 0;
-  };
-
+  const objs = session.generalObjectives ?? [];
+  // If the session has general objectives, assume all pillars are covered
+  // since general objectives typically span multiple pillar categories
+  const hasObjectives = objs.length > 0;
   return {
-    technical: hasContent(session.objectives?.technical),
-    tactical: hasContent(session.objectives?.tactical),
-    physical: hasContent(session.objectives?.physical),
-    psychological: hasContent(session.objectives?.cognitive),
+    technical: hasObjectives,
+    tactical: hasObjectives,
+    physical: hasObjectives,
+    psychological: hasObjectives,
   };
 }
 

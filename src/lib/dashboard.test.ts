@@ -89,53 +89,36 @@ describe('calculateWeeklyLoad', () => {
 // 3. Session Pillars Extraction
 // ──────────────────────────────────────────────
 describe('extractSessionPillars', () => {
-  it('identifies which pillars have content in a session', () => {
+  it('returns all true when session has generalObjectives', () => {
     const session = {
-      objectives: {
-        technical: 'Shot stopping',
-        tactical: '',
-        physical: 'Agility',
-        cognitive: '',
-      },
+      generalObjectives: ['improveOverallHandlingPositioning'],
     } as unknown as TrainingSession;
 
     const pillars = extractSessionPillars(session);
     expect(pillars).toEqual({
       technical: true,
-      tactical: false,
+      tactical: true,
       physical: true,
-      psychological: false,
-    });
-  });
-
-  it('handles array objectives', () => {
-    const session = {
-      objectives: {
-        technical: ['Diving', 'Positioning'],
-        tactical: [],
-        physical: [],
-        cognitive: ['Decision making'],
-      },
-    } as unknown as TrainingSession;
-
-    const pillars = extractSessionPillars(session);
-    expect(pillars).toEqual({
-      technical: true,
-      tactical: false,
-      physical: false,
       psychological: true,
     });
   });
 
-  it('returns all false when no objectives exist', () => {
+  it('returns all false when no generalObjectives exist', () => {
     const session = {
-      objectives: {
-        technical: '',
-        tactical: '',
-        physical: '',
-        cognitive: '',
-      },
+      generalObjectives: [],
     } as unknown as TrainingSession;
+
+    const pillars = extractSessionPillars(session);
+    expect(pillars).toEqual({
+      technical: false,
+      tactical: false,
+      physical: false,
+      psychological: false,
+    });
+  });
+
+  it('returns all false when generalObjectives is undefined', () => {
+    const session = {} as unknown as TrainingSession;
 
     const pillars = extractSessionPillars(session);
     expect(pillars).toEqual({

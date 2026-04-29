@@ -68,9 +68,9 @@ export function useMethodology() {
           .select('*')
           .eq('user_id', user.id)
           .eq('id', 'default')
-          .single();
+          .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           showError(t('methLoadError'));
         } else if (data) {
           setMethodology({

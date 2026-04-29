@@ -74,7 +74,7 @@ export const AthleteWellness: React.FC<AthleteWellnessProps> = ({ goalkeeper, we
         </div>
         <div className="p-5">
           {chartData.length > 1 ? (
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" minWidth={0} height={280}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                 <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="rgba(0,0,0,0.3)" />

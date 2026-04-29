@@ -538,7 +538,7 @@ export const MethodologyTab: React.FC = () => {
                    
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" minWidth={0} height="100%">
                           <RadarChart data={analyticsData.wellnessRadar}>
                             <PolarGrid stroke="#e5e7eb" />
                             <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700 }} />
@@ -592,7 +592,7 @@ export const MethodologyTab: React.FC = () => {
                   </h3>
                   
                   <div className="h-64 relative">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" minWidth={0} height="100%">
                       <PieChart>
                         <Pie
                           data={analyticsData.exerciseDonutData}
@@ -680,7 +680,7 @@ export const MethodologyTab: React.FC = () => {
                   </div>
                   
                   <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" minWidth={0} height="100%">
                       <BarChart data={analyticsData.loadTrendData}>
                         <defs>
                           <linearGradient id="loadGradient" x1="0" y1="0" x2="0" y2="1">
